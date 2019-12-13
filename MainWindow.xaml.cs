@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using static dcim_ingester.VolumeWatcher;
+using static dcim_ingester.Helpers;
 
 namespace dcim_ingester
 {
@@ -23,12 +24,7 @@ namespace dcim_ingester
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Rect workingArea = SystemParameters.WorkArea;
-            Left = workingArea.Right - Width - 20;
-            Top = workingArea.Bottom - Height - 20;
-
             Volumes = GetVolumes();
-            PrintVolumes(Volumes);
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -46,6 +42,12 @@ namespace dcim_ingester
         private IntPtr WindowMessageHandler(
             IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
+            if (!IsLoaded)
+            {
+                handled = false;
+                return IntPtr.Zero;
+            }
+
             if (msg == VolumeWatcher.WM_DEVICE_CHANGE)
             {
                 switch ((int)wparam)
@@ -82,15 +84,12 @@ namespace dcim_ingester
             Application.Current.Dispatcher.Invoke(delegate ()
             {
                 List<string> newVolumes = GetVolumes();
-                foreach (string volume in newVolumes)
+                foreach (string deviceId in newVolumes)
                 {
-                    if (!Volumes.Contains(volume))
+                    if (!Volumes.Contains(deviceId))
                     {
-                        string driveLetter = GetDriveLetter(volume);
-                        Console.WriteLine("new -- " + driveLetter);
-
-                        if (Directory.Exists(Path.Combine(driveLetter, "DCIM")))
-                            StartNewTask(driveLetter);
+                        if (Directory.Exists(Path.Combine(GetVolumeLetter(deviceId), "DCIM")))
+                            StartNewIngesterTask(deviceId);
                     }
                 }
 
@@ -105,51 +104,18 @@ namespace dcim_ingester
             });
         }
 
-        private void StartNewTask(string driveLetter)
+        private void StartNewIngesterTask(string deviceId)
         {
-            IngesterTask task = new IngesterTask(driveLetter);
+            IngesterTask task = new IngesterTask(deviceId);
             task.Margin = new Thickness(0, 20, 0, 0);
             Tasks.Add(task);
             StackPanelTasks.Children.Add(task);
 
             Height += 140;
-            Top -= 140;
-        }
-
-        private List<string> GetVolumes()
-        {
-            List<string> volumes = new List<string>();
-            ManagementObjectSearcher query = new ManagementObjectSearcher(
-                "SELECT DeviceID FROM Win32_Volume WHERE DriveLetter != NULL");
-
-            foreach (ManagementObject volume in query.Get())
-            {
-                // Get GUID only to avoid a mess with slashes and escaping
-                string deviceId = volume["DeviceID"].ToString();
-                deviceId = deviceId.Substring(deviceId.IndexOf('{'),
-                    deviceId.IndexOf('}') - deviceId.IndexOf('{') + 1);
-                volumes.Add(deviceId);
-            }
-
-            return volumes;
-        }
-        private string GetDriveLetter(string deviceId)
-        {
-            ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
-                "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", deviceId));
-            ManagementObjectCollection result = query.Get();
-
-            if (result.Count > 0)
-                return result.OfType<ManagementObject>().First()["DriveLetter"].ToString();
-            return null;
-        }
-
-        private void PrintVolumes(List<string> volumes)
-        {
-            Console.WriteLine("VOLUMES:");
-
-            foreach (string s in volumes)
-                Console.WriteLine(GetDriveLetter(s) + " -- " + s);
+            Rect workArea = SystemParameters.WorkArea;
+            Left = workArea.Right - Width - 20;
+            Top = workArea.Bottom - Height - 20;
+            Show();
         }
     }
 }

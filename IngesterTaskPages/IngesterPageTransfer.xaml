@@ -1,0 +1,15 @@
+﻿<Page x:Class="dcim_ingester.IngesterTaskPages.IngesterPageTransfer"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d" 
+      d:DesignWidth="400" d:DesignHeight="120">
+
+    <Grid>
+        <TextBlock Margin="10,10,10,0" TextWrapping="Wrap" TextAlignment="Justify" Text="Transferring files (1 of 55)" VerticalAlignment="Top" Foreground="#FFEBEBEB"/>
+        <Button Content="Cancel" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Height="26" Background="#FF505050" BorderThickness="0" Foreground="#FFEBEBEB" Padding="0,0,0,2"/>
+        <ProgressBar Height="18" Margin="9,31,11,0" VerticalAlignment="Top" Value="68" Background="#FF323232" Foreground="#FF505050" BorderThickness="0"/>
+
+    </Grid>
+</Page>

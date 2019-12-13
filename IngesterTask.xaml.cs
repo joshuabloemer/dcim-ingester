@@ -1,28 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using dcim_ingester.IngesterTaskPages;
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using static dcim_ingester.Helpers;
 
 namespace dcim_ingester
 {
     public partial class IngesterTask : UserControl
     {
-        public string DriveLetter { get; private set; }
+        public string DriveID { get; private set; }
 
-        public IngesterTask(string driveLetter)
+        public IngesterTask(string driveID)
         {
             InitializeComponent();
-            DriveLetter = driveLetter;
+            DriveID = driveID;
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            IngesterPageStart startPage = new IngesterPageStart(GetVolumeLabel(DriveID));
+            startPage.OnPageDismiss += IngesterPageStart_OnPageDismiss;
+            FrameA.Navigate(startPage);
+        }
+
+        private void IngesterPageStart_OnPageDismiss(object sender, PageDismissEventArgs e)
+        {
+            switch (e.DismissMessage)
+            {
+                case "IngesterPageStart.Yes":
+                    FrameA.Navigate(new IngesterPageTransfer());
+                    break;
+
+                case "IngesterPageStart.No":
+                    Environment.Exit(0);
+                    break;
+
+                case "IngesterPageTransfer.Complete":
+                    break;
+
+                case "IngesterPageTransfer.Fail":
+                    break;
+
+                case "IngesterPageComplete.Dismiss":
+                    break;
+
+                case "IngesterPageComplete.Explore":
+                    break;
+
+                case "IngesterPageFail.Dismiss":
+                    break;
+            }
         }
     }
 }

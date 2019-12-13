@@ -56,11 +56,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helpers.cs" />
     <Compile Include="IngesterTask.xaml.cs">
       <DependentUpon>IngesterTask.xaml</DependentUpon>
     </Compile>
+    <Compile Include="IngesterTaskPages\IngesterPageTransfer.xaml.cs">
+      <DependentUpon>IngesterPageTransfer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="IngesterTaskPages\IngesterPageStart.xaml.cs">
+      <DependentUpon>IngesterPageStart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PageDismissEventArgs.cs" />
     <Compile Include="VolumeWatcher.cs" />
     <Page Include="IngesterTask.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="IngesterTaskPages\IngesterPageTransfer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="IngesterTaskPages\IngesterPageStart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -103,8 +119,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IngesterTaskPages\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
