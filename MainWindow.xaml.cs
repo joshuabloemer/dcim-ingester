@@ -1,26 +1,30 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using static dcim_ingester.VolumeWatcher;
 using static dcim_ingester.Helpers;
+using static dcim_ingester.VolumeWatcher;
 
 namespace dcim_ingester
 {
     public partial class MainWindow : Window
     {
         private List<IngesterTask> Tasks = new List<IngesterTask>();
-        private List<string> Volumes = new List<string>();
+        private List<Guid> Volumes = new List<Guid>();
+
+        ConcurrentQueue<object> Messages = new ConcurrentQueue<object>();
+        bool isHandlingMessage = false;
 
         public MainWindow()
         {
             InitializeComponent();
         }
+
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -36,7 +40,7 @@ namespace dcim_ingester
             if (source != null)
             {
                 source.AddHook(WindowMessageHandler);
-                VolumeWatcher.RegisterDeviceNotification(source.Handle);
+                RegisterDeviceNotification(source.Handle);
             }
         }
         private IntPtr WindowMessageHandler(
@@ -48,29 +52,22 @@ namespace dcim_ingester
                 return IntPtr.Zero;
             }
 
-            if (msg == VolumeWatcher.WM_DEVICE_CHANGE)
+            // Only want to receive device insertion and removal messages
+            if (msg == WM_DEVICE_CHANGE &&
+                (int)wparam == DBT_DEVICE_ARRIVAL || (int)wparam == DBT_DEVICE_REMOVE_COMPLETE)
             {
-                switch ((int)wparam)
+                DevBroadcastDeviceInterface ver = (DevBroadcastDeviceInterface)
+                    Marshal.PtrToStructure(lparam, typeof(DevBroadcastDeviceInterface));
+
+                if (ver.Name.StartsWith("\\\\?\\")) // Ignore invalid false positives
                 {
-                    case VolumeWatcher.DBT_DEVICE_ARRIVAL:
-                        {
-                            DevBroadcastDeviceInterface ver = (DevBroadcastDeviceInterface)
-                                Marshal.PtrToStructure(lparam, typeof(DevBroadcastDeviceInterface));
-                            if (!ver.Name.StartsWith("\\\\?\\")) break;
-
-                            new Thread(delegate () { VolumeMounted(); }).Start();
-                            break;
-                        }
-
-                    case VolumeWatcher.DBT_DEVICE_REMOVE_COMPLETE:
-                        {
-                            DevBroadcastDeviceInterface ver = (DevBroadcastDeviceInterface)
-                                Marshal.PtrToStructure(lparam, typeof(DevBroadcastDeviceInterface));
-                            if (!ver.Name.StartsWith("\\\\?\\")) break;
-
-                            new Thread(delegate () { VolumeUnmounted(); }).Start();
-                            break;
-                        }
+                    // When we get any message, keep track of it and then process it
+                    Messages.Enqueue(null);
+                    if (!isHandlingMessage)
+                    {
+                        isHandlingMessage = true;
+                        new Thread(delegate () { VolumesChanged(); }).Start();
+                    }
                 }
             }
 
@@ -78,35 +75,44 @@ namespace dcim_ingester
             return IntPtr.Zero;
         }
 
-
-        private void VolumeMounted()
+        private void VolumesChanged()
         {
-            Application.Current.Dispatcher.Invoke(delegate ()
+            List<Guid> newVolumes = GetVolumes();
+
+            // Check for any added volumes
+            foreach (Guid volume in newVolumes)
             {
-                List<string> newVolumes = GetVolumes();
-                foreach (string deviceId in newVolumes)
+                if (!Volumes.Contains(volume))
                 {
-                    if (!Volumes.Contains(deviceId))
+                    if (Directory.Exists(Path.Combine(GetVolumeLetter(volume), "DCIM")))
                     {
-                        if (Directory.Exists(Path.Combine(GetVolumeLetter(deviceId), "DCIM")))
-                            StartNewIngesterTask(deviceId);
+                        Application.Current.Dispatcher.Invoke(delegate ()
+                        { StartIngesterTask(volume); });
                     }
                 }
+            }
 
-                Volumes = GetVolumes();
-            });
-        }
-        private void VolumeUnmounted()
-        {
-            Application.Current.Dispatcher.Invoke(delegate ()
+            // Check for any removed volumes
+            foreach (Guid volume in Volumes)
             {
-                Volumes = GetVolumes();
-            });
+                if (!newVolumes.Contains(volume))
+                {
+                    Application.Current.Dispatcher.Invoke(delegate ()
+                    { StopIngesterTask(volume); });
+                }
+            }
+
+            Volumes = newVolumes;
+
+            // Could have received another message during previous message processing
+            if (Messages.Count == 0)
+                isHandlingMessage = false;
+            else VolumesChanged();
         }
 
-        private void StartNewIngesterTask(string deviceId)
+        private void StartIngesterTask(Guid volumeId)
         {
-            IngesterTask task = new IngesterTask(deviceId);
+            IngesterTask task = new IngesterTask(volumeId);
             task.Margin = new Thickness(0, 20, 0, 0);
             Tasks.Add(task);
             StackPanelTasks.Children.Add(task);
@@ -116,6 +122,17 @@ namespace dcim_ingester
             Left = workArea.Right - Width - 20;
             Top = workArea.Bottom - Height - 20;
             Show();
+        }
+        private void StopIngesterTask(Guid volumeId)
+        {
+            IngesterTask task = Tasks.FirstOrDefault(t => t.VolumeID == volumeId);
+            if (task != null)
+            {
+                StackPanelTasks.Children.Remove(task);
+                Tasks.Remove(task);
+
+                if (Tasks.Count == 0) Hide();
+            }
         }
     }
 }

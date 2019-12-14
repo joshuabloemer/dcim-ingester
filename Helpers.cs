@@ -2,57 +2,55 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dcim_ingester
 {
     public static class Helpers
     {
-        public static List<string> GetVolumes()
+        public static List<Guid> GetVolumes()
         {
-            List<string> volumes = new List<string>();
+            List<Guid> volumes = new List<Guid>();
             ManagementObjectSearcher query = new ManagementObjectSearcher(
                 "SELECT DeviceID FROM Win32_Volume WHERE DriveLetter != NULL");
 
             foreach (ManagementObject volume in query.Get())
             {
-                // Get GUID only to avoid a mess with slashes and escaping
-                string deviceId = volume["DeviceID"].ToString();
-                deviceId = deviceId.Substring(deviceId.IndexOf('{'),
-                    deviceId.IndexOf('}') - deviceId.IndexOf('{') + 1);
-                volumes.Add(deviceId);
+                // Extract GUID to avoid a mess with slashes and escaping
+                string volumeId = volume["DeviceID"].ToString();
+                volumeId = volumeId.Substring(volumeId.IndexOf('{'),
+                    volumeId.IndexOf('}') - volumeId.IndexOf('{') + 1);
+                volumes.Add(new Guid(volumeId));
             }
 
             return volumes;
         }
-        public static string GetVolumeLabel(string deviceId)
+        public static string GetVolumeLetter(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
-                "SELECT Label FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", deviceId));
-            ManagementObjectCollection result = query.Get();
-
-            if (result.Count > 0)
-                return result.OfType<ManagementObject>().First()["Label"].ToString();
-            return null;
-        }
-        public static string GetVolumeLetter(string deviceId)
-        {
-            ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
-                "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", deviceId));
+                "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
             ManagementObjectCollection result = query.Get();
 
             if (result.Count > 0)
                 return result.OfType<ManagementObject>().First()["DriveLetter"].ToString();
             return null;
         }
+        public static string GetVolumeLabel(Guid volumeId)
+        {
+            ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
+                "SELECT Label FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
+            ManagementObjectCollection result = query.Get();
 
-        public static void PrintVolumes(List<string> volumes)
+            if (result.Count > 0)
+                return result.OfType<ManagementObject>().First()["Label"].ToString();
+            return null;
+        }
+
+        public static void PrintVolumes(List<Guid> volumes)
         {
             Console.WriteLine("VOLUMES:");
 
-            foreach (string s in volumes)
-                Console.WriteLine(GetVolumeLetter(s) + " -- " + s);
+            foreach (Guid volume in volumes)
+                Console.WriteLine(GetVolumeLetter(volume) + " -- " + volume);
         }
     }
 }

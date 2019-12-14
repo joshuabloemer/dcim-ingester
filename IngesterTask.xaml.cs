@@ -8,17 +8,21 @@ namespace dcim_ingester
 {
     public partial class IngesterTask : UserControl
     {
-        public string DriveID { get; private set; }
+        public Guid VolumeID { get; private set; }
+        public TaskStatus Status = TaskStatus.None;
 
-        public IngesterTask(string driveID)
+        public enum TaskStatus { None, Waiting, Transferring, Completed, Failed };
+
+        public IngesterTask(Guid volumeId)
         {
             InitializeComponent();
-            DriveID = driveID;
+            VolumeID = volumeId;
         }
+
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            IngesterPageStart startPage = new IngesterPageStart(GetVolumeLabel(DriveID));
+            IngesterPageStart startPage = new IngesterPageStart(GetVolumeLabel(VolumeID));
             startPage.OnPageDismiss += IngesterPageStart_OnPageDismiss;
             FrameA.Navigate(startPage);
         }
