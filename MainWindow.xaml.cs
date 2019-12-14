@@ -1,4 +1,5 @@
-﻿using System;
+﻿using dcim_ingester.Routines;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -7,8 +8,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using static dcim_ingester.Helpers;
-using static dcim_ingester.VolumeWatcher;
+using static dcim_ingester.Routines.Helpers;
+using static dcim_ingester.Routines.VolumeWatcher;
 
 namespace dcim_ingester
 {
@@ -84,7 +85,9 @@ namespace dcim_ingester
             {
                 if (!Volumes.Contains(volume))
                 {
-                    if (Directory.Exists(Path.Combine(GetVolumeLetter(volume), "DCIM")))
+                    string volumeLetter = GetVolumeLetter(volume);
+                    if (Directory.Exists(Path.Combine(volumeLetter, "DCIM"))
+                        && IsFilesToTransfer(volumeLetter))
                     {
                         Application.Current.Dispatcher.Invoke(delegate ()
                         { StartIngesterTask(volume); });
@@ -103,6 +106,8 @@ namespace dcim_ingester
             }
 
             Volumes = newVolumes;
+            object ignore;
+            Messages.TryDequeue(out ignore);
 
             // Could have received another message during previous message processing
             if (Messages.Count == 0)
@@ -113,15 +118,31 @@ namespace dcim_ingester
         private void StartIngesterTask(Guid volumeId)
         {
             IngesterTask task = new IngesterTask(volumeId);
-            task.Margin = new Thickness(0, 20, 0, 0);
+            task.OnTaskDismiss += Task_OnTaskDismiss;
             Tasks.Add(task);
-            StackPanelTasks.Children.Add(task);
 
-            Height += 140;
-            Rect workArea = SystemParameters.WorkArea;
-            Left = workArea.Right - Width - 20;
-            Top = workArea.Bottom - Height - 20;
-            Show();
+            new Thread(delegate ()
+            {
+                task.ComputeTransferList();
+                Application.Current.Dispatcher.Invoke(delegate ()
+                {
+                    task.Margin = new Thickness(0, 20, 0, 0);
+                    StackPanelTasks.Children.Add(task);
+
+                    Height += 140;
+                    Rect workArea = SystemParameters.WorkArea;
+                    Left = workArea.Right - Width - 20;
+                    Top = workArea.Bottom - Height - 20;
+                    Show();
+                });
+            }).Start();
+        }
+        private void Task_OnTaskDismiss(object sender, TaskDismissEventArgs e)
+        {
+            StackPanelTasks.Children.Remove(e.Task);
+            Tasks.Remove(e.Task);
+
+            if (Tasks.Count == 0) Hide();
         }
         private void StopIngesterTask(Guid volumeId)
         {

@@ -4,12 +4,13 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
-      d:DesignWidth="400" d:DesignHeight="120">
+      d:DesignWidth="400" d:DesignHeight="120" Loaded="Page_Loaded">
 
     <Grid>
-        <TextBlock Margin="10,10,10,0" TextWrapping="Wrap" TextAlignment="Justify" Text="Transferring files (1 of 55)" VerticalAlignment="Top" Foreground="#FFEBEBEB"/>
-        <Button Content="Cancel" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Height="26" Background="#FF505050" BorderThickness="0" Foreground="#FFEBEBEB" Padding="0,0,0,2"/>
-        <ProgressBar Height="18" Margin="9,31,11,0" VerticalAlignment="Top" Value="68" Background="#FF323232" Foreground="#FF505050" BorderThickness="0"/>
+        <TextBlock x:Name="TextBlockTransferring" Margin="10,10,45,0" TextWrapping="Wrap" TextAlignment="Justify" VerticalAlignment="Top" Foreground="#FFEBEBEB"/>
+        <TextBlock x:Name="TextBlockPercentage" Margin="0,10,10,0" TextWrapping="Wrap" TextAlignment="Right" VerticalAlignment="Top" Foreground="#FFEBEBEB" HorizontalAlignment="Right" Width="30"/>
+        <ProgressBar x:Name="ProgressBarA" Height="18" Margin="9,31,11,0" VerticalAlignment="Top" Background="#FF3C3C3C" Foreground="#FF5A5A5A" BorderThickness="0"/>
 
+        <Button x:Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Style="{DynamicResource ButtonStyle}"/>
     </Grid>
 </Page>

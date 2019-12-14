@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace dcim_ingester
+namespace dcim_ingester.Routines
 {
     // Taken from https://stackoverflow.com/questions/1976573/using-registerdevicenotification-in-a-net-app
     public static class VolumeWatcher

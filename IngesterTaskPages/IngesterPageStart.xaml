@@ -7,10 +7,10 @@
       d:DesignWidth="400" d:DesignHeight="120" Loaded="Page_Loaded">
 
     <Grid>
-        <TextBlock x:Name="lab" Margin="10,10,10,0" TextWrapping="Wrap" TextAlignment="Justify" Text="A device containing a DCIM folder has been connected. Do you want to ingest files from it?" VerticalAlignment="Top" Foreground="#FFEBEBEB"/>
-        <Button x:Name="ButtonYes" Content="Yes" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Height="26" Foreground="#FFEBEBEB" Background="#FF323232" BorderThickness="0" Click="ButtonYes_Click"/>
-        <Button x:Name="ButtonNo" Content="No" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Height="26" Foreground="#FFEBEBEB" Background="#FF323232" BorderThickness="0" Click="ButtonNo_Click"/>
-        <CheckBox Content="Delete original once copied" HorizontalAlignment="Left" Margin="205,0,0,15" VerticalAlignment="Bottom" Foreground="#FFEBEBEB"/>
-
+        <TextBlock x:Name="LabelA" Margin="10" TextWrapping="Wrap" TextAlignment="Justify" VerticalAlignment="Top" Foreground="#FFEBEBEB"/>
+        
+        <Button x:Name="ButtonYes" Content="Yes" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Click="ButtonYes_Click" Style="{DynamicResource ButtonStyle}"/>
+        <Button x:Name="ButtonNo" Content="No" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Click="ButtonNo_Click" Style="{DynamicResource ButtonStyle}"/>
+        <CheckBox x:Name="CheckBoxDelete" Content="Delete originals after transfer" HorizontalAlignment="Left" Margin="205,0,0,15" VerticalAlignment="Bottom" Foreground="#FFEBEBEB"/>
     </Grid>
 </Page>

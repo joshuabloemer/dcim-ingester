@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace dcim_ingester
+namespace dcim_ingester.Routines
 {
     public class PageDismissEventArgs : EventArgs
     {
         public string DismissMessage { get; private set; }
+        public string Extra { get; set; } = null;
 
         public PageDismissEventArgs(string dismissMessage)
         {
