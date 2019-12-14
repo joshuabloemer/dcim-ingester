@@ -7,7 +7,5 @@
         <SolidColorBrush Opacity="0" />
     </Window.Background>
 
-    <StackPanel x:Name="StackPanelTasks" VerticalAlignment="Bottom">
-        <!--<ItemsControl Width="Auto" Height="Auto" ItemsSource="{Binding Tasks}"/>-->
-    </StackPanel>
+    <StackPanel x:Name="StackPanelTasks" VerticalAlignment="Bottom"/>
 </Window>

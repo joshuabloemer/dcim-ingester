@@ -11,6 +11,8 @@
         <TextBlock x:Name="TextBlockPercentage" Margin="0,10,10,0" TextWrapping="Wrap" TextAlignment="Right" VerticalAlignment="Top" Foreground="#FFEBEBEB" HorizontalAlignment="Right" Width="30"/>
         <ProgressBar x:Name="ProgressBarA" Height="18" Margin="9,31,11,0" VerticalAlignment="Top" Background="#FF3C3C3C" Foreground="#FF5A5A5A" BorderThickness="0"/>
 
-        <Button x:Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Style="{DynamicResource ButtonStyle}"/>
+        <Button x:Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Style="{DynamicResource ButtonStyle}" Click="ButtonCancel_Click"/>
+        <Button x:Name="ButtonView" Content="View" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Style="{DynamicResource ButtonStyle}" Click="ButtonView_Click" Visibility="Collapsed"/>
+        <Button x:Name="ButtonEject" Content="Eject" HorizontalAlignment="Left" Margin="200,0,0,10" VerticalAlignment="Bottom" Width="80" Style="{DynamicResource ButtonStyle}" Click="ButtonEject_Click" Visibility="Collapsed"/>
     </Grid>
 </Page>

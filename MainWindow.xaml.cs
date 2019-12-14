@@ -1,9 +1,7 @@
 ﻿using dcim_ingester.Routines;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -15,10 +13,10 @@ namespace dcim_ingester
 {
     public partial class MainWindow : Window
     {
-        private List<IngesterTask> Tasks = new List<IngesterTask>();
         private List<Guid> Volumes = new List<Guid>();
+        private List<IngesterTask> Tasks = new List<IngesterTask>();
 
-        ConcurrentQueue<object> Messages = new ConcurrentQueue<object>();
+        private int MessagesToProcess = 0;
         bool isHandlingMessage = false;
 
         public MainWindow()
@@ -53,7 +51,7 @@ namespace dcim_ingester
                 return IntPtr.Zero;
             }
 
-            // Only want to receive device insertion and removal messages
+            // Only want to process device insertion and removal messages
             if (msg == WM_DEVICE_CHANGE &&
                 (int)wparam == DBT_DEVICE_ARRIVAL || (int)wparam == DBT_DEVICE_REMOVE_COMPLETE)
             {
@@ -62,11 +60,12 @@ namespace dcim_ingester
 
                 if (ver.Name.StartsWith("\\\\?\\")) // Ignore invalid false positives
                 {
-                    // When we get any message, keep track of it and then process it
-                    Messages.Enqueue(null);
+                    Interlocked.Increment(ref MessagesToProcess);
                     if (!isHandlingMessage)
                     {
                         isHandlingMessage = true;
+
+                        // Handle message in new thread to allow this method to return
                         new Thread(delegate () { VolumesChanged(); }).Start();
                     }
                 }
@@ -106,26 +105,27 @@ namespace dcim_ingester
             }
 
             Volumes = newVolumes;
-            object ignore;
-            Messages.TryDequeue(out ignore);
+            Interlocked.Decrement(ref MessagesToProcess);
 
             // Could have received another message during previous message processing
-            if (Messages.Count == 0)
+            if (MessagesToProcess == 0)
                 isHandlingMessage = false;
             else VolumesChanged();
         }
 
-        private void StartIngesterTask(Guid volumeId)
+        private void StartIngesterTask(Guid volume)
         {
-            IngesterTask task = new IngesterTask(volumeId);
-            task.OnTaskDismiss += Task_OnTaskDismiss;
-            Tasks.Add(task);
-
+            IngesterTask task = new IngesterTask(volume);
             new Thread(delegate ()
             {
                 task.ComputeTransferList();
+                if (task.FilesToTransfer.Count == 0) return;
+
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
+                    task.OnTaskDismiss += Task_OnTaskDismiss;
+                    Tasks.Add(task);
+
                     task.Margin = new Thickness(0, 20, 0, 0);
                     StackPanelTasks.Children.Add(task);
 
@@ -139,21 +139,21 @@ namespace dcim_ingester
         }
         private void Task_OnTaskDismiss(object sender, TaskDismissEventArgs e)
         {
-            StackPanelTasks.Children.Remove(e.Task);
-            Tasks.Remove(e.Task);
+            StopIngesterTask(e.Task.Volume);
+        }
+        private void StopIngesterTask(Guid volume)
+        {
+            foreach (IngesterTask task in Tasks)
+            {
+                if (task.Volume == volume)
+                {
+                    StackPanelTasks.Children.Remove(task);
+                    Tasks.Remove(task);
+                    break;
+                }
+            }
 
             if (Tasks.Count == 0) Hide();
-        }
-        private void StopIngesterTask(Guid volumeId)
-        {
-            IngesterTask task = Tasks.FirstOrDefault(t => t.VolumeID == volumeId);
-            if (task != null)
-            {
-                StackPanelTasks.Children.Remove(task);
-                Tasks.Remove(task);
-
-                if (Tasks.Count == 0) Hide();
-            }
         }
     }
 }

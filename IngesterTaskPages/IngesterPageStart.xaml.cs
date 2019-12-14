@@ -9,18 +9,18 @@ namespace dcim_ingester.IngesterTaskPages
 {
     public partial class IngesterPageStart : Page
     {
-        private Guid VolumeID;
+        private Guid Volume;
         private List<string> FilesToTransfer;
-        private long TotalSize;
+        private long TotalTransferSize;
 
         public event EventHandler<PageDismissEventArgs> OnPageDismiss;
 
         public IngesterPageStart(
-            Guid volumeId, List<string> filesToTransfer, long totalSize)
+            Guid volumeId, List<string> filesToTransfer, long totalTransferSize)
         {
-            VolumeID = volumeId;
+            Volume = volumeId;
             FilesToTransfer = filesToTransfer;
-            TotalSize = totalSize;
+            TotalTransferSize = totalTransferSize;
 
             InitializeComponent();
         }
@@ -28,16 +28,16 @@ namespace dcim_ingester.IngesterTaskPages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LabelA.Text = string.Format("DCIM device {0} contains {1} files ({2}). "
-                + "Do you want to transfer them?", GetVolumeLabel(VolumeID),
-                FilesToTransfer.Count, FormatBytes(TotalSize));
+            LabelA.Text = string.Format("DCIM device {0} contains {1} media files "
+                + "({2}). Do you want to transfer them?", GetVolumeLabel(Volume),
+                FilesToTransfer.Count, FormatBytes(TotalTransferSize));
             CheckBoxDelete.IsChecked = Properties.Settings.Default.DeleteAfter;
         }
 
         private void ButtonYes_Click(object sender, RoutedEventArgs e)
         {
             PageDismissEventArgs eventArgs
-                = new PageDismissEventArgs("IngesterPageStart.Yes");
+                = new PageDismissEventArgs("IngesterPageStart.Transfer");
 
             if (CheckBoxDelete.IsChecked == true)
             {
@@ -50,8 +50,8 @@ namespace dcim_ingester.IngesterTaskPages
         }
         private void ButtonNo_Click(object sender, RoutedEventArgs e)
         {
-            OnPageDismiss?.Invoke(
-                this, new PageDismissEventArgs("IngesterPageStart.No"));
+            OnPageDismiss?.Invoke(this,
+                new PageDismissEventArgs("IngesterPageStart.Cancel"));
         }
     }
 }

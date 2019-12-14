@@ -12,17 +12,22 @@ namespace dcim_ingester
 {
     public partial class IngesterTask : UserControl
     {
-        public Guid VolumeID { get; private set; }
+        public Guid Volume { get; private set; }
         public TaskStatus Status { get; private set; }
 
-        private List<string> FilesToTransfer = new List<string>();
-        private long TotalSize = 0;
+        private List<string> filesToTransfer = new List<string>();
+        public IList<string> FilesToTransfer
+        {
+            get { return filesToTransfer.AsReadOnly(); }
+        }
+
+        private long TotalTransferSize = 0;
 
         public event EventHandler<TaskDismissEventArgs> OnTaskDismiss;
 
-        public IngesterTask(Guid volumeId)
+        public IngesterTask(Guid volume)
         {
-            VolumeID = volumeId;
+            Volume = volume;
             Status = TaskStatus.Waiting;
 
             InitializeComponent();
@@ -32,7 +37,7 @@ namespace dcim_ingester
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             IngesterPageStart startPage = new IngesterPageStart(
-                VolumeID, FilesToTransfer, TotalSize);
+                Volume, filesToTransfer, TotalTransferSize);
             startPage.OnPageDismiss += IngesterPage_OnPageDismiss;
             FrameA.Navigate(startPage);
         }
@@ -41,42 +46,27 @@ namespace dcim_ingester
         {
             switch (e.DismissMessage)
             {
-                case "IngesterPageStart.Yes":
+                case "IngesterPageStart.Transfer":
                     Status = TaskStatus.Transferring;
                     bool deleteAfter = e.Extra == "delete" ? true : false;
 
                     IngesterPageTransfer transferPage = new IngesterPageTransfer(
-                        VolumeID, deleteAfter, FilesToTransfer, TotalSize);
+                        Volume, deleteAfter, filesToTransfer, TotalTransferSize);
                     transferPage.OnPageDismiss += IngesterPage_OnPageDismiss;
                     FrameA.Navigate(transferPage);
                     break;
 
-                case "IngesterPageStart.No":
+                case "IngesterPageStart.Cancel":
+                case "IngesterPageTransfer.Dismiss":
                     OnTaskDismiss?.Invoke(this, new TaskDismissEventArgs(this));
-                    break;
-
-                case "IngesterPageTransfer.Complete":
-                    break;
-
-                case "IngesterPageTransfer.Fail":
-                    break;
-
-                case "IngesterPageComplete.Dismiss":
-                    break;
-
-                case "IngesterPageComplete.Explore":
-                    break;
-
-                case "IngesterPageFail.Dismiss":
                     break;
             }
         }
 
-
         public void ComputeTransferList()
         {
             string[] directories = Directory.GetDirectories(
-                Path.Combine(GetVolumeLetter(VolumeID), "DCIM"));
+                Path.Combine(GetVolumeLetter(Volume), "DCIM"));
             if (directories.Length == 0) return;
 
             foreach (string directory in directories)
@@ -93,8 +83,15 @@ namespace dcim_ingester
                     if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(
                         file), "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
 
-                    TotalSize += new FileInfo(file).Length;
-                    FilesToTransfer.Add(file);
+                    string extension = Path.GetExtension(file).ToLower();
+
+                    // Only include files with supported extension
+                    if (extension == ".jpg" || extension == ".jpeg"
+                        || extension == ".cr2")
+                    {
+                        TotalTransferSize += new FileInfo(file).Length;
+                        filesToTransfer.Add(file);
+                    }
                 }
             }
         }
