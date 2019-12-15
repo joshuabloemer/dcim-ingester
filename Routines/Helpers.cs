@@ -62,41 +62,62 @@ namespace dcim_ingester.Routines
         // Taken from https://stackoverflow.com/questions/1242266/converting-bytes-to-gb-in-c
         public static string FormatBytes(long bytes)
         {
-            string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
-            int i;
+            string[] suffix = { "B", "KB", "MB", "GB", "TB" };
             double dblSByte = bytes;
-            for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
-            {
-                dblSByte = bytes / 1024.0;
-            }
 
-            return String.Format("{0:0.#} {1}", dblSByte, Suffix[i]);
+            int i;
+            for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+                dblSByte = bytes / 1024.0;
+
+            return string.Format("{0:0.#} {1}", dblSByte, suffix[i]);
         }
 
         public static bool IsFilesToTransfer(string volumePath)
         {
-            string[] directories = Directory
-                .GetDirectories(Path.Combine(volumePath, "DCIM"));
-            if (directories.Length == 0) return false;
-
-            foreach (string directory in directories)
+            try
             {
-                // Ignore directory names not conforming to DCF spec
-                if (!Regex.IsMatch(Path.GetFileName(
-                    directory), "^[0-9]{3}[0-9a-zA-Z]{5}$")) continue;
+                string[] directories = Directory
+                    .GetDirectories(Path.Combine(volumePath, "DCIM"));
+                if (directories.Length == 0) return false;
 
-                string[] files = Directory.GetFiles(directory);
-
-                foreach (string file in files)
+                foreach (string directory in directories)
                 {
-                    // Ignore file names not conforming to DCF spec
-                    if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(
-                        file), "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
-                    return true;
-                }
-            }
+                    // Ignore directory names not conforming to DCF spec
+                    if (!Regex.IsMatch(Path.GetFileName(
+                        directory), "^[0-9]{3}[0-9a-zA-Z]{5}$")) continue;
 
-            return false;
+                    string[] files = Directory.GetFiles(directory);
+
+                    foreach (string file in files)
+                    {
+                        // Ignore file names not conforming to DCF spec
+                        if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(
+                            file), "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception) { return false; }
+        }
+
+        public static DateTime? GetTimeTaken(string filePath)
+        {
+            IEnumerable<MetadataExtractor.Directory> metaGroups
+                = MetadataExtractor.ImageMetadataReader.ReadMetadata(filePath);
+            MetadataExtractor.Tag metaTag = null;
+
+            try
+            {
+                metaTag = metaGroups.First(group => group.Name == "Exif SubIFD")
+                    .Tags.First(tag => tag.Name == "Date/Time Original");
+
+                DateTime timeTaken = DateTime
+                    .ParseExact(metaTag.Description, "yyyy:MM:dd HH:mm:ss", null);
+                return timeTaken;
+            }
+            catch (Exception) { return null; }
         }
     }
 }

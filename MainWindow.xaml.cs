@@ -100,7 +100,7 @@ namespace dcim_ingester
                 if (!newVolumes.Contains(volume))
                 {
                     Application.Current.Dispatcher.Invoke(delegate ()
-                    { StopIngesterTask(volume); });
+                    { StopIngesterTask(volume, true); });
                 }
             }
 
@@ -141,12 +141,16 @@ namespace dcim_ingester
         {
             StopIngesterTask(e.Task.Volume);
         }
-        private void StopIngesterTask(Guid volume)
+        private void StopIngesterTask(Guid volume, bool onlyIfWaiting = false)
         {
             foreach (IngesterTask task in Tasks)
             {
                 if (task.Volume == volume)
                 {
+                    // Option to only remove task if in waiting state
+                    if (onlyIfWaiting && task.Status != TaskStatus.Waiting)
+                        return;
+
                     StackPanelTasks.Children.Remove(task);
                     Tasks.Remove(task);
                     break;

@@ -34,5 +34,17 @@ namespace dcim_ingester.Properties {
                 this["DeleteAfter"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:/Users/Henry/DCIMTest")]
+        public string Endpoint {
+            get {
+                return ((string)(this["Endpoint"]));
+            }
+            set {
+                this["Endpoint"] = value;
+            }
+        }
     }
 }

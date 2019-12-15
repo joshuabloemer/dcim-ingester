@@ -1,6 +1,8 @@
 ﻿using dcim_ingester.Routines;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +13,7 @@ namespace dcim_ingester.IngesterTaskPages
     public partial class IngesterPageTransfer : Page
     {
         private Guid Volume;
+        private string VolumeLabel;
         private bool DeleteAfter;
         private List<string> FilesToTransfer;
         private long TotalTransferSize;
@@ -18,12 +21,15 @@ namespace dcim_ingester.IngesterTaskPages
         private Thread TransferThread;
         private int TransferCount = 0;
 
+        public string DirectoryToView { get; private set; } = null;
+
         public event EventHandler<PageDismissEventArgs> OnPageDismiss;
 
         public IngesterPageTransfer(Guid volume,
             bool deleteAfter, List<string> filesToTransfer, long totalTransferSize)
         {
             Volume = volume;
+            VolumeLabel = GetVolumeLabel(volume);
             DeleteAfter = deleteAfter;
             FilesToTransfer = filesToTransfer;
             TotalTransferSize = totalTransferSize;
@@ -47,6 +53,7 @@ namespace dcim_ingester.IngesterTaskPages
                 float percentage
                     = ((float)(TransferCount) / FilesToTransfer.Count) * 100;
 
+                // Update interface to reflect progress
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
                     TextBlockTransferring.Text = string.Format(
@@ -58,50 +65,89 @@ namespace dcim_ingester.IngesterTaskPages
                     ProgressBarA.Value = percentage;
                 });
 
-                try
+                if (!TransferFile(file))
                 {
-                    // Transfer the file
-
-                    try
+                    // Update interface to reflect failure
+                    Application.Current.Dispatcher.Invoke(delegate ()
                     {
-                        // if (DeleteAfter) Delete file
-                    }
-                    catch (Exception)
-                    {
+                        TextBlockTransferring.Text = string.Format(
+                            "Transfer from {0} failed", VolumeLabel);
 
-                    }
-                }
-                catch (Exception)
-                {
-                    TextBlockTransferring.Text = string.Format(
-                        "Transfer from {0} failed", GetVolumeLabel(Volume));
+                        ButtonCancel.Content = "Dismiss";
+                        if (DirectoryToView != null)
+                            ButtonView.Visibility = Visibility.Visible;
+                    });
 
-                    // ButtonRetry.Content = "Dismiss";
+                    return;
                 }
 
                 TransferCount += 1;
-                Thread.Sleep(25);
             }
 
+            // Update interface to reflect completion
             Application.Current.Dispatcher.Invoke(delegate ()
-            { TransferComplete(false); });
-        }
-        private void TransferComplete(bool cancelled)
-        {
-            if (!cancelled)
             {
                 TextBlockTransferring.Text = string.Format(
-                    "Transfer from {0} completed", GetVolumeLabel(Volume));
+                    "Transfer from {0} complete", VolumeLabel);
+
+                ButtonCancel.Content = "Dismiss";
+                if (DirectoryToView != null)
+                    ButtonView.Visibility = Visibility.Visible;
+                ButtonEject.Visibility = Visibility.Visible;
+            });
+        }
+        private bool TransferFile(string filePath)
+        {
+            DateTime? timeTaken = null;
+            try
+            {
+                timeTaken = GetTimeTaken(filePath);
+            }
+            catch (Exception) { return false; }
+
+            // Copy file to directory based on the time taken
+            if (timeTaken != null)
+            {
+                string imageDir =
+                    Path.Combine(Properties.Settings.Default.Endpoint,
+                    string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2} -- Untitled",
+                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+
+                try
+                {
+                    Directory.CreateDirectory(imageDir);
+                    //File.Copy(filePath, imageDir);
+
+                    if (DirectoryToView == null)
+                        DirectoryToView = imageDir;
+
+                    //if (Properties.Settings.Default.DeleteAfter)
+                    //    File.Delete(filePath);
+                }
+                catch (Exception) { return false; }
             }
             else
             {
-                TextBlockTransferring.Text = string.Format(
-                    "Transfer from {0} cancelled", GetVolumeLabel(Volume));
+                // Copy files without time taken to different folder
+                string imageDir =
+                    Path.Combine(Properties.Settings.Default.Endpoint,
+                    "Unsorted", Path.GetFileName(filePath));
+
+                try
+                {
+                    Directory.CreateDirectory(imageDir);
+                    //File.Copy(filePath, imageDir);
+
+                    if (DirectoryToView == null)
+                        DirectoryToView = imageDir;
+
+                    //if (Properties.Settings.Default.DeleteAfter)
+                    //    File.Delete(filePath);
+                }
+                catch (Exception) { return false; }
             }
 
-            ButtonCancel.Content = "Dismiss";
-            ButtonView.Visibility = Visibility.Visible;
-            ButtonEject.Visibility = Visibility.Visible;
+            return true;
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
@@ -109,7 +155,15 @@ namespace dcim_ingester.IngesterTaskPages
             if (ButtonCancel.Content.ToString() == "Cancel")
             {
                 TransferThread.Abort();
-                TransferComplete(true);
+
+                // Update interface to reflect cancellation
+                TextBlockTransferring.Text = string.Format(
+                    "Transfer from {0} cancelled", VolumeLabel);
+
+                ButtonCancel.Content = "Dismiss";
+                if (DirectoryToView != null)
+                    ButtonView.Visibility = Visibility.Visible;
+                ButtonEject.Visibility = Visibility.Visible;
             }
             else
             {
@@ -119,6 +173,13 @@ namespace dcim_ingester.IngesterTaskPages
         }
         private void ButtonView_Click(object sender, RoutedEventArgs e)
         {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = DirectoryToView,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+
             OnPageDismiss?.Invoke(this, new
                 PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
         }
