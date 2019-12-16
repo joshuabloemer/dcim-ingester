@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
@@ -13,11 +12,8 @@ namespace dcim_ingester
 {
     public partial class MainWindow : Window
     {
-        private List<Guid> Volumes = new List<Guid>();
+        private VolumeWatcher Volumes = new VolumeWatcher();
         private List<IngesterTask> Tasks = new List<IngesterTask>();
-
-        private int MessagesToProcess = 0;
-        bool isHandlingMessage = false;
 
         public MainWindow()
         {
@@ -25,92 +21,38 @@ namespace dcim_ingester
         }
 
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            Volumes = GetVolumes();
-        }
-
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
+            HwndSource source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
 
             // Register for device change messages
-            HwndSource source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
             if (source != null)
             {
-                source.AddHook(WindowMessageHandler);
-                RegisterDeviceNotification(source.Handle);
+                Volumes.VolumeAdded += Devices_VolumeAdded;
+                Volumes.VolumeRemoved += Devices_VolumeRemoved;
+                Volumes.StartWatching(source);
             }
         }
-        private IntPtr WindowMessageHandler(
-            IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
-            if (!IsLoaded)
+            if (!IsLoaded) return;
+
+            string volumeLetter = GetVolumeLetter(e.VolumeID);
+            if (Directory.Exists(Path.Combine(volumeLetter, "DCIM"))
+                && HasFilesToTransfer(volumeLetter))
             {
-                handled = false;
-                return IntPtr.Zero;
+                StartIngesterTask(e.VolumeID);
             }
-
-            // Only want to process device insertion and removal messages
-            if (msg == WM_DEVICE_CHANGE &&
-                (int)wparam == DBT_DEVICE_ARRIVAL || (int)wparam == DBT_DEVICE_REMOVE_COMPLETE)
-            {
-                DevBroadcastDeviceInterface ver = (DevBroadcastDeviceInterface)
-                    Marshal.PtrToStructure(lparam, typeof(DevBroadcastDeviceInterface));
-
-                if (ver.Name.StartsWith("\\\\?\\")) // Ignore invalid false positives
-                {
-                    Interlocked.Increment(ref MessagesToProcess);
-                    if (!isHandlingMessage)
-                    {
-                        isHandlingMessage = true;
-
-                        // Handle message in new thread to allow this method to return
-                        new Thread(delegate () { VolumesChanged(); }).Start();
-                    }
-                }
-            }
-
-            handled = false;
-            return IntPtr.Zero;
         }
-
-        private void VolumesChanged()
+        private void Devices_VolumeRemoved(object sender, VolumeChangedEventArgs e)
         {
-            List<Guid> newVolumes = GetVolumes();
-
-            // Check for any added volumes
-            foreach (Guid volume in newVolumes)
-            {
-                if (!Volumes.Contains(volume))
-                {
-                    string volumeLetter = GetVolumeLetter(volume);
-                    if (Directory.Exists(Path.Combine(volumeLetter, "DCIM"))
-                        && IsFilesToTransfer(volumeLetter))
-                    {
-                        Application.Current.Dispatcher.Invoke(delegate ()
-                        { StartIngesterTask(volume); });
-                    }
-                }
-            }
-
-            // Check for any removed volumes
-            foreach (Guid volume in Volumes)
-            {
-                if (!newVolumes.Contains(volume))
-                {
-                    Application.Current.Dispatcher.Invoke(delegate ()
-                    { StopIngesterTask(volume, true); });
-                }
-            }
-
-            Volumes = newVolumes;
-            Interlocked.Decrement(ref MessagesToProcess);
-
-            // Could have received another message during previous message processing
-            if (MessagesToProcess == 0)
-                isHandlingMessage = false;
-            else VolumesChanged();
+            if (!IsLoaded) return;
+            StopIngesterTask(e.VolumeID, true);
+        }
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            Volumes.StopWatching();
         }
 
         private void StartIngesterTask(Guid volume)
@@ -123,7 +65,8 @@ namespace dcim_ingester
 
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
-                    task.OnTaskDismiss += Task_OnTaskDismiss;
+                    task.InitializeComponent();
+                    task.TaskDismissed += Task_TaskDismissed;
                     Tasks.Add(task);
 
                     task.Margin = new Thickness(0, 20, 0, 0);
@@ -137,7 +80,7 @@ namespace dcim_ingester
                 });
             }).Start();
         }
-        private void Task_OnTaskDismiss(object sender, TaskDismissEventArgs e)
+        private void Task_TaskDismissed(object sender, TaskDismissEventArgs e)
         {
             StopIngesterTask(e.Task.Volume);
         }

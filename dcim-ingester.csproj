@@ -62,6 +62,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Routines\DeviceChangeWatcher.cs" />
     <Compile Include="Routines\Helpers.cs" />
     <Compile Include="IngesterTask.xaml.cs">
       <DependentUpon>IngesterTask.xaml</DependentUpon>

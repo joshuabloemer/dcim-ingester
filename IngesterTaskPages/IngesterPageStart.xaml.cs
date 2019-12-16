@@ -13,7 +13,7 @@ namespace dcim_ingester.IngesterTaskPages
         private List<string> FilesToTransfer;
         private long TotalTransferSize;
 
-        public event EventHandler<PageDismissEventArgs> OnPageDismiss;
+        public event EventHandler<PageDismissEventArgs> PageDismissed;
 
         public IngesterPageStart(
             Guid volumeId, List<string> filesToTransfer, long totalTransferSize)
@@ -46,11 +46,11 @@ namespace dcim_ingester.IngesterTaskPages
                 eventArgs.Extra = "delete";
             }
 
-            OnPageDismiss?.Invoke(this, eventArgs);
+            PageDismissed?.Invoke(this, eventArgs);
         }
         private void ButtonNo_Click(object sender, RoutedEventArgs e)
         {
-            OnPageDismiss?.Invoke(this,
+            PageDismissed?.Invoke(this,
                 new PageDismissEventArgs("IngesterPageStart.Cancel"));
         }
     }

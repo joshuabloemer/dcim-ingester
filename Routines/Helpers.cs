@@ -11,25 +11,6 @@ namespace dcim_ingester.Routines
     {
         public enum TaskStatus { Waiting, Transferring, Completed, Failed };
 
-        public static List<Guid> GetVolumes()
-        {
-            List<Guid> volumes = new List<Guid>();
-            ManagementObjectSearcher query = new ManagementObjectSearcher(
-                "SELECT DeviceID FROM Win32_Volume WHERE DriveLetter != NULL "
-                + "AND (FileSystem = 'FAT12' OR FileSystem = 'FAT16' OR "
-                + "FileSystem = 'FAT32' OR FileSystem = 'exFAT')");
-
-            foreach (ManagementObject volume in query.Get())
-            {
-                // Extract GUID to avoid a mess with slashes and escaping
-                string volumeId = volume["DeviceID"].ToString();
-                volumeId = volumeId.Substring(volumeId.IndexOf('{'),
-                    volumeId.IndexOf('}') - volumeId.IndexOf('{') + 1);
-                volumes.Add(new Guid(volumeId));
-            }
-
-            return volumes;
-        }
         public static string GetVolumeLetter(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
@@ -51,14 +32,6 @@ namespace dcim_ingester.Routines
             return null;
         }
 
-        public static void PrintVolumes(List<Guid> volumes)
-        {
-            Console.WriteLine("VOLUMES:");
-
-            foreach (Guid volume in volumes)
-                Console.WriteLine(GetVolumeLetter(volume) + " -- " + volume);
-        }
-
         // Taken from https://stackoverflow.com/questions/1242266/converting-bytes-to-gb-in-c
         public static string FormatBytes(long bytes)
         {
@@ -72,7 +45,7 @@ namespace dcim_ingester.Routines
             return string.Format("{0:0.#} {1}", dblSByte, suffix[i]);
         }
 
-        public static bool IsFilesToTransfer(string volumePath)
+        public static bool HasFilesToTransfer(string volumePath)
         {
             try
             {
@@ -99,7 +72,7 @@ namespace dcim_ingester.Routines
 
                 return false;
             }
-            catch (Exception) { return false; }
+            catch { return false; }
         }
 
         public static DateTime? GetTimeTaken(string filePath)
@@ -117,7 +90,7 @@ namespace dcim_ingester.Routines
                     .ParseExact(metaTag.Description, "yyyy:MM:dd HH:mm:ss", null);
                 return timeTaken;
             }
-            catch (Exception) { return null; }
+            catch { return null; }
         }
     }
 }

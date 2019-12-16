@@ -23,14 +23,12 @@ namespace dcim_ingester
 
         private long TotalTransferSize = 0;
 
-        public event EventHandler<TaskDismissEventArgs> OnTaskDismiss;
+        public event EventHandler<TaskDismissEventArgs> TaskDismissed;
 
         public IngesterTask(Guid volume)
         {
             Volume = volume;
             Status = TaskStatus.Waiting;
-
-            InitializeComponent();
         }
 
 
@@ -38,11 +36,11 @@ namespace dcim_ingester
         {
             IngesterPageStart startPage = new IngesterPageStart(
                 Volume, filesToTransfer, TotalTransferSize);
-            startPage.OnPageDismiss += IngesterPage_OnPageDismiss;
+            startPage.PageDismissed += IngesterPage_PageDismissed;
             FrameA.Navigate(startPage);
         }
 
-        private void IngesterPage_OnPageDismiss(object sender, PageDismissEventArgs e)
+        private void IngesterPage_PageDismissed(object sender, PageDismissEventArgs e)
         {
             switch (e.DismissMessage)
             {
@@ -52,13 +50,13 @@ namespace dcim_ingester
 
                     IngesterPageTransfer transferPage = new IngesterPageTransfer(
                         Volume, deleteAfter, filesToTransfer, TotalTransferSize);
-                    transferPage.OnPageDismiss += IngesterPage_OnPageDismiss;
+                    transferPage.PageDismissed += IngesterPage_PageDismissed;
                     FrameA.Navigate(transferPage);
                     break;
 
                 case "IngesterPageStart.Cancel":
                 case "IngesterPageTransfer.Dismiss":
-                    OnTaskDismiss?.Invoke(this, new TaskDismissEventArgs(this));
+                    TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
                     break;
             }
         }
@@ -97,7 +95,7 @@ namespace dcim_ingester
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 filesToTransfer.Clear();
                 TotalTransferSize = 0;

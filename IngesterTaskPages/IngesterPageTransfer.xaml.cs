@@ -23,7 +23,7 @@ namespace dcim_ingester.IngesterTaskPages
 
         public string DirectoryToView { get; private set; } = null;
 
-        public event EventHandler<PageDismissEventArgs> OnPageDismiss;
+        public event EventHandler<PageDismissEventArgs> PageDismissed;
 
         public IngesterPageTransfer(Guid volume,
             bool deleteAfter, List<string> filesToTransfer, long totalTransferSize)
@@ -81,7 +81,7 @@ namespace dcim_ingester.IngesterTaskPages
                     return;
                 }
 
-                TransferCount += 1;
+                TransferCount++;
             }
 
             // Update interface to reflect completion
@@ -103,7 +103,7 @@ namespace dcim_ingester.IngesterTaskPages
             {
                 timeTaken = GetTimeTaken(filePath);
             }
-            catch (Exception) { return false; }
+            catch { return false; }
 
             // Copy file to directory based on the time taken
             if (timeTaken != null)
@@ -124,7 +124,7 @@ namespace dcim_ingester.IngesterTaskPages
                     //if (Properties.Settings.Default.DeleteAfter)
                     //    File.Delete(filePath);
                 }
-                catch (Exception) { return false; }
+                catch { return false; }
             }
             else
             {
@@ -144,7 +144,7 @@ namespace dcim_ingester.IngesterTaskPages
                     //if (Properties.Settings.Default.DeleteAfter)
                     //    File.Delete(filePath);
                 }
-                catch (Exception) { return false; }
+                catch { return false; }
             }
 
             return true;
@@ -167,7 +167,7 @@ namespace dcim_ingester.IngesterTaskPages
             }
             else
             {
-                OnPageDismiss?.Invoke(this, new
+                PageDismissed?.Invoke(this, new
                     PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
             }
         }
@@ -180,12 +180,12 @@ namespace dcim_ingester.IngesterTaskPages
                 Verb = "open"
             });
 
-            OnPageDismiss?.Invoke(this, new
+            PageDismissed?.Invoke(this, new
                 PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
         }
         private void ButtonEject_Click(object sender, RoutedEventArgs e)
         {
-            OnPageDismiss?.Invoke(this, new
+            PageDismissed?.Invoke(this, new
                 PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
         }
     }
