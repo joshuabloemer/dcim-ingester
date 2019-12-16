@@ -1,14 +1,13 @@
-﻿using dcim_ingester.IngesterTaskPages;
-using dcim_ingester.Routines;
+﻿using DCIMIngester.IngesterTaskPages;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using static dcim_ingester.Routines.Helpers;
+using static DCIMIngester.Routines.Helpers;
 
-namespace dcim_ingester
+namespace DCIMIngester.Routines
 {
     public partial class IngesterTask : UserControl
     {
@@ -34,8 +33,8 @@ namespace dcim_ingester
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            IngesterPageStart startPage = new IngesterPageStart(
-                Volume, filesToTransfer, TotalTransferSize);
+            TaskPageStart startPage = new TaskPageStart(Volume,
+                filesToTransfer, TotalTransferSize);
             startPage.PageDismissed += IngesterPage_PageDismissed;
             FrameA.Navigate(startPage);
         }
@@ -48,7 +47,7 @@ namespace dcim_ingester
                     Status = TaskStatus.Transferring;
                     bool deleteAfter = e.Extra == "delete" ? true : false;
 
-                    IngesterPageTransfer transferPage = new IngesterPageTransfer(
+                    TaskPageTransfer transferPage = new TaskPageTransfer(
                         Volume, deleteAfter, filesToTransfer, TotalTransferSize);
                     transferPage.PageDismissed += IngesterPage_PageDismissed;
                     FrameA.Navigate(transferPage);

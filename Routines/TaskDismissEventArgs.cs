@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace dcim_ingester.Routines
+namespace DCIMIngester.Routines
 {
     public class TaskDismissEventArgs : EventArgs
     {

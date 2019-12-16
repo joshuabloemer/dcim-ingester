@@ -1,14 +1,14 @@
-﻿using dcim_ingester.Routines;
+﻿using DCIMIngester.Routines;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using static dcim_ingester.Routines.Helpers;
-using static dcim_ingester.Routines.VolumeWatcher;
+using static DCIMIngester.Routines.Helpers;
+using static DCIMIngester.Routines.VolumeWatcher;
 
-namespace dcim_ingester
+namespace DCIMIngester.Windows
 {
     public partial class MainWindow : Window
     {

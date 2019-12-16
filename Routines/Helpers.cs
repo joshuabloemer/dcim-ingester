@@ -5,7 +5,7 @@ using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
 
-namespace dcim_ingester.Routines
+namespace DCIMIngester.Routines
 {
     public static class Helpers
     {

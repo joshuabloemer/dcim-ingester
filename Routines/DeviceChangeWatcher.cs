@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace dcim_ingester.Routines
+namespace DCIMIngester.Routines
 {
     // Original code from https://stackoverflow.com/questions/1976573/using-registerdevicenotification-in-a-net-app
     public class DeviceChangeWatcher

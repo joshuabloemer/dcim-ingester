@@ -1,13 +1,13 @@
-﻿using dcim_ingester.Routines;
+﻿using DCIMIngester.Routines;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using static dcim_ingester.Routines.Helpers;
+using static DCIMIngester.Routines.Helpers;
 
-namespace dcim_ingester.IngesterTaskPages
+namespace DCIMIngester.IngesterTaskPages
 {
-    public partial class IngesterPageStart : Page
+    public partial class TaskPageStart : Page
     {
         private Guid Volume;
         private List<string> FilesToTransfer;
@@ -15,7 +15,7 @@ namespace dcim_ingester.IngesterTaskPages
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
-        public IngesterPageStart(
+        public TaskPageStart(
             Guid volumeId, List<string> filesToTransfer, long totalTransferSize)
         {
             Volume = volumeId;

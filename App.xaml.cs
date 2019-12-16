@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
-namespace dcim_ingester
+namespace DCIMIngester
 {
     public partial class App : Application
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            MainWindow mainWindow = new MainWindow();
-            MainWindow.Show();
-            MainWindow.Hide();
+            Windows.MainWindow mainWindow = new Windows.MainWindow();
+            mainWindow.Show();
+            mainWindow.Hide();
         }
     }
 }

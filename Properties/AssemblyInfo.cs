@@ -7,12 +7,12 @@ using System.Windows;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("dcim-ingester")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("DCIM Ingester")]
+[assembly: AssemblyDescription("Automatically detect DCIM devices and ingest files from them")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("dcim-ingester")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyCompany("Henry Hunt")]
+[assembly: AssemblyProduct("DCIM Ingester")]
+[assembly: AssemblyCopyright("Copyright © Henry Hunt 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dcim-ingester", "dcim-ingester.csproj", "{9FB48958-952B-4000-9B7A-B43323E022B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCIMIngester", "DCIMIngester.csproj", "{9FB48958-952B-4000-9B7A-B43323E022B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
