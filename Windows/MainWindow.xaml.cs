@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using static DCIMIngester.Routines.Helpers;
@@ -57,28 +56,18 @@ namespace DCIMIngester.Windows
 
         private void StartIngesterTask(Guid volume)
         {
+            Height += 140;
+            Rect workArea = SystemParameters.WorkArea;
+            Left = workArea.Right - Width - 20;
+            Top = workArea.Bottom - Height - 20;
+            Show();
+
             IngesterTask task = new IngesterTask(volume);
-            new Thread(delegate ()
-            {
-                task.ComputeTransferList();
-                if (task.FilesToTransfer.Count == 0) return;
+            task.TaskDismissed += Task_TaskDismissed;
 
-                Application.Current.Dispatcher.Invoke(delegate ()
-                {
-                    task.InitializeComponent();
-                    task.TaskDismissed += Task_TaskDismissed;
-                    Tasks.Add(task);
-
-                    task.Margin = new Thickness(0, 20, 0, 0);
-                    StackPanelTasks.Children.Add(task);
-
-                    Height += 140;
-                    Rect workArea = SystemParameters.WorkArea;
-                    Left = workArea.Right - Width - 20;
-                    Top = workArea.Bottom - Height - 20;
-                    Show();
-                });
-            }).Start();
+            Tasks.Add(task);
+            StackPanelTasks.Children.Add(task);
+            task.Start();
         }
         private void Task_TaskDismissed(object sender, TaskDismissEventArgs e)
         {
@@ -94,13 +83,19 @@ namespace DCIMIngester.Windows
                     if (onlyIfWaiting && task.Status != TaskStatus.Waiting)
                         return;
 
+                    task.Stop();
                     StackPanelTasks.Children.Remove(task);
                     Tasks.Remove(task);
+
+                    Height -= 140;
+                    Rect workArea = SystemParameters.WorkArea;
+                    Left = workArea.Right - Width - 20;
+                    Top = workArea.Bottom - Height - 20;
+
+                    if (Tasks.Count == 0) Hide();
                     break;
                 }
             }
-
-            if (Tasks.Count == 0) Hide();
         }
     }
 }

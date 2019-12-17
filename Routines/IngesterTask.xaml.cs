@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using static DCIMIngester.Routines.Helpers;
@@ -14,30 +15,22 @@ namespace DCIMIngester.Routines
         public Guid Volume { get; private set; }
         public TaskStatus Status { get; private set; }
 
-        private List<string> filesToTransfer = new List<string>();
-        public IReadOnlyCollection<string> FilesToTransfer
-        {
-            get { return filesToTransfer.AsReadOnly(); }
-        }
-
+        private List<string> FilesToTransfer = new List<string>();
         private long TotalTransferSize = 0;
 
         public event EventHandler<TaskDismissEventArgs> TaskDismissed;
+        private Thread BeginThread = null;
 
         public IngesterTask(Guid volume)
         {
             Volume = volume;
             Status = TaskStatus.Waiting;
+
+            Visibility = Visibility.Collapsed;
+            Margin = new Thickness(0, 20, 0, 0);
+            InitializeComponent();
         }
 
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            TaskPageStart startPage = new TaskPageStart(Volume,
-                filesToTransfer, TotalTransferSize);
-            startPage.PageDismissed += IngesterPage_PageDismissed;
-            FrameA.Navigate(startPage);
-        }
 
         private void IngesterPage_PageDismissed(object sender, PageDismissEventArgs e)
         {
@@ -47,8 +40,9 @@ namespace DCIMIngester.Routines
                     Status = TaskStatus.Transferring;
                     bool deleteAfter = e.Extra == "delete" ? true : false;
 
+                    // Swap out start page for transfer page to manage the transfer
                     TaskPageTransfer transferPage = new TaskPageTransfer(
-                        Volume, deleteAfter, filesToTransfer, TotalTransferSize);
+                        Volume, deleteAfter, FilesToTransfer, TotalTransferSize);
                     transferPage.PageDismissed += IngesterPage_PageDismissed;
                     FrameA.Navigate(transferPage);
                     break;
@@ -60,45 +54,70 @@ namespace DCIMIngester.Routines
             }
         }
 
-        public void ComputeTransferList()
+        public void Start()
         {
-            try
+            BeginThread = new Thread(delegate ()
             {
-                string[] directories = Directory.GetDirectories(
-                    Path.Combine(GetVolumeLetter(Volume), "DCIM"));
-                if (directories.Length == 0) return;
-
-                foreach (string directory in directories)
+                try
                 {
-                    // Ignore directory names not conforming to DCF spec
-                    if (!Regex.IsMatch(Path.GetFileName(
-                        directory), "^[0-9]{3}[0-9a-zA-Z]{5}$")) continue;
+                    string[] directories = Directory.GetDirectories(
+                        Path.Combine(GetVolumeLetter(Volume), "DCIM"));
+                    if (directories.Length == 0) return;
 
-                    string[] files = Directory.GetFiles(directory);
-
-                    foreach (string file in files)
+                    foreach (string directory in directories)
                     {
-                        // Ignore file names not conforming to DCF spec
-                        if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(
-                            file), "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
+                        // Ignore directory names not conforming to DCF spec
+                        if (!Regex.IsMatch(Path.GetFileName(
+                            directory), "^[0-9]{3}[0-9a-zA-Z]{5}$")) continue;
 
-                        string extension = Path.GetExtension(file).ToLower();
+                        string[] files = Directory.GetFiles(directory);
 
-                        // Only include files with supported extension
-                        if (extension == ".jpg" || extension == ".jpeg"
-                            || extension == ".cr2")
+                        foreach (string file in files)
                         {
-                            TotalTransferSize += new FileInfo(file).Length;
-                            filesToTransfer.Add(file);
+                            // Ignore file names not conforming to DCF spec
+                            if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(
+                                file), "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
+
+                            string extension = Path.GetExtension(file).ToLower();
+
+                            // Only include files with supported extension
+                            if (extension == ".jpg" || extension == ".jpeg"
+                                || extension == ".cr2")
+                            {
+                                TotalTransferSize += new FileInfo(file).Length;
+                                FilesToTransfer.Add(file);
+                            }
                         }
                     }
                 }
-            }
-            catch
-            {
-                filesToTransfer.Clear();
-                TotalTransferSize = 0;
-            }
+                catch
+                {
+                    TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
+                    return;
+                }
+
+                // If there are files then show the task and load start screen
+                if (FilesToTransfer.Count > 0)
+                {
+                    Application.Current.Dispatcher.Invoke(delegate ()
+                    {
+                        TaskPageStart startPage = new TaskPageStart(Volume,
+                            FilesToTransfer, TotalTransferSize);
+                        startPage.PageDismissed += IngesterPage_PageDismissed;
+                        FrameA.Navigate(startPage);
+
+                        Visibility = Visibility.Visible;
+                    });
+                }
+                else TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
+            });
+
+            BeginThread.Start();
+        }
+        public void Stop()
+        {
+            if (BeginThread.IsAlive)
+                BeginThread.Abort();
         }
     }
 }

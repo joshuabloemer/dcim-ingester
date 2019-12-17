@@ -111,7 +111,7 @@ namespace DCIMIngester.Routines
             volumes = newVolumes;
             lock (MessageHandleLock)
             {
-                MessagesToProcess++;
+                MessagesToProcess--;
 
                 // Could have received another message while processing this message
                 if (MessagesToProcess == 0)

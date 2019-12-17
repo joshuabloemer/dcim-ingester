@@ -4,7 +4,7 @@
         Title="DCIM Ingester" Width="400" AllowsTransparency="True" WindowStyle="None" ShowInTaskbar="False" Topmost="True" Height="0" Closed="Window_Closed">
 
     <Window.Background>
-        <SolidColorBrush Opacity="0" />
+        <SolidColorBrush Opacity="0"/>
     </Window.Background>
 
     <StackPanel x:Name="StackPanelTasks" VerticalAlignment="Bottom"/>
