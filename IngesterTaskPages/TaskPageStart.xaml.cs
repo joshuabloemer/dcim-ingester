@@ -9,16 +9,16 @@ namespace DCIMIngester.IngesterTaskPages
 {
     public partial class TaskPageStart : Page
     {
-        private Guid Volume;
+        private string VolumeLabel;
         private List<string> FilesToTransfer;
         private long TotalTransferSize;
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
-        public TaskPageStart(
-            Guid volumeId, List<string> filesToTransfer, long totalTransferSize)
+        public TaskPageStart(string volumeLabel, List<string> filesToTransfer,
+            long totalTransferSize)
         {
-            Volume = volumeId;
+            VolumeLabel = volumeLabel;
             FilesToTransfer = filesToTransfer;
             TotalTransferSize = totalTransferSize;
 
@@ -28,25 +28,24 @@ namespace DCIMIngester.IngesterTaskPages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LabelA.Text = string.Format("DCIM device {0} contains {1} media files "
-                + "({2}). Do you want to transfer them?", GetVolumeLabel(Volume),
+            LabelCaption.Text = string.Format("DCIM device {0} contains {1} media "
+                + "files ({2}). Do you want to transfer them?", VolumeLabel,
                 FilesToTransfer.Count, FormatBytes(TotalTransferSize));
-            CheckBoxDelete.IsChecked = Properties.Settings.Default.DeleteAfter;
+
+            CheckBoxDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
+            CheckBoxEject.IsChecked = Properties.Settings.Default.ShouldEjectAfter;
         }
 
         private void ButtonYes_Click(object sender, RoutedEventArgs e)
         {
-            PageDismissEventArgs eventArgs
-                = new PageDismissEventArgs("IngesterPageStart.Transfer");
+            Properties.Settings
+                .Default.ShouldDeleteAfter = (bool)CheckBoxDelete.IsChecked;
+            Properties.Settings
+                .Default.ShouldEjectAfter = (bool)CheckBoxEject.IsChecked;
+            Properties.Settings.Default.Save();
 
-            if (CheckBoxDelete.IsChecked == true)
-            {
-                Properties.Settings.Default.DeleteAfter = true;
-                Properties.Settings.Default.Save();
-                eventArgs.Extra = "delete";
-            }
-
-            PageDismissed?.Invoke(this, eventArgs);
+            PageDismissed?.Invoke(this,
+                new PageDismissEventArgs("IngesterPageStart.Transfer"));
         }
         private void ButtonNo_Click(object sender, RoutedEventArgs e)
         {

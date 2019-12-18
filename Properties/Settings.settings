@@ -2,11 +2,14 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DCIMIngester.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="DeleteAfter" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="Endpoint" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:/Users/Henry/DCIMTest</Value>
+    </Setting>
+    <Setting Name="ShouldDeleteAfter" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShouldEjectAfter" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

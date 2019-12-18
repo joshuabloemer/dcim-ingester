@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Management;
-using System.Text.RegularExpressions;
 
 namespace DCIMIngester.Routines
 {
     public static class Helpers
     {
-        public enum TaskStatus { Waiting, Transferring, Completed, Failed };
-
         public static string GetVolumeLetter(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
@@ -43,36 +39,6 @@ namespace DCIMIngester.Routines
                 dblSByte = bytes / 1024.0;
 
             return string.Format("{0:0.#} {1}", dblSByte, suffix[i]);
-        }
-
-        public static bool HasFilesToTransfer(string volumePath)
-        {
-            try
-            {
-                string[] directories = Directory
-                    .GetDirectories(Path.Combine(volumePath, "DCIM"));
-                if (directories.Length == 0) return false;
-
-                foreach (string directory in directories)
-                {
-                    // Ignore directory names not conforming to DCF spec
-                    if (!Regex.IsMatch(Path.GetFileName(
-                        directory), "^[0-9]{3}[0-9a-zA-Z]{5}$")) continue;
-
-                    string[] files = Directory.GetFiles(directory);
-
-                    foreach (string file in files)
-                    {
-                        // Ignore file names not conforming to DCF spec
-                        if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(
-                            file), "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            catch { return false; }
         }
 
         public static DateTime? GetTimeTaken(string filePath)

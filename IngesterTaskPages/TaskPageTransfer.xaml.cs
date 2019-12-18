@@ -7,32 +7,33 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using static DCIMIngester.Routines.Helpers;
+using static DCIMIngester.Routines.IngesterTask;
 
 namespace DCIMIngester.IngesterTaskPages
 {
     public partial class TaskPageTransfer : Page
     {
-        private Guid Volume;
+        private string VolumeLetter;
         private string VolumeLabel;
-        private bool DeleteAfter;
         private List<string> FilesToTransfer;
         private long TotalTransferSize;
+        private Action<TaskStatus> SetStatus;
 
         private Thread TransferThread;
         private int TransferCount = 0;
-
-        public string DirectoryToView { get; private set; } = null;
+        private string DirectoryToView = null;
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
-        public TaskPageTransfer(Guid volume,
-            bool deleteAfter, List<string> filesToTransfer, long totalTransferSize)
+        public TaskPageTransfer(string volumeLetter, string volumeLabel,
+            List<string> filesToTransfer, long totalTransferSize,
+            Action<TaskStatus> setStatus)
         {
-            Volume = volume;
-            VolumeLabel = GetVolumeLabel(volume);
-            DeleteAfter = deleteAfter;
+            VolumeLetter = volumeLetter;
+            VolumeLabel = volumeLabel;
             FilesToTransfer = filesToTransfer;
             TotalTransferSize = totalTransferSize;
+            SetStatus = setStatus;
 
             InitializeComponent();
         }
@@ -47,20 +48,20 @@ namespace DCIMIngester.IngesterTaskPages
         private void TransferFiles()
         {
             string totalSizeString = FormatBytes(TotalTransferSize);
-
             foreach (string file in FilesToTransfer)
             {
                 float percentage
-                    = ((float)(TransferCount) / FilesToTransfer.Count) * 100;
+                    = ((float)TransferCount / FilesToTransfer.Count) * 100;
 
                 // Update interface to reflect progress
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
-                    TextBlockTransferring.Text = string.Format(
-                        "Transferring file {0} of {1} ({2})", TransferCount + 1,
-                        FilesToTransfer.Count, totalSizeString);
+                    LabelCaption.Text = string.Format(
+                        "Transferring file {0} of {1} ({2}) from {3}",
+                        TransferCount + 1, FilesToTransfer.Count,
+                        totalSizeString, VolumeLabel);
 
-                    TextBlockPercentage.Text
+                    LabelPercentage.Content
                         = string.Format("{0}%", Math.Round(percentage));
                     ProgressBarA.Value = percentage;
                 });
@@ -70,7 +71,8 @@ namespace DCIMIngester.IngesterTaskPages
                     // Update interface to reflect failure
                     Application.Current.Dispatcher.Invoke(delegate ()
                     {
-                        TextBlockTransferring.Text = string.Format(
+                        SetStatus(TaskStatus.Failed);
+                        LabelCaption.Text = string.Format(
                             "Transfer from {0} failed", VolumeLabel);
 
                         ButtonCancel.Content = "Dismiss";
@@ -87,29 +89,27 @@ namespace DCIMIngester.IngesterTaskPages
             // Update interface to reflect completion
             Application.Current.Dispatcher.Invoke(delegate ()
             {
-                TextBlockTransferring.Text = string.Format(
+                SetStatus(TaskStatus.Completed);
+                LabelCaption.Text = string.Format(
                     "Transfer from {0} complete", VolumeLabel);
 
                 ButtonCancel.Content = "Dismiss";
-                if (DirectoryToView != null)
-                    ButtonView.Visibility = Visibility.Visible;
-                ButtonEject.Visibility = Visibility.Visible;
+                ButtonView.Visibility = Visibility.Visible;
             });
+
+            if (Properties.Settings.Default.ShouldEjectAfter)
+                EjectVolume();
         }
         private bool TransferFile(string filePath)
         {
             DateTime? timeTaken = null;
-            try
-            {
-                timeTaken = GetTimeTaken(filePath);
-            }
+            try { timeTaken = GetTimeTaken(filePath); }
             catch { return false; }
 
             // Copy file to directory based on the time taken
             if (timeTaken != null)
             {
-                string imageDir =
-                    Path.Combine(Properties.Settings.Default.Endpoint,
+                string imageDir = Path.Combine(Properties.Settings.Default.Endpoint,
                     string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2} -- Untitled",
                     timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
 
@@ -121,7 +121,7 @@ namespace DCIMIngester.IngesterTaskPages
                     if (DirectoryToView == null)
                         DirectoryToView = imageDir;
 
-                    //if (Properties.Settings.Default.DeleteAfter)
+                    //if (Properties.Settings.Default.ShouldDeleteAfter)
                     //    File.Delete(filePath);
                 }
                 catch { return false; }
@@ -129,8 +129,7 @@ namespace DCIMIngester.IngesterTaskPages
             else
             {
                 // Copy files without time taken to different folder
-                string imageDir =
-                    Path.Combine(Properties.Settings.Default.Endpoint,
+                string imageDir = Path.Combine(Properties.Settings.Default.Endpoint,
                     "Unsorted", Path.GetFileName(filePath));
 
                 try
@@ -141,7 +140,7 @@ namespace DCIMIngester.IngesterTaskPages
                     if (DirectoryToView == null)
                         DirectoryToView = imageDir;
 
-                    //if (Properties.Settings.Default.DeleteAfter)
+                    //if (Properties.Settings.Default.ShouldDeleteAfter)
                     //    File.Delete(filePath);
                 }
                 catch { return false; }
@@ -149,21 +148,25 @@ namespace DCIMIngester.IngesterTaskPages
 
             return true;
         }
+        private void EjectVolume()
+        {
+
+        }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             if (ButtonCancel.Content.ToString() == "Cancel")
             {
                 TransferThread.Abort();
+                SetStatus(TaskStatus.Failed);
 
                 // Update interface to reflect cancellation
-                TextBlockTransferring.Text = string.Format(
+                LabelCaption.Text = string.Format(
                     "Transfer from {0} cancelled", VolumeLabel);
 
                 ButtonCancel.Content = "Dismiss";
                 if (DirectoryToView != null)
                     ButtonView.Visibility = Visibility.Visible;
-                ButtonEject.Visibility = Visibility.Visible;
             }
             else
             {
@@ -180,11 +183,6 @@ namespace DCIMIngester.IngesterTaskPages
                 Verb = "open"
             });
 
-            PageDismissed?.Invoke(this, new
-                PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
-        }
-        private void ButtonEject_Click(object sender, RoutedEventArgs e)
-        {
             PageDismissed?.Invoke(this, new
                 PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
         }

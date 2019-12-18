@@ -25,18 +25,6 @@ namespace DCIMIngester.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool DeleteAfter {
-            get {
-                return ((bool)(this["DeleteAfter"]));
-            }
-            set {
-                this["DeleteAfter"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("C:/Users/Henry/DCIMTest")]
         public string Endpoint {
             get {
@@ -44,6 +32,30 @@ namespace DCIMIngester.Properties {
             }
             set {
                 this["Endpoint"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShouldDeleteAfter {
+            get {
+                return ((bool)(this["ShouldDeleteAfter"]));
+            }
+            set {
+                this["ShouldDeleteAfter"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShouldEjectAfter {
+            get {
+                return ((bool)(this["ShouldEjectAfter"]));
+            }
+            set {
+                this["ShouldEjectAfter"] = value;
             }
         }
     }

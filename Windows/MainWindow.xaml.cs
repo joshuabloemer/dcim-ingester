@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using static DCIMIngester.Routines.Helpers;
+using static DCIMIngester.Routines.IngesterTask;
 using static DCIMIngester.Routines.VolumeWatcher;
 
 namespace DCIMIngester.Windows
@@ -38,11 +39,8 @@ namespace DCIMIngester.Windows
             if (!IsLoaded) return;
 
             string volumeLetter = GetVolumeLetter(e.VolumeID);
-            if (Directory.Exists(Path.Combine(volumeLetter, "DCIM"))
-                && HasFilesToTransfer(volumeLetter))
-            {
+            if (Directory.Exists(Path.Combine(volumeLetter, "DCIM")))
                 StartIngesterTask(e.VolumeID);
-            }
         }
         private void Devices_VolumeRemoved(object sender, VolumeChangedEventArgs e)
         {
@@ -73,17 +71,21 @@ namespace DCIMIngester.Windows
         {
             StopIngesterTask(e.Task.Volume);
         }
-        private void StopIngesterTask(Guid volume, bool onlyIfWaiting = false)
+        private void StopIngesterTask(Guid volume, bool onlyIfPreTransfer = false)
         {
             foreach (IngesterTask task in Tasks)
             {
                 if (task.Volume == volume)
                 {
                     // Option to only remove task if in waiting state
-                    if (onlyIfWaiting && task.Status != TaskStatus.Waiting)
+                    if (onlyIfPreTransfer && (task.Status != TaskStatus.Searching
+                        && task.Status != TaskStatus.Waiting))
                         return;
 
-                    task.Stop();
+                    if (task.Status == TaskStatus.Searching)
+                        task.StopSearching();
+
+
                     StackPanelTasks.Children.Remove(task);
                     Tasks.Remove(task);
 

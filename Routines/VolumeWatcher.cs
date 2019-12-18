@@ -12,6 +12,8 @@ namespace DCIMIngester.Routines
     // Original code from https://stackoverflow.com/questions/1976573/using-registerdevicenotification-in-a-net-app
     public class VolumeWatcher
     {
+        private DeviceChangeWatcher DeviceWatcher = new DeviceChangeWatcher();
+
         private List<Guid> volumes = new List<Guid>();
         public IReadOnlyCollection<Guid> Volumes
         {
@@ -37,12 +39,12 @@ namespace DCIMIngester.Routines
             windowHandle.AddHook(WindowMessageHandler);
             volumes = GetVolumes();
 
-            new DeviceChangeWatcher().RegisterDeviceNotification(windowHandle.Handle,
+            DeviceWatcher.RegisterDeviceNotification(windowHandle.Handle,
                 new Guid("53F5630D-B6BF-11D0-94F2-00A0C91EFB8B")); // Volume devices
         }
         public void StopWatching()
         {
-            new DeviceChangeWatcher().UnregisterDeviceNotification();
+            DeviceWatcher.UnregisterDeviceNotification();
             volumes = null;
         }
 
@@ -89,8 +91,8 @@ namespace DCIMIngester.Routines
                 {
                     Application.Current.Dispatcher.Invoke(delegate ()
                     {
-                        VolumeAdded?.Invoke(this,
-                            new VolumeChangedEventArgs(volume));
+                        VolumeAdded?.Invoke(
+                            this, new VolumeChangedEventArgs(volume));
                     });
                 }
             }
