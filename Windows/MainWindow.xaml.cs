@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using static DCIMIngester.Routines.Helpers;
@@ -24,16 +25,31 @@ namespace DCIMIngester.Windows
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            HwndSource source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            HwndSource windowHandle
+                = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
 
             // Register for device change messages
-            if (source != null)
+            if (windowHandle != null)
             {
                 Volumes.VolumeAdded += Devices_VolumeAdded;
                 Volumes.VolumeRemoved += Devices_VolumeRemoved;
-                Volumes.StartWatching(source);
+                Volumes.StartWatching(windowHandle);
             }
         }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var windowHandle = new WindowInteropHelper(this).Handle;
+
+            int GWL_EX_STYLE = -20;
+            int WS_EX_APPWINDOW = 0x00040000;
+            int WS_EX_TOOLWINDOW = 0x00000080;
+
+            // Hide the window from windows task switcher
+            SetWindowLong(windowHandle, GWL_EX_STYLE,
+                    (GetWindowLong(windowHandle, GWL_EX_STYLE) | WS_EX_TOOLWINDOW)
+                    & ~WS_EX_APPWINDOW);
+        }
+
         private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
             if (!IsLoaded) return;
@@ -99,5 +115,11 @@ namespace DCIMIngester.Windows
                 }
             }
         }
+
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 }
