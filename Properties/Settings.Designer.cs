@@ -46,17 +46,5 @@ namespace DCIMIngester.Properties {
                 this["ShouldDeleteAfter"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ShouldEjectAfter {
-            get {
-                return ((bool)(this["ShouldEjectAfter"]));
-            }
-            set {
-                this["ShouldEjectAfter"] = value;
-            }
-        }
     }
 }

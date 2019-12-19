@@ -50,7 +50,7 @@ namespace DCIMIngester.Routines
                     Status = TaskStatus.Transferring;
 
                     // Swap out start page for transfer page to manage the transfer
-                    TaskPageTransfer transferPage = new TaskPageTransfer(VolumeLetter,
+                    TaskPageTransfer transferPage = new TaskPageTransfer(
                         VolumeLabel, FilesToTransfer, TotalTransferSize, SetStatus);
                     transferPage.PageDismissed += IngesterTaskPage_PageDismissed;
                     FrameA.Navigate(transferPage);
@@ -131,7 +131,7 @@ namespace DCIMIngester.Routines
 
         public enum TaskStatus
         {
-            Searching, Waiting, Transferring, Completed, Failed
+            Searching, Waiting, Transferring, Completed, Failed, Cancelled
         };
     }
 }

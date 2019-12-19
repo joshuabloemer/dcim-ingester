@@ -11,7 +11,6 @@
 
         <Button x:Name="ButtonYes" Content="Yes" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Click="ButtonYes_Click" Style="{DynamicResource ButtonStyle}"/>
         <Button x:Name="ButtonNo" Content="No" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Click="ButtonNo_Click" Style="{DynamicResource ButtonStyle}"/>
-        <CheckBox x:Name="CheckBoxDelete" Content="Delete originals" HorizontalAlignment="Left" Margin="205,0,0,16" VerticalAlignment="Bottom" Style="{DynamicResource CheckBoxStyle}"/>
-        <CheckBox x:Name="CheckBoxEject" Content="Eject after" HorizontalAlignment="Left" Margin="310,0,0,16" VerticalAlignment="Bottom" Style="{DynamicResource CheckBoxStyle}"/>
+        <CheckBox x:Name="CheckBoxDelete" Content="Delete originals after transfer" HorizontalAlignment="Left" Margin="205,0,0,16" VerticalAlignment="Bottom" Style="{DynamicResource CheckBoxStyle}"/>
     </Grid>
 </Page>

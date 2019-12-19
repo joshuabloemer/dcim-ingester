@@ -13,23 +13,34 @@ namespace DCIMIngester.IngesterTaskPages
 {
     public partial class TaskPageTransfer : Page
     {
-        private string VolumeLetter;
         private string VolumeLabel;
         private List<string> FilesToTransfer;
         private long TotalTransferSize;
         private Action<TaskStatus> SetStatus;
 
         private Thread TransferThread;
-        private int TransferCount = 0;
-        private string DirectoryToView = null;
+        private int LastFileTransferred = -1;
+        private string FirstFileDestination = null;
+        private bool ShouldCancelTransfer = false;
+
+        private bool isTransferCancelled = false;
+        private bool IsTransferCancelled
+        {
+            get { return isTransferCancelled; }
+            set
+            {
+                isTransferCancelled = value;
+
+                if (value)
+                    TransferFilesCancelled();
+            }
+        }
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
-        public TaskPageTransfer(string volumeLetter, string volumeLabel,
-            List<string> filesToTransfer, long totalTransferSize,
-            Action<TaskStatus> setStatus)
+        public TaskPageTransfer(string volumeLabel, List<string> filesToTransfer,
+            long totalTransferSize, Action<TaskStatus> setStatus)
         {
-            VolumeLetter = volumeLetter;
             VolumeLabel = volumeLabel;
             FilesToTransfer = filesToTransfer;
             TotalTransferSize = totalTransferSize;
@@ -48,21 +59,23 @@ namespace DCIMIngester.IngesterTaskPages
         private void TransferFiles()
         {
             string totalSizeString = FormatBytes(TotalTransferSize);
-            foreach (string file in FilesToTransfer)
+            for (int i = LastFileTransferred + 1; i < FilesToTransfer.Count - 1; i++)
             {
-                float percentage
-                    = ((float)TransferCount / FilesToTransfer.Count) * 100;
+                Console.WriteLine(i);
+                string file = FilesToTransfer[i];
+                float percentage =
+                    ((float)(LastFileTransferred + 1) / FilesToTransfer.Count) * 100;
 
                 // Update interface to reflect progress
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
-                    LabelCaption.Text = string.Format(
-                        "Transferring file {0} of {1} ({2}) from {3}",
-                        TransferCount + 1, FilesToTransfer.Count,
+                    LabelCaption.Text =
+                        string.Format("Transferring file {0} of {1} ({2}) from {3}",
+                        LastFileTransferred + 2, FilesToTransfer.Count,
                         totalSizeString, VolumeLabel);
 
-                    LabelPercentage.Content
-                        = string.Format("{0}%", Math.Round(percentage));
+                    LabelPercentage.Content =
+                        string.Format("{0}%", Math.Round(percentage));
                     ProgressBarA.Value = percentage;
                 });
 
@@ -70,121 +83,149 @@ namespace DCIMIngester.IngesterTaskPages
                 {
                     // Update interface to reflect failure
                     Application.Current.Dispatcher.Invoke(delegate ()
-                    {
-                        SetStatus(TaskStatus.Failed);
-                        LabelCaption.Text = string.Format(
-                            "Transfer from {0} failed", VolumeLabel);
-
-                        ButtonCancel.Content = "Dismiss";
-                        if (DirectoryToView != null)
-                            ButtonView.Visibility = Visibility.Visible;
-                    });
-
+                    { TransferFilesFailed(); });
                     return;
                 }
 
-                TransferCount++;
+                LastFileTransferred++;
+                if (ShouldCancelTransfer)
+                {
+                    if (LastFileTransferred == FilesToTransfer.Count - 1)
+                    {
+                        // Update interface to reflect completion
+                        Application.Current.Dispatcher.Invoke(delegate ()
+                        {
+                            TransferFilesCompleted();
+                            ButtonCancel.IsEnabled = true;
+                        });
+                    }
+                    else
+                    {
+                        Application.Current.Dispatcher.Invoke(delegate ()
+                        { IsTransferCancelled = true; });
+                        return;
+                    }
+                }
             }
 
             // Update interface to reflect completion
             Application.Current.Dispatcher.Invoke(delegate ()
-            {
-                SetStatus(TaskStatus.Completed);
-                LabelCaption.Text = string.Format(
-                    "Transfer from {0} complete", VolumeLabel);
+            { TransferFilesCompleted(); });
+        }
+        private void TransferFilesCompleted()
+        {
+            SetStatus(TaskStatus.Completed);
+            LabelCaption.Text =
+                string.Format("Transfer from {0} complete", VolumeLabel);
 
-                ButtonCancel.Content = "Dismiss";
+            ButtonCancel.Content = "Dismiss";
+            ButtonView.Visibility = Visibility.Visible;
+        }
+        private void TransferFilesFailed()
+        {
+            SetStatus(TaskStatus.Failed);
+            LabelCaption.Text =
+                string.Format("Transfer from {0} failed", VolumeLabel);
+
+            ButtonCancel.Content = "Dismiss";
+            ButtonRetry.Visibility = Visibility.Visible;
+
+            if (LastFileTransferred > -1)
                 ButtonView.Visibility = Visibility.Visible;
-            });
+        }
+        private void TransferFilesCancelled()
+        {
+            SetStatus(TaskStatus.Cancelled);
+            LabelCaption.Text =
+                string.Format("Transfer from {0} cancelled", VolumeLabel);
 
-            if (Properties.Settings.Default.ShouldEjectAfter)
-                EjectVolume();
+            ButtonCancel.Content = "Dismiss";
+            ButtonCancel.IsEnabled = true;
+            ButtonRetry.Visibility = Visibility.Visible;
+
+            if (LastFileTransferred > -1)
+                ButtonView.Visibility = Visibility.Visible;
         }
         private bool TransferFile(string filePath)
         {
-            DateTime? timeTaken = null;
-            try { timeTaken = GetTimeTaken(filePath); }
+            try
+            {
+                DateTime? timeTaken = GetTimeTaken(filePath);
+
+                // Determine file destination based on time taken
+                string newImageDir;
+                if (timeTaken != null)
+                {
+                    newImageDir = Path.Combine(Properties.Settings.Default.Endpoint,
+                        string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2} -- Untitled",
+                        timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                }
+                else
+                {
+                    newImageDir = Path.Combine(Properties.Settings.Default.Endpoint,
+                        "Unsorted");
+                }
+
+                Directory.CreateDirectory(newImageDir);
+                string newFilePath =
+                    Path.Combine(newImageDir, Path.GetFileName(filePath));
+
+                // Add number to file name if file already exists
+                int duplicateCounter = 1;
+                while (File.Exists(newFilePath))
+                {
+                    newFilePath = Path.Combine(newImageDir,
+                        Path.GetFileNameWithoutExtension(filePath) + string.Format(
+                            " ({0})", duplicateCounter) + Path.GetExtension(filePath));
+                    duplicateCounter++;
+                }
+
+                //File.Copy(filePath, newFilePath);
+                //if (Properties.Settings.Default.ShouldDeleteAfter)
+                //    File.Delete(filePath);
+
+                if (FirstFileDestination == null)
+                    FirstFileDestination = newImageDir;
+            }
             catch { return false; }
 
-            // Copy file to directory based on the time taken
-            if (timeTaken != null)
-            {
-                string imageDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                    string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2} -- Untitled",
-                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
-
-                try
-                {
-                    Directory.CreateDirectory(imageDir);
-                    //File.Copy(filePath, imageDir);
-
-                    if (DirectoryToView == null)
-                        DirectoryToView = imageDir;
-
-                    //if (Properties.Settings.Default.ShouldDeleteAfter)
-                    //    File.Delete(filePath);
-                }
-                catch { return false; }
-            }
-            else
-            {
-                // Copy files without time taken to different folder
-                string imageDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                    "Unsorted", Path.GetFileName(filePath));
-
-                try
-                {
-                    Directory.CreateDirectory(imageDir);
-                    //File.Copy(filePath, imageDir);
-
-                    if (DirectoryToView == null)
-                        DirectoryToView = imageDir;
-
-                    //if (Properties.Settings.Default.ShouldDeleteAfter)
-                    //    File.Delete(filePath);
-                }
-                catch { return false; }
-            }
-
             return true;
-        }
-        private void EjectVolume()
-        {
-
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             if (ButtonCancel.Content.ToString() == "Cancel")
             {
-                TransferThread.Abort();
-                SetStatus(TaskStatus.Failed);
-
-                // Update interface to reflect cancellation
-                LabelCaption.Text = string.Format(
-                    "Transfer from {0} cancelled", VolumeLabel);
-
-                ButtonCancel.Content = "Dismiss";
-                if (DirectoryToView != null)
-                    ButtonView.Visibility = Visibility.Visible;
+                ButtonCancel.IsEnabled = false;
+                ButtonCancel.Content = "Cancelling";
+                ShouldCancelTransfer = true;
             }
             else
             {
-                PageDismissed?.Invoke(this, new
-                    PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
+                PageDismissed?.Invoke(this,
+                    new PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
             }
+        }
+        private void ButtonRetry_Click(object sender, RoutedEventArgs e)
+        {
+            ShouldCancelTransfer = false;
+            IsTransferCancelled = false;
+
+            ButtonCancel.Content = "Cancel";
+            ButtonRetry.Visibility = Visibility.Collapsed;
+            ButtonView.Visibility = Visibility.Collapsed;
+
+            // Start the transfer thread again
+            Page_Loaded(this, new RoutedEventArgs());
         }
         private void ButtonView_Click(object sender, RoutedEventArgs e)
         {
             Process.Start(new ProcessStartInfo()
             {
-                FileName = DirectoryToView,
+                FileName = FirstFileDestination,
                 UseShellExecute = true,
                 Verb = "open"
             });
-
-            PageDismissed?.Invoke(this, new
-                PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
         }
     }
 }

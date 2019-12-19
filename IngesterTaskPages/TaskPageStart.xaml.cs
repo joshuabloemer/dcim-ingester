@@ -33,15 +33,12 @@ namespace DCIMIngester.IngesterTaskPages
                 FilesToTransfer.Count, FormatBytes(TotalTransferSize));
 
             CheckBoxDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
-            CheckBoxEject.IsChecked = Properties.Settings.Default.ShouldEjectAfter;
         }
 
         private void ButtonYes_Click(object sender, RoutedEventArgs e)
         {
             Properties.Settings
                 .Default.ShouldDeleteAfter = (bool)CheckBoxDelete.IsChecked;
-            Properties.Settings
-                .Default.ShouldEjectAfter = (bool)CheckBoxEject.IsChecked;
             Properties.Settings.Default.Save();
 
             PageDismissed?.Invoke(this,
