@@ -14,7 +14,12 @@ namespace DCIMIngester.Windows
     public partial class MainWindow : Window
     {
         private VolumeWatcher Volumes = new VolumeWatcher();
-        private List<IngesterTask> Tasks = new List<IngesterTask>();
+
+        private List<IngesterTask> tasks = new List<IngesterTask>();
+        public IReadOnlyCollection<IngesterTask> Tasks
+        {
+            get { return tasks.AsReadOnly(); }
+        }
 
         public MainWindow()
         {
@@ -53,6 +58,8 @@ namespace DCIMIngester.Windows
         private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
             if (!IsLoaded) return;
+            if (Properties.Settings.Default.Endpoint == null) return;
+            if (((App)Application.Current).IsSettingsOpen) return;
 
             string volumeLetter = GetVolumeLetter(e.VolumeID);
             if (Directory.Exists(Path.Combine(volumeLetter, "DCIM")))
@@ -79,7 +86,7 @@ namespace DCIMIngester.Windows
             IngesterTask task = new IngesterTask(volume);
             task.TaskDismissed += Task_TaskDismissed;
 
-            Tasks.Add(task);
+            tasks.Add(task);
             StackPanelTasks.Children.Add(task);
             task.Start();
         }
@@ -103,7 +110,7 @@ namespace DCIMIngester.Windows
 
 
                     StackPanelTasks.Children.Remove(task);
-                    Tasks.Remove(task);
+                    tasks.Remove(task);
 
                     Height -= 140;
                     Rect workArea = SystemParameters.WorkArea;
