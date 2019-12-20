@@ -61,6 +61,16 @@ namespace DCIMIngester.Windows
             if (Properties.Settings.Default.Endpoint == null) return;
             if (((App)Application.Current).IsSettingsOpen) return;
 
+            // Dismiss any non-dismissed left over task for this volume
+            foreach (IngesterTask task in new List<IngesterTask>(Tasks))
+            {
+                if (task.Volume == e.VolumeID)
+                {
+                    StopIngesterTask(task);
+                    break;
+                }
+            }
+
             string volumeLetter = GetVolumeLetter(e.VolumeID);
             if (Directory.Exists(Path.Combine(volumeLetter, "DCIM")))
                 StartIngesterTask(e.VolumeID);
@@ -68,7 +78,14 @@ namespace DCIMIngester.Windows
         private void Devices_VolumeRemoved(object sender, VolumeChangedEventArgs e)
         {
             if (!IsLoaded) return;
-            StopIngesterTask(e.VolumeID, true);
+            foreach (IngesterTask task in Tasks)
+            {
+                if (task.Volume == e.VolumeID && task.Status == TaskStatus.Waiting)
+                {
+                    StopIngesterTask(task);
+                    break;
+                }
+            }
         }
         private void Window_Closed(object sender, EventArgs e)
         {
@@ -92,35 +109,19 @@ namespace DCIMIngester.Windows
         }
         private void Task_TaskDismissed(object sender, TaskDismissEventArgs e)
         {
-            StopIngesterTask(e.Task.Volume);
+            StopIngesterTask(e.Task);
         }
-        private void StopIngesterTask(Guid volume, bool onlyIfPreTransfer = false)
+        private void StopIngesterTask(IngesterTask task)
         {
-            foreach (IngesterTask task in Tasks)
-            {
-                if (task.Volume == volume)
-                {
-                    // Option to only remove task if in waiting state
-                    if (onlyIfPreTransfer && (task.Status != TaskStatus.Searching
-                        && task.Status != TaskStatus.Waiting))
-                        return;
+            StackPanelTasks.Children.Remove(task);
+            tasks.Remove(task);
 
-                    if (task.Status == TaskStatus.Searching)
-                        task.StopSearching();
+            Height -= 140;
+            Rect workArea = SystemParameters.WorkArea;
+            Left = workArea.Right - Width - 20;
+            Top = workArea.Bottom - Height - 20;
 
-
-                    StackPanelTasks.Children.Remove(task);
-                    tasks.Remove(task);
-
-                    Height -= 140;
-                    Rect workArea = SystemParameters.WorkArea;
-                    Left = workArea.Right - Width - 20;
-                    Top = workArea.Bottom - Height - 20;
-
-                    if (Tasks.Count == 0) Hide();
-                    break;
-                }
-            }
+            if (Tasks.Count == 0) Hide();
         }
 
 

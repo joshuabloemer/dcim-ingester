@@ -20,8 +20,6 @@ namespace DCIMIngester.Routines
         private List<string> FilesToTransfer = new List<string>();
         private long TotalTransferSize = 0;
 
-        private Thread BeginThread = null;
-
         public event EventHandler<TaskDismissEventArgs> TaskDismissed;
 
         public IngesterTask(Guid volume)
@@ -29,7 +27,7 @@ namespace DCIMIngester.Routines
             Volume = volume;
             VolumeLetter = GetVolumeLetter(volume);
             VolumeLabel = GetVolumeLabel(volume);
-            Status = TaskStatus.Searching;
+            Status = TaskStatus.Discovering;
 
             Visibility = Visibility.Collapsed;
             Margin = new Thickness(0, 20, 0, 0);
@@ -65,15 +63,12 @@ namespace DCIMIngester.Routines
 
         public void Start()
         {
-            BeginThread = new Thread(delegate ()
+            new Thread(delegate ()
             {
                 try
                 {
                     string[] directories = Directory
                         .GetDirectories(Path.Combine(VolumeLetter, "DCIM"));
-
-                    if (directories.Length == 0)
-                        TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
 
                     foreach (string directory in directories)
                     {
@@ -102,10 +97,10 @@ namespace DCIMIngester.Routines
                         }
                     }
 
-                    // If there are files then show the task and load start screen
-                    if (FilesToTransfer.Count > 0)
+                    Application.Current.Dispatcher.Invoke(delegate ()
                     {
-                        Application.Current.Dispatcher.Invoke(delegate ()
+                        // If there are files then show the task and load start screen
+                        if (FilesToTransfer.Count > 0)
                         {
                             Status = TaskStatus.Waiting;
                             TaskPageStart startPage = new TaskPageStart(VolumeLabel,
@@ -114,24 +109,21 @@ namespace DCIMIngester.Routines
                             FrameA.Navigate(startPage);
 
                             Visibility = Visibility.Visible;
-                        });
-                    }
-                    else TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
+                        }
+                        else TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
+                    });
                 }
-                catch { TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this)); }
-            });
-
-            BeginThread.Start();
-        }
-        public void StopSearching()
-        {
-            if (BeginThread.IsAlive)
-                BeginThread.Abort();
+                catch
+                {
+                    Application.Current.Dispatcher.Invoke(delegate ()
+                    { TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this)); });
+                }
+            }).Start();
         }
 
         public enum TaskStatus
         {
-            Searching, Waiting, Transferring, Completed, Failed, Cancelled
+            Discovering, Waiting, Transferring, Completed, Failed, Cancelled
         };
     }
 }

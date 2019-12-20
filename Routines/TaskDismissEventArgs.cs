@@ -8,7 +8,7 @@ namespace DCIMIngester.Routines
 
         public TaskDismissEventArgs(IngesterTask task)
         {
-            Task = task; ;
+            Task = task;
         }
     }
 }
