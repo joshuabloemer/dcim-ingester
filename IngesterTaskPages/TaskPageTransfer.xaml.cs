@@ -13,28 +13,16 @@ namespace DCIMIngester.IngesterTaskPages
 {
     public partial class TaskPageTransfer : Page
     {
-        private string VolumeLabel;
-        private List<string> FilesToTransfer;
-        private long TotalTransferSize;
-        private Action<TaskStatus> SetStatus;
+        private readonly string VolumeLabel;
+        private readonly List<string> FilesToTransfer;
+        private readonly long TotalTransferSize;
+        private readonly Action<TaskStatus> SetStatus;
 
         private Thread TransferThread;
+        private bool ShouldCancelTransfer = false;
         private int LastFileTransferred = -1;
         private string FirstFileDestination = null;
-        private bool ShouldCancelTransfer = false;
-
-        private bool isTransferCancelled = false;
-        private bool IsTransferCancelled
-        {
-            get { return isTransferCancelled; }
-            set
-            {
-                isTransferCancelled = value;
-
-                if (value)
-                    TransferFilesCancelled();
-            }
-        }
+        private int DuplicateCounter = 0;
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
@@ -59,9 +47,8 @@ namespace DCIMIngester.IngesterTaskPages
         private void TransferFiles()
         {
             string totalSizeString = FormatBytes(TotalTransferSize);
-            for (int i = LastFileTransferred + 1; i < FilesToTransfer.Count - 1; i++)
+            for (int i = LastFileTransferred + 1; i < FilesToTransfer.Count; i++)
             {
-                Console.WriteLine(i);
                 string file = FilesToTransfer[i];
                 float percentage =
                     ((float)(LastFileTransferred + 1) / FilesToTransfer.Count) * 100;
@@ -102,7 +89,7 @@ namespace DCIMIngester.IngesterTaskPages
                     else
                     {
                         Application.Current.Dispatcher.Invoke(delegate ()
-                        { IsTransferCancelled = true; });
+                        { TransferFilesCancelled(); });
                         return;
                     }
                 }
@@ -170,19 +157,34 @@ namespace DCIMIngester.IngesterTaskPages
                 string newFilePath =
                     Path.Combine(newImageDir, Path.GetFileName(filePath));
 
-                // Add number to file name if file already exists
+                bool isDuplicate = false;
                 int duplicateCounter = 1;
+
+                // Add number to file name if file already exists
                 while (File.Exists(newFilePath))
                 {
                     newFilePath = Path.Combine(newImageDir,
                         Path.GetFileNameWithoutExtension(filePath) + string.Format(
                             " ({0})", duplicateCounter) + Path.GetExtension(filePath));
+
+                    isDuplicate = true;
                     duplicateCounter++;
                 }
 
-                //File.Copy(filePath, newFilePath);
-                //if (Properties.Settings.Default.ShouldDeleteAfter)
-                //    File.Delete(filePath);
+                File.Copy(filePath, newFilePath);
+                if (Properties.Settings.Default.ShouldDeleteAfter)
+                    File.Delete(filePath);
+
+                if (isDuplicate)
+                {
+                    DuplicateCounter++;
+                    Application.Current.Dispatcher.Invoke(delegate ()
+                    {
+                        LabelSubCaption.Text = string.Format(
+                            "{0} duplicate file names (number appended)",
+                            DuplicateCounter);
+                    });
+                }
 
                 if (FirstFileDestination == null)
                     FirstFileDestination = newImageDir;
@@ -209,7 +211,6 @@ namespace DCIMIngester.IngesterTaskPages
         private void ButtonRetry_Click(object sender, RoutedEventArgs e)
         {
             ShouldCancelTransfer = false;
-            IsTransferCancelled = false;
 
             ButtonCancel.Content = "Cancel";
             ButtonRetry.Visibility = Visibility.Collapsed;

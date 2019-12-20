@@ -25,7 +25,7 @@ namespace DCIMIngester.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:/Users/Henry/DCIMTest")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string Endpoint {
             get {
                 return ((string)(this["Endpoint"]));
@@ -37,7 +37,7 @@ namespace DCIMIngester.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ShouldDeleteAfter {
             get {
                 return ((bool)(this["ShouldDeleteAfter"]));

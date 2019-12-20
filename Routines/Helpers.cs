@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
+using ExifSubIfdDirectory = MetadataExtractor.Formats.Exif.ExifSubIfdDirectory;
 
 namespace DCIMIngester.Routines
 {
@@ -43,17 +44,27 @@ namespace DCIMIngester.Routines
 
         public static DateTime? GetTimeTaken(string filePath)
         {
-            IEnumerable<MetadataExtractor.Directory> metaGroups
-                = MetadataExtractor.ImageMetadataReader.ReadMetadata(filePath);
-            MetadataExtractor.Tag metaTag = null;
+            IEnumerable<MetadataExtractor.Directory> metadataGroups;
+            try
+            {
+                metadataGroups =
+                    MetadataExtractor.ImageMetadataReader.ReadMetadata(filePath);
+            }
+            catch (MetadataExtractor.ImageProcessingException) { return null; }
+
+            // Search for the field containing the time that the image was taken
+            ExifSubIfdDirectory subIfdGroup =
+                metadataGroups.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+            if (subIfdGroup == null) return null;
+
+            MetadataExtractor.Tag dateTimeOriginal = subIfdGroup.Tags.FirstOrDefault(
+                tag => tag.Name == "Date/Time Original");
+            if (dateTimeOriginal == null) return null;
 
             try
             {
-                metaTag = metaGroups.First(group => group.Name == "Exif SubIFD")
-                    .Tags.First(tag => tag.Name == "Date/Time Original");
-
                 DateTime timeTaken = DateTime
-                    .ParseExact(metaTag.Description, "yyyy:MM:dd HH:mm:ss", null);
+                    .ParseExact(dateTimeOriginal.Description, "yyyy:MM:dd HH:mm:ss", null);
                 return timeTaken;
             }
             catch { return null; }

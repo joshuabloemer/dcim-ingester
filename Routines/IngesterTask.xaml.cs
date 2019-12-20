@@ -13,11 +13,11 @@ namespace DCIMIngester.Routines
     public partial class IngesterTask : UserControl
     {
         public Guid Volume { get; private set; }
-        private string VolumeLetter;
-        private string VolumeLabel;
+        private readonly string VolumeLetter;
+        private readonly string VolumeLabel;
         public TaskStatus Status { get; private set; }
 
-        private List<string> FilesToTransfer = new List<string>();
+        private readonly List<string> FilesToTransfer = new List<string>();
         private long TotalTransferSize = 0;
 
         public event EventHandler<TaskDismissEventArgs> TaskDismissed;
@@ -40,28 +40,7 @@ namespace DCIMIngester.Routines
             Status = status;
         }
 
-        private void IngesterTaskPage_PageDismissed(object sender, PageDismissEventArgs e)
-        {
-            switch (e.DismissMessage)
-            {
-                case "IngesterPageStart.Transfer":
-                    Status = TaskStatus.Transferring;
-
-                    // Swap out start page for transfer page to manage the transfer
-                    TaskPageTransfer transferPage = new TaskPageTransfer(
-                        VolumeLabel, FilesToTransfer, TotalTransferSize, SetStatus);
-                    transferPage.PageDismissed += IngesterTaskPage_PageDismissed;
-                    FrameA.Navigate(transferPage);
-                    break;
-
-                case "IngesterPageStart.Cancel":
-                case "IngesterPageTransfer.Dismiss":
-                    TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
-                    break;
-            }
-        }
-
-        public void Start()
+        public void DiscoverFiles()
         {
             new Thread(delegate ()
             {
@@ -73,27 +52,21 @@ namespace DCIMIngester.Routines
                     foreach (string directory in directories)
                     {
                         // Ignore directory names not conforming to DCF spec
-                        if (!Regex.IsMatch(
-                            Path.GetFileName(directory), "^[0-9]{3}[0-9a-zA-Z]{5}$"))
-                            continue;
+                        if (!Regex.IsMatch(Path.GetFileName(directory),
+                            "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9a-zA-Z_]{5}$"))
+                        { continue; }
 
-                        string[] files = Directory.GetFiles(directory);
-
-                        foreach (string file in files)
+                        foreach (string file in Directory.GetFiles(directory))
                         {
                             // Ignore file names not conforming to DCF spec
                             if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(file),
-                                "^[0-9a-zA-Z_]{4}[0-9]{4}$")) continue;
+                                "^[0-9a-zA-Z][0-9a-zA-Z_]{3}0*([1-9]|[1-8][0-9]|9[0-9]|"
+                                + "[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|"
+                                + "9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9])$"))
+                            { continue; }
 
-                            string extension = Path.GetExtension(file).ToLower();
-
-                            // Only include files with supported extension
-                            if (extension == ".jpg" || extension == ".jpeg"
-                                || extension == ".cr2")
-                            {
-                                TotalTransferSize += new FileInfo(file).Length;
-                                FilesToTransfer.Add(file);
-                            }
+                            TotalTransferSize += new FileInfo(file).Length;
+                            FilesToTransfer.Add(file);
                         }
                     }
 
@@ -119,6 +92,26 @@ namespace DCIMIngester.Routines
                     { TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this)); });
                 }
             }).Start();
+        }
+        private void IngesterTaskPage_PageDismissed(object sender, PageDismissEventArgs e)
+        {
+            switch (e.DismissMessage)
+            {
+                case "IngesterPageStart.Transfer":
+                    Status = TaskStatus.Transferring;
+
+                    // Swap out start page for transfer page to manage the transfer
+                    TaskPageTransfer transferPage = new TaskPageTransfer(
+                        VolumeLabel, FilesToTransfer, TotalTransferSize, SetStatus);
+                    transferPage.PageDismissed += IngesterTaskPage_PageDismissed;
+                    FrameA.Navigate(transferPage);
+                    break;
+
+                case "IngesterPageStart.Cancel":
+                case "IngesterPageTransfer.Dismiss":
+                    TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this));
+                    break;
+            }
         }
 
         public enum TaskStatus

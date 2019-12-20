@@ -13,9 +13,9 @@ namespace DCIMIngester.Windows
 {
     public partial class MainWindow : Window
     {
-        private VolumeWatcher Volumes = new VolumeWatcher();
+        private readonly VolumeWatcher Volumes = new VolumeWatcher();
 
-        private List<IngesterTask> tasks = new List<IngesterTask>();
+        private readonly List<IngesterTask> tasks = new List<IngesterTask>();
         public IReadOnlyCollection<IngesterTask> Tasks
         {
             get { return tasks.AsReadOnly(); }
@@ -58,7 +58,8 @@ namespace DCIMIngester.Windows
         private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
             if (!IsLoaded) return;
-            if (Properties.Settings.Default.Endpoint == null) return;
+            if (Properties.Settings.Default.Endpoint == null ||
+                Properties.Settings.Default.Endpoint == "") return;
             if (((App)Application.Current).IsSettingsOpen) return;
 
             // Dismiss any non-dismissed left over task for this volume
@@ -105,7 +106,7 @@ namespace DCIMIngester.Windows
 
             tasks.Add(task);
             StackPanelTasks.Children.Add(task);
-            task.Start();
+            task.DiscoverFiles();
         }
         private void Task_TaskDismissed(object sender, TaskDismissEventArgs e)
         {

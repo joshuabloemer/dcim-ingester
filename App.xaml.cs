@@ -22,19 +22,25 @@ namespace DCIMIngester
             using (Stream iconStream = GetResourceStream(new Uri(
                 "pack://application:,,,/DCIMIngester;component/Resources/Icon.ico")).Stream)
             { TrayIcon.Icon = new Icon(iconStream); }
-            TrayIcon.Visible = true;
 
             MenuItem menuItemSettings = new MenuItem();
             menuItemSettings.Text = "Settings";
             menuItemSettings.Click += MenuItemSettings_Click;
+            MenuItem menuItemIcon = new MenuItem();
+            menuItemIcon.Text = "Icon Acknowledgement";
+            menuItemIcon.Click += MenuItemIcon_Click;
             MenuItem menuItemExit = new MenuItem();
             menuItemExit.Text = "Exit";
             menuItemExit.Click += MenuItemExit_Click;
 
             ContextMenu trayIconMenu = new ContextMenu();
             trayIconMenu.MenuItems.Add(menuItemSettings);
+            trayIconMenu.MenuItems.Add(menuItemIcon);
+            trayIconMenu.MenuItems.Add("-");
             trayIconMenu.MenuItems.Add(menuItemExit);
+
             TrayIcon.ContextMenu = trayIconMenu;
+            TrayIcon.Visible = true;
 
             // Need to show the window to get the Loaded method to run
             TaskWindow.Show();
@@ -59,6 +65,11 @@ namespace DCIMIngester
                 settingsWindow.Closed += delegate { IsSettingsOpen = false; };
                 settingsWindow.Show();
             }
+        }
+        private void MenuItemIcon_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Icon designed by Pixelmeetup from Flaticon.",
+                "DCIM Ingester");
         }
         private void MenuItemExit_Click(object sender, EventArgs e)
         {

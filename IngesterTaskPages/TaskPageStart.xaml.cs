@@ -9,9 +9,9 @@ namespace DCIMIngester.IngesterTaskPages
 {
     public partial class TaskPageStart : Page
     {
-        private string VolumeLabel;
-        private List<string> FilesToTransfer;
-        private long TotalTransferSize;
+        private readonly string VolumeLabel;
+        private readonly List<string> FilesToTransfer;
+        private readonly long TotalTransferSize;
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 

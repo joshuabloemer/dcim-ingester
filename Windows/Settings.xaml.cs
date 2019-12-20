@@ -27,6 +27,7 @@ namespace DCIMIngester.Windows
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
+            Properties.Settings.Default.Endpoint = TextBoxEndpoint.Text;
             Properties.Settings.Default.Save();
             Close();
         }
