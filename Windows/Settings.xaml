@@ -9,6 +9,6 @@
         <Button x:Name="ButtonSelectEndpoint" Content="..." HorizontalAlignment="Right" Margin="0,27,10,0" VerticalAlignment="Top" Width="26" Click="ButtonSelectEndpoint_Click" Style="{DynamicResource ButtonStyle}"/>
 
         <Button x:Name="ButtonSave" Content="Save" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Click="ButtonSave_Click" Style="{DynamicResource ButtonStyle}" IsEnabled="False"/>
-        <Button x:Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Click="ButtonCancel_Click" Style="{DynamicResource ButtonStyle}"/>
+        <Button x:Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Click="ButtonCancel_Click" Style="{DynamicResource ButtonStyle}" IsCancel="True"/>
     </Grid>
 </Window>

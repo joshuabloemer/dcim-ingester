@@ -8,7 +8,7 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DCIM Ingester")]
-[assembly: AssemblyDescription("Automatically detect DCIM devices and ingest files from them")]
+[assembly: AssemblyDescription("Automatically detect and transfer files from volumes with a DCIM folder")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Henry Hunt")]
 [assembly: AssemblyProduct("DCIM Ingester")]
