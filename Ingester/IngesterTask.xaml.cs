@@ -1,4 +1,4 @@
-﻿using DCIMIngester.IngesterTaskPages;
+﻿using DCIMIngester.Routines;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using static DCIMIngester.Routines.Helpers;
 
-namespace DCIMIngester.Routines
+namespace DCIMIngester.Ingester
 {
     public partial class IngesterTask : UserControl
     {

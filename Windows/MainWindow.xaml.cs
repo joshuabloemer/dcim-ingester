@@ -1,12 +1,13 @@
-﻿using DCIMIngester.Routines;
+﻿using DCIMIngester.Ingester;
+using DCIMIngester.Routines;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using static DCIMIngester.Ingester.IngesterTask;
 using static DCIMIngester.Routines.Helpers;
-using static DCIMIngester.Routines.IngesterTask;
 using static DCIMIngester.Routines.VolumeWatcher;
 
 namespace DCIMIngester.Windows

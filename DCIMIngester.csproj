@@ -69,13 +69,13 @@
     </ApplicationDefinition>
     <Compile Include="Routines\DeviceChangeWatcher.cs" />
     <Compile Include="Routines\Helpers.cs" />
-    <Compile Include="Routines\IngesterTask.xaml.cs">
+    <Compile Include="Ingester\IngesterTask.xaml.cs">
       <DependentUpon>IngesterTask.xaml</DependentUpon>
     </Compile>
-    <Compile Include="IngesterTaskPages\TaskPageTransfer.xaml.cs">
+    <Compile Include="Ingester\TaskPageTransfer.xaml.cs">
       <DependentUpon>TaskPageTransfer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="IngesterTaskPages\TaskPageStart.xaml.cs">
+    <Compile Include="Ingester\TaskPageStart.xaml.cs">
       <DependentUpon>TaskPageStart.xaml</DependentUpon>
     </Compile>
     <Compile Include="Routines\PageDismissEventArgs.cs" />
@@ -84,15 +84,15 @@
     <Compile Include="Windows\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
-    <Page Include="Routines\IngesterTask.xaml">
+    <Page Include="Ingester\IngesterTask.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="IngesterTaskPages\TaskPageTransfer.xaml">
+    <Page Include="Ingester\TaskPageTransfer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="IngesterTaskPages\TaskPageStart.xaml">
+    <Page Include="Ingester\TaskPageStart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

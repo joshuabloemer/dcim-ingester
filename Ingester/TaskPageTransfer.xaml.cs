@@ -6,10 +6,10 @@ using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using static DCIMIngester.Ingester.IngesterTask;
 using static DCIMIngester.Routines.Helpers;
-using static DCIMIngester.Routines.IngesterTask;
 
-namespace DCIMIngester.IngesterTaskPages
+namespace DCIMIngester.Ingester
 {
     public partial class TaskPageTransfer : Page
     {
@@ -104,6 +104,9 @@ namespace DCIMIngester.IngesterTaskPages
             SetStatus(TaskStatus.Completed);
             LabelCaption.Text =
                 string.Format("Transfer from {0} complete", VolumeLabel);
+
+            LabelPercentage.Content = "100%";
+            ProgressBarA.Value = 100;
 
             ButtonCancel.Content = "Dismiss";
             ButtonView.Visibility = Visibility.Visible;

@@ -36,7 +36,7 @@ namespace DCIMIngester.Routines
 
         public void StartWatching(HwndSource windowHandle)
         {
-            windowHandle.AddHook(WindowMessageHandler);
+            windowHandle.AddHook(WindowProcedure);
             volumes = GetVolumes();
 
             DeviceWatcher.RegisterDeviceNotification(windowHandle.Handle,
@@ -48,7 +48,7 @@ namespace DCIMIngester.Routines
             volumes = null;
         }
 
-        private IntPtr WindowMessageHandler(
+        private IntPtr WindowProcedure(
             IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
             // Only process device addition and removal messages

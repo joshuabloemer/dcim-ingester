@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DCIMIngester.Ingester;
+using System;
 
 namespace DCIMIngester.Routines
 {

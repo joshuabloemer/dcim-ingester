@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using static DCIMIngester.Routines.Helpers;
 
-namespace DCIMIngester.IngesterTaskPages
+namespace DCIMIngester.Ingester
 {
     public partial class TaskPageStart : Page
     {

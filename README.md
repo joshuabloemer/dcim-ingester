@@ -8,3 +8,7 @@ Automatically detect new volumes that contain a DCIM folder and show a notificat
 
 # Dependencies
 - MetadataExtractor
+
+# Version History
+- 1.0 (Dec 21, 2019) :: First completed version
+- 1.1 (Dec XX, 2019) :: Fixed a bug where transfer progress did not update after the final file was transferred. Added checks for existence of the destination directory. Added a selectable list of directory structure formats.
