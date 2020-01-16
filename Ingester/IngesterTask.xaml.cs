@@ -51,19 +51,16 @@ namespace DCIMIngester.Ingester
 
                     foreach (string directory in directories)
                     {
-                        // Ignore directory names not conforming to DCF spec
+                        // Ignore directory names not conforming to DCF spec to avoid non-image directories
                         if (!Regex.IsMatch(Path.GetFileName(directory),
                             "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9a-zA-Z_]{5}$"))
                         { continue; }
 
                         foreach (string file in Directory.GetFiles(directory))
                         {
-                            // Ignore file names not conforming to DCF spec
-                            if (!Regex.IsMatch(Path.GetFileNameWithoutExtension(file),
-                                "^[0-9a-zA-Z][0-9a-zA-Z_]{3}0*([1-9]|[1-8][0-9]|9[0-9]|"
-                                + "[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|"
-                                + "9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9])$"))
-                            { continue; }
+                            // Ignore files with names such as ".txt"
+                            if (Path.GetFileNameWithoutExtension(file) == "")
+                                continue;
 
                             TotalTransferSize += new FileInfo(file).Length;
                             FilesToTransfer.Add(file);
@@ -73,7 +70,7 @@ namespace DCIMIngester.Ingester
                     Application.Current.Dispatcher.Invoke(delegate ()
                     {
                         // If there are files then show the task and load start screen
-                        if (FilesToTransfer.Count > 0)
+                        if (FilesToTransfer.Count > 0 && !((App)Application.Current).IsSettingsOpen)
                         {
                             Status = TaskStatus.Waiting;
                             TaskPageStart startPage = new TaskPageStart(VolumeLabel,

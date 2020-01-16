@@ -132,7 +132,8 @@ namespace DCIMIngester.Routines
             ManagementObjectSearcher query = new ManagementObjectSearcher(
                 "SELECT DeviceID FROM Win32_Volume WHERE DriveLetter != NULL "
                 + "AND (FileSystem = 'FAT12' OR FileSystem = 'FAT16' OR "
-                + "FileSystem = 'FAT32' OR FileSystem = 'exFAT')");
+                + "FileSystem = 'FAT32' OR FileSystem = 'exFAT') AND BootVolume "
+                + "= False AND Label != NULL");
 
             foreach (ManagementObject volume in query.Get())
             {

@@ -28,8 +28,8 @@ namespace DCIMIngester.Ingester
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LabelCaption.Text = string.Format("DCIM device {0} contains {1} media "
-                + "files ({2}). Do you want to transfer them?", VolumeLabel,
+            LabelCaption.Text = string.Format("DCIM device {0} contains {1} files "
+                + "({2}). Do you want to transfer them?", VolumeLabel,
                 FilesToTransfer.Count, FormatBytes(TotalTransferSize));
 
             CheckBoxDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;

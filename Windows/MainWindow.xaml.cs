@@ -59,8 +59,7 @@ namespace DCIMIngester.Windows
         private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
             if (!IsLoaded) return;
-            if (Properties.Settings.Default.Endpoint == null ||
-                Properties.Settings.Default.Endpoint == "") return;
+            if (Properties.Settings.Default.Endpoint == "") return;
             if (((App)Application.Current).IsSettingsOpen) return;
 
             // Dismiss any non-dismissed left over task for this volume

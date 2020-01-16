@@ -46,5 +46,17 @@ namespace DCIMIngester.Properties {
                 this["ShouldDeleteAfter"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Subfolders {
+            get {
+                return ((int)(this["Subfolders"]));
+            }
+            set {
+                this["Subfolders"] = value;
+            }
+        }
     }
 }

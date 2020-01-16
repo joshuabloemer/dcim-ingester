@@ -23,6 +23,7 @@ namespace DCIMIngester.Ingester
         private int LastFileTransferred = -1;
         private string FirstFileDestination = null;
         private int DuplicateCounter = 0;
+        private int UnsortedCounter = 0;
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
@@ -57,9 +58,9 @@ namespace DCIMIngester.Ingester
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
                     LabelCaption.Text =
-                        string.Format("Transferring file {0} of {1} ({2}) from {3}",
+                        string.Format("Transferring file {0} of {1} from {2}",
                         LastFileTransferred + 2, FilesToTransfer.Count,
-                        totalSizeString, VolumeLabel);
+                        VolumeLabel);
 
                     LabelPercentage.Content =
                         string.Format("{0}%", Math.Round(percentage));
@@ -102,23 +103,31 @@ namespace DCIMIngester.Ingester
         private void TransferFilesCompleted()
         {
             SetStatus(TaskStatus.Completed);
-            LabelCaption.Text =
-                string.Format("Transfer from {0} complete", VolumeLabel);
+            LabelCaption.Text = string.Format("Transfer from {0} complete", VolumeLabel);
 
             LabelPercentage.Content = "100%";
             ProgressBarA.Value = 100;
 
+            LabelSubCaption.Text = string.Format(
+                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter,
+                UnsortedCounter);
+
             ButtonCancel.Content = "Dismiss";
+            ButtonCancel.IsEnabled = true;
             ButtonView.Visibility = Visibility.Visible;
         }
         private void TransferFilesFailed()
         {
             SetStatus(TaskStatus.Failed);
-            LabelCaption.Text =
-                string.Format("Transfer from {0} failed", VolumeLabel);
+            LabelCaption.Text = string.Format("Transfer from {0} failed", VolumeLabel);
 
             ButtonCancel.Content = "Dismiss";
+            ButtonCancel.IsEnabled = true;
             ButtonRetry.Visibility = Visibility.Visible;
+
+            LabelSubCaption.Text = string.Format(
+                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter,
+                UnsortedCounter);
 
             if (LastFileTransferred > -1)
                 ButtonView.Visibility = Visibility.Visible;
@@ -126,12 +135,15 @@ namespace DCIMIngester.Ingester
         private void TransferFilesCancelled()
         {
             SetStatus(TaskStatus.Cancelled);
-            LabelCaption.Text =
-                string.Format("Transfer from {0} cancelled", VolumeLabel);
+            LabelCaption.Text = string.Format("Transfer from {0} cancelled", VolumeLabel);
 
             ButtonCancel.Content = "Dismiss";
             ButtonCancel.IsEnabled = true;
             ButtonRetry.Visibility = Visibility.Visible;
+
+            LabelSubCaption.Text = string.Format(
+                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter,
+                UnsortedCounter);
 
             if (LastFileTransferred > -1)
                 ButtonView.Visibility = Visibility.Visible;
@@ -142,55 +154,65 @@ namespace DCIMIngester.Ingester
             {
                 DateTime? timeTaken = GetTimeTaken(filePath);
 
-                // Determine file destination based on time taken
-                string newImageDir;
+                string destinationDir = "";
+                bool isUnsorted = false;
+
+                // Determine file destination based on time taken and selected subfolder organisation
                 if (timeTaken != null)
                 {
-                    newImageDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                        string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2} -- Untitled",
-                        timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                    switch (Properties.Settings.Default.Subfolders)
+                    {
+                        case 0:
+                            {
+                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint,
+                                    string.Format("{0:D4}\\{1:D2}\\{2:D2}",
+                                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                                break;
+                            }
+                        case 1:
+                            {
+                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint,
+                                    string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2}",
+                                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                                break;
+                            }
+                        case 2:
+                            {
+                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint,
+                                    string.Format("{0:D4}-{1:D2}-{2:D2}",
+                                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                                break;
+                            }
+                        default: return false;
+                    }
                 }
                 else
                 {
-                    newImageDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                        "Unsorted");
+                    isUnsorted = true;
+                    destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, "Unsorted");
                 }
 
-                Directory.CreateDirectory(newImageDir);
-                string newFilePath =
-                    Path.Combine(newImageDir, Path.GetFileName(filePath));
+                destinationDir = CreateDirectory(destinationDir);
+                if (CopyFile(filePath, destinationDir))
+                    DuplicateCounter++;
 
-                bool isDuplicate = false;
-                int duplicateCounter = 1;
+                if (isUnsorted) UnsortedCounter++;
+                if (FirstFileDestination == null)
+                    FirstFileDestination = destinationDir;
 
-                // Add number to file name if file already exists
-                while (File.Exists(newFilePath))
-                {
-                    newFilePath = Path.Combine(newImageDir,
-                        Path.GetFileNameWithoutExtension(filePath) + string.Format(
-                            " ({0})", duplicateCounter) + Path.GetExtension(filePath));
-
-                    isDuplicate = true;
-                    duplicateCounter++;
-                }
-
-                File.Copy(filePath, newFilePath);
                 if (Properties.Settings.Default.ShouldDeleteAfter)
                     File.Delete(filePath);
 
-                if (isDuplicate)
+                // Display duplicate and unsorted counter as the transfer progresses
+                if (DuplicateCounter > 0 || UnsortedCounter > 0)
                 {
-                    DuplicateCounter++;
                     Application.Current.Dispatcher.Invoke(delegate ()
                     {
                         LabelSubCaption.Text = string.Format(
-                            "{0} duplicate file names (number appended)",
-                            DuplicateCounter);
+                            "{0} renamed duplicates, {1} transferred to 'Unsorted' folder",
+                            DuplicateCounter, UnsortedCounter);
                     });
                 }
-
-                if (FirstFileDestination == null)
-                    FirstFileDestination = newImageDir;
             }
             catch { return false; }
 
@@ -224,12 +246,16 @@ namespace DCIMIngester.Ingester
         }
         private void ButtonView_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start(new ProcessStartInfo()
+            try
             {
-                FileName = FirstFileDestination,
-                UseShellExecute = true,
-                Verb = "open"
-            });
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = FirstFileDestination,
+                    UseShellExecute = true,
+                    Verb = "open"
+                });
+            }
+            catch { }
         }
     }
 }

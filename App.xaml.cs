@@ -1,7 +1,9 @@
 ﻿using DCIMIngester.Windows;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
@@ -23,16 +25,11 @@ namespace DCIMIngester
                 "pack://application:,,,/DCIMIngester;component/Resources/Icon.ico")).Stream)
             { TrayIcon.Icon = new Icon(iconStream); }
 
-            MenuItem menuItemSettings = new MenuItem();
-            menuItemSettings.Text = "Settings";
-            menuItemSettings.Click += MenuItemSettings_Click;
-            MenuItem menuItemExit = new MenuItem();
-            menuItemExit.Text = "Exit";
-            menuItemExit.Click += MenuItemExit_Click;
-
             ContextMenu trayIconMenu = new ContextMenu();
-            trayIconMenu.MenuItems.Add(menuItemSettings);
-            trayIconMenu.MenuItems.Add(menuItemExit);
+            trayIconMenu.MenuItems.Add(new MenuItem("Settings", MenuItemSettings_Click));
+            trayIconMenu.MenuItems.Add(new MenuItem("-"));
+            trayIconMenu.MenuItems.Add(new MenuItem("About", MenuItemAbout_Click));
+            trayIconMenu.MenuItems.Add(new MenuItem("Exit", MenuItemExit_Click));
 
             TrayIcon.ContextMenu = trayIconMenu;
             TrayIcon.Visible = true;
@@ -41,6 +38,7 @@ namespace DCIMIngester
             TaskWindow.Show();
             TaskWindow.Hide();
         }
+
         private void Application_Exit(object sender, ExitEventArgs e)
         {
             TrayIcon.Visible = false;
@@ -50,8 +48,9 @@ namespace DCIMIngester
         {
             if (TaskWindow.Tasks.Count > 0)
             {
-                MessageBox.Show("Dismiss all tasks before opening settings.",
-                    "DCIM Ingester");
+                MessageBox.Show("Dismiss all tasks before opening settings.", "DCIM Ingester",
+                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+                    MessageBoxOptions.DefaultDesktopOnly);
             }
             else
             {
@@ -61,10 +60,24 @@ namespace DCIMIngester
                 settingsWindow.Show();
             }
         }
+        private void MenuItemAbout_Click(object sender, EventArgs e)
+        {
+            FileVersionInfo versionInfo =
+                FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+
+            MessageBox.Show(string.Format("{0} V{1}. Created by {2}.",
+                versionInfo.ProductName, versionInfo.FileVersion, versionInfo.CompanyName
+                ), "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.Information,
+                MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+        }
         private void MenuItemExit_Click(object sender, EventArgs e)
         {
             if (TaskWindow.Tasks.Count > 0)
-                MessageBox.Show("Dismiss all tasks before exiting.", "DCIM Ingester");
+            {
+                MessageBox.Show("Dismiss all tasks before exiting.", "DCIM Ingester",
+                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+                    MessageBoxOptions.DefaultDesktopOnly);
+            }
             else Current.Shutdown();
         }
     }

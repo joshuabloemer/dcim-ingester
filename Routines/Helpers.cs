@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management;
 using ExifSubIfdDirectory = MetadataExtractor.Formats.Exif.ExifSubIfdDirectory;
 
 namespace DCIMIngester.Routines
 {
-    public static class Helpers
+    internal static class Helpers
     {
-        public static string GetVolumeLetter(Guid volumeId)
+        internal static string GetVolumeLetter(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
                 "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
@@ -18,7 +19,7 @@ namespace DCIMIngester.Routines
                 return result.OfType<ManagementObject>().First()["DriveLetter"].ToString();
             return null;
         }
-        public static string GetVolumeLabel(Guid volumeId)
+        internal static string GetVolumeLabel(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
                 "SELECT Label FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
@@ -30,7 +31,7 @@ namespace DCIMIngester.Routines
         }
 
         // Taken from https://stackoverflow.com/questions/1242266/converting-bytes-to-gb-in-c
-        public static string FormatBytes(long bytes)
+        internal static string FormatBytes(long bytes)
         {
             string[] suffix = { "B", "KB", "MB", "GB", "TB" };
             double dblSByte = bytes;
@@ -42,7 +43,7 @@ namespace DCIMIngester.Routines
             return string.Format("{0:0.#} {1}", dblSByte, suffix[i]);
         }
 
-        public static DateTime? GetTimeTaken(string filePath)
+        internal static DateTime? GetTimeTaken(string filePath)
         {
             IEnumerable<MetadataExtractor.Directory> metadataGroups;
             try
@@ -68,6 +69,65 @@ namespace DCIMIngester.Routines
                 return timeTaken;
             }
             catch { return null; }
+        }
+
+        internal static bool DirectoryExists(string directory)
+        {
+            // GetCreationTime() will throw an exception if there is any error, otherwise
+            // it will return the below constant time if the directory does not exist
+            DateTime creationTime = Directory.GetCreationTime(directory);
+            return creationTime == new DateTime(1601, 1, 1, 0, 0, 0) ? false : true;
+        }
+        internal static string CreateDirectory(string directory)
+        {
+            string lastSegment = Path.GetFileName(directory);
+            int lastSegmentPosition = directory.IndexOf(lastSegment);
+            string withoutLastSegment = directory.Remove(lastSegmentPosition, lastSegment.Length);
+
+            // First ensure the directory tree excluding the final directory name exists
+            if (!DirectoryExists(withoutLastSegment))
+            {
+                Directory.CreateDirectory(directory);
+                return directory;
+            }
+
+            // Then check if any directory names starting with the final directory name exist
+            // (this allows adding e.g. a description to the end of an image directory name).
+            // Also, this method allows us to distinguish a directory not existing from an
+            // error determining whether it exists
+            string[] directories = Directory.GetDirectories(withoutLastSegment, lastSegment + "*");
+
+            if (directories.Length > 0)
+                return Path.Combine(withoutLastSegment, Path.GetFileName(directories[0]));
+
+            // Directory doesn't exist so create it
+            Directory.CreateDirectory(directory);
+            return directory;
+        }
+        internal static bool CopyFile(string sourceFilePath, string destinationDir)
+        {
+            string fileName = Path.GetFileName(sourceFilePath);
+            string newFileName = fileName;
+
+            // This method allows us to distinguish a file not existing from an error
+            // determining whether it exists
+            string[] files = Directory.GetFiles(
+                destinationDir, Path.GetFileNameWithoutExtension(fileName) + "*");
+
+            int duplicateCounter = 0;
+
+            // Increment a duplicate counter until the file name does not exist
+            while (files.Contains(Path.Combine(destinationDir, newFileName)))
+            {
+                newFileName = string.Format(
+                    "{0} ({1}){2}", Path.GetFileNameWithoutExtension(fileName),
+                    duplicateCounter + 1, Path.GetExtension(fileName));
+
+                duplicateCounter++;
+            }
+
+            File.Copy(sourceFilePath, Path.Combine(destinationDir, newFileName));
+            return duplicateCounter == 0 ? false : true;
         }
     }
 }
