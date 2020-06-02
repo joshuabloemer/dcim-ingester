@@ -42,12 +42,11 @@ namespace DCIMIngester.Ingester
 
         public void DiscoverFiles()
         {
-            new Thread(delegate ()
+            new Thread(() =>
             {
                 try
                 {
-                    string[] directories = Directory
-                        .GetDirectories(Path.Combine(VolumeLetter, "DCIM"));
+                    string[] directories = Directory.GetDirectories(Path.Combine(VolumeLetter, "DCIM"));
 
                     foreach (string directory in directories)
                     {
@@ -67,14 +66,13 @@ namespace DCIMIngester.Ingester
                         }
                     }
 
-                    Application.Current.Dispatcher.Invoke(delegate ()
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         // If there are files then show the task and load start screen
                         if (FilesToTransfer.Count > 0 && !((App)Application.Current).IsSettingsOpen)
                         {
                             Status = TaskStatus.Waiting;
-                            TaskPageStart startPage = new TaskPageStart(VolumeLabel,
-                                FilesToTransfer, TotalTransferSize);
+                            TaskPageStart startPage = new TaskPageStart(VolumeLabel, FilesToTransfer, TotalTransferSize);
                             startPage.PageDismissed += IngesterTaskPage_PageDismissed;
                             FrameA.Navigate(startPage);
 
@@ -85,8 +83,8 @@ namespace DCIMIngester.Ingester
                 }
                 catch
                 {
-                    Application.Current.Dispatcher.Invoke(delegate ()
-                    { TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this)); });
+                    Application.Current.Dispatcher.Invoke(() =>
+                        TaskDismissed?.Invoke(this, new TaskDismissEventArgs(this)));
                 }
             }).Start();
         }
@@ -98,8 +96,8 @@ namespace DCIMIngester.Ingester
                     Status = TaskStatus.Transferring;
 
                     // Swap out start page for transfer page to manage the transfer
-                    TaskPageTransfer transferPage = new TaskPageTransfer(
-                        VolumeLabel, FilesToTransfer, TotalTransferSize, SetStatus);
+                    TaskPageTransfer transferPage = new TaskPageTransfer(VolumeLabel, FilesToTransfer, TotalTransferSize,
+                        SetStatus);
                     transferPage.PageDismissed += IngesterTaskPage_PageDismissed;
                     FrameA.Navigate(transferPage);
                     break;

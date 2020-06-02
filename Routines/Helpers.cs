@@ -30,6 +30,7 @@ namespace DCIMIngester.Routines
                 object label = result.OfType<ManagementObject>().First()["Label"];
                 return label == null ? "" : label.ToString();
             }
+
             return null;
         }
 
@@ -51,24 +52,21 @@ namespace DCIMIngester.Routines
             IEnumerable<MetadataExtractor.Directory> metadataGroups;
             try
             {
-                metadataGroups =
-                    MetadataExtractor.ImageMetadataReader.ReadMetadata(filePath);
+                metadataGroups = MetadataExtractor.ImageMetadataReader.ReadMetadata(filePath);
             }
             catch (MetadataExtractor.ImageProcessingException) { return null; }
 
             // Search for the field containing the time that the image was taken
-            ExifSubIfdDirectory subIfdGroup =
-                metadataGroups.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+            ExifSubIfdDirectory subIfdGroup = metadataGroups.OfType<ExifSubIfdDirectory>().FirstOrDefault();
             if (subIfdGroup == null) return null;
 
-            MetadataExtractor.Tag dateTimeOriginal = subIfdGroup.Tags.FirstOrDefault(
-                tag => tag.Name == "Date/Time Original");
+            MetadataExtractor.Tag dateTimeOriginal =
+                subIfdGroup.Tags.FirstOrDefault(tag => tag.Name == "Date/Time Original");
             if (dateTimeOriginal == null) return null;
 
             try
             {
-                DateTime timeTaken = DateTime
-                    .ParseExact(dateTimeOriginal.Description, "yyyy:MM:dd HH:mm:ss", null);
+                DateTime timeTaken = DateTime.ParseExact(dateTimeOriginal.Description, "yyyy:MM:dd HH:mm:ss", null);
                 return timeTaken;
             }
             catch { return null; }
@@ -114,18 +112,15 @@ namespace DCIMIngester.Routines
 
             // This method allows us to distinguish a file not existing from an error
             // determining whether it exists
-            string[] files = Directory.GetFiles(
-                destinationDir, Path.GetFileNameWithoutExtension(fileName) + "*");
+            string[] files = Directory.GetFiles(destinationDir, Path.GetFileNameWithoutExtension(fileName) + "*");
 
             int duplicateCounter = 0;
 
             // Increment a duplicate counter until the file name does not exist
             while (files.Contains(Path.Combine(destinationDir, newFileName)))
             {
-                newFileName = string.Format(
-                    "{0} ({1}){2}", Path.GetFileNameWithoutExtension(fileName),
+                newFileName = string.Format("{0} ({1}){2}", Path.GetFileNameWithoutExtension(fileName),
                     duplicateCounter + 1, Path.GetExtension(fileName));
-
                 duplicateCounter++;
             }
 

@@ -27,8 +27,8 @@ namespace DCIMIngester.Ingester
 
         public event EventHandler<PageDismissEventArgs> PageDismissed;
 
-        public TaskPageTransfer(string volumeLabel, List<string> filesToTransfer,
-            long totalTransferSize, Action<TaskStatus> setStatus)
+        public TaskPageTransfer(string volumeLabel, List<string> filesToTransfer, long totalTransferSize,
+            Action<TaskStatus> setStatus)
         {
             VolumeLabel = volumeLabel;
             FilesToTransfer = filesToTransfer;
@@ -41,56 +41,45 @@ namespace DCIMIngester.Ingester
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            TransferThread = new Thread(delegate () { TransferFiles(); });
+            TransferThread = new Thread(() => TransferFiles());
             TransferThread.Start();
         }
 
         private void TransferFiles()
         {
-            string totalSizeString = FormatBytes(TotalTransferSize);
             for (int i = LastFileTransferred + 1; i < FilesToTransfer.Count; i++)
             {
-                string file = FilesToTransfer[i];
-                float percentage =
-                    ((float)(LastFileTransferred + 1) / FilesToTransfer.Count) * 100;
-
-                // Update interface to reflect progress
-                Application.Current.Dispatcher.Invoke(delegate ()
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (VolumeLabel == "")
                     {
-                        LabelCaption.Text =
-                            string.Format("Transferring file {0} of {1} from unnamed volume",
+                        LabelCaption.Text = string.Format("Transferring file {0} of {1} from unnamed volume",
                             LastFileTransferred + 2, FilesToTransfer.Count);
                     }
                     else
                     {
-                        LabelCaption.Text =
-                            string.Format("Transferring file {0} of {1} from '{2}'",
-                            LastFileTransferred + 2, FilesToTransfer.Count,
-                            VolumeLabel);
+                        LabelCaption.Text = string.Format("Transferring file {0} of {1} from '{2}'",
+                            LastFileTransferred + 2, FilesToTransfer.Count, VolumeLabel);
                     }
 
-                    LabelPercentage.Content =
-                        string.Format("{0}%", Math.Round(percentage));
+                    float percentage = (float)(LastFileTransferred + 1) / FilesToTransfer.Count * 100;
+                    LabelPercentage.Content = string.Format("{0}%", Math.Round(percentage));
                     ProgressBarA.Value = percentage;
                 });
 
-                if (!TransferFile(file))
+                if (!TransferFile(FilesToTransfer[i]))
                 {
-                    // Update interface to reflect failure
-                    Application.Current.Dispatcher.Invoke(delegate ()
-                    { TransferFilesFailed(); });
+                    Application.Current.Dispatcher.Invoke(() => TransferFilesFailed());
                     return;
                 }
 
                 LastFileTransferred++;
                 if (ShouldCancelTransfer)
                 {
+                    // If we've just copied the final file then the task is complete instead of cancelled
                     if (LastFileTransferred == FilesToTransfer.Count - 1)
                     {
-                        // Update interface to reflect completion
-                        Application.Current.Dispatcher.Invoke(delegate ()
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             TransferFilesCompleted();
                             ButtonCancel.IsEnabled = true;
@@ -98,16 +87,13 @@ namespace DCIMIngester.Ingester
                     }
                     else
                     {
-                        Application.Current.Dispatcher.Invoke(delegate ()
-                        { TransferFilesCancelled(); });
+                        Application.Current.Dispatcher.Invoke(() => TransferFilesCancelled());
                         return;
                     }
                 }
             }
 
-            // Update interface to reflect completion
-            Application.Current.Dispatcher.Invoke(delegate ()
-            { TransferFilesCompleted(); });
+            Application.Current.Dispatcher.Invoke(() => TransferFilesCompleted());
         }
         private void TransferFilesCompleted()
         {
@@ -121,8 +107,7 @@ namespace DCIMIngester.Ingester
             ProgressBarA.Value = 100;
 
             LabelSubCaption.Text = string.Format(
-                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter,
-                UnsortedCounter);
+                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter, UnsortedCounter);
 
             ButtonCancel.Content = "Dismiss";
             ButtonCancel.IsEnabled = true;
@@ -141,8 +126,7 @@ namespace DCIMIngester.Ingester
             ButtonRetry.Visibility = Visibility.Visible;
 
             LabelSubCaption.Text = string.Format(
-                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter,
-                UnsortedCounter);
+                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter, UnsortedCounter);
 
             if (LastFileTransferred > -1)
                 ButtonView.Visibility = Visibility.Visible;
@@ -160,8 +144,7 @@ namespace DCIMIngester.Ingester
             ButtonRetry.Visibility = Visibility.Visible;
 
             LabelSubCaption.Text = string.Format(
-                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter,
-                UnsortedCounter);
+                "{0} renamed duplicates, {1} transferred to 'Unsorted' folder", DuplicateCounter, UnsortedCounter);
 
             if (LastFileTransferred > -1)
                 ButtonView.Visibility = Visibility.Visible;
@@ -172,7 +155,7 @@ namespace DCIMIngester.Ingester
             {
                 DateTime? timeTaken = GetTimeTaken(filePath);
 
-                string destinationDir = "";
+                string destinationDir;
                 bool isUnsorted = false;
 
                 // Determine file destination based on time taken and selected subfolder organisation
@@ -182,23 +165,20 @@ namespace DCIMIngester.Ingester
                     {
                         case 0:
                             {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                                    string.Format("{0:D4}\\{1:D2}\\{2:D2}",
-                                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, string.Format(
+                                    "{0:D4}\\{1:D2}\\{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
                                 break;
                             }
                         case 1:
                             {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                                    string.Format("{0:D4}\\{0:D4}-{1:D2}-{2:D2}",
-                                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, string.Format(
+                                        "{0:D4}\\{0:D4}-{1:D2}-{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
                                 break;
                             }
                         case 2:
                             {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint,
-                                    string.Format("{0:D4}-{1:D2}-{2:D2}",
-                                    timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
+                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, string.Format(
+                                    "{0:D4}-{1:D2}-{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
                                 break;
                             }
                         default: return false;
@@ -224,10 +204,10 @@ namespace DCIMIngester.Ingester
                 // Display duplicate and unsorted counter as the transfer progresses
                 if (DuplicateCounter > 0 || UnsortedCounter > 0)
                 {
-                    Application.Current.Dispatcher.Invoke(delegate ()
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        LabelSubCaption.Text = string.Format(
-                            "{0} renamed duplicates, {1} transferred to 'Unsorted' folder",
+                        LabelSubCaption.Text =
+                            string.Format("{0} renamed duplicates. {1} transferred to 'Unsorted' folder",
                             DuplicateCounter, UnsortedCounter);
                     });
                 }
@@ -245,11 +225,7 @@ namespace DCIMIngester.Ingester
                 ButtonCancel.Content = "Cancelling";
                 ShouldCancelTransfer = true;
             }
-            else
-            {
-                PageDismissed?.Invoke(this,
-                    new PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
-            }
+            else PageDismissed?.Invoke(this, new PageDismissEventArgs("IngesterPageTransfer.Dismiss"));
         }
         private void ButtonRetry_Click(object sender, RoutedEventArgs e)
         {
@@ -259,13 +235,13 @@ namespace DCIMIngester.Ingester
             ButtonRetry.Visibility = Visibility.Collapsed;
             ButtonView.Visibility = Visibility.Collapsed;
 
-            // Start the transfer thread again
-            Page_Loaded(this, new RoutedEventArgs());
+            Page_Loaded(this, new RoutedEventArgs()); // Start the transfer thread again
         }
         private void ButtonView_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                // Open the destination directory of the first file transferred
                 Process.Start(new ProcessStartInfo()
                 {
                     FileName = FirstFileDestination,

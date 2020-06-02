@@ -31,10 +31,9 @@ namespace DCIMIngester.Windows
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            HwndSource windowHandle
-                = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            HwndSource windowHandle = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
 
-            // Register for device change messages
+            // Register for events when volumes are added to or removed from the system
             if (windowHandle != null)
             {
                 Volumes.VolumeAdded += Devices_VolumeAdded;
@@ -50,19 +49,17 @@ namespace DCIMIngester.Windows
             int WS_EX_APPWINDOW = 0x00040000;
             int WS_EX_TOOLWINDOW = 0x00000080;
 
-            // Hide the window from windows task switcher
+            // Hide this window from the Windows task switcher
             SetWindowLong(windowHandle, GWL_EX_STYLE,
-                    (GetWindowLong(windowHandle, GWL_EX_STYLE) | WS_EX_TOOLWINDOW)
-                    & ~WS_EX_APPWINDOW);
+                (GetWindowLong(windowHandle, GWL_EX_STYLE) | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
         }
 
         private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
-            if (!IsLoaded) return;
-            if (Properties.Settings.Default.Endpoint == "") return;
-            if (((App)Application.Current).IsSettingsOpen) return;
+            if (!IsLoaded || Properties.Settings.Default.Endpoint == "" || ((App)Application.Current).IsSettingsOpen)
+                return;
 
-            // Dismiss any non-dismissed left over task for this volume
+            // Dismiss any non-dismissed leftover tasks for this volume
             foreach (IngesterTask task in new List<IngesterTask>(Tasks))
             {
                 if (task.Volume == e.VolumeID)
@@ -72,15 +69,16 @@ namespace DCIMIngester.Windows
                 }
             }
 
-            string volumeLetter = GetVolumeLetter(e.VolumeID);
-            if (Directory.Exists(Path.Combine(volumeLetter, "DCIM")))
+            if (Directory.Exists(Path.Combine(GetVolumeLetter(e.VolumeID), "DCIM")))
                 StartIngesterTask(e.VolumeID);
         }
         private void Devices_VolumeRemoved(object sender, VolumeChangedEventArgs e)
         {
             if (!IsLoaded) return;
+
             foreach (IngesterTask task in Tasks)
             {
+                // Only remove waiting tasks. Tasks in other states will be dealt with separately
                 if (task.Volume == e.VolumeID && task.Status == TaskStatus.Waiting)
                 {
                     StopIngesterTask(task);

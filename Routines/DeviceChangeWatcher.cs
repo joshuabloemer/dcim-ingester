@@ -13,8 +13,7 @@ namespace DCIMIngester.Routines
         private IntPtr NotificationHandle;
 
 
-        public void RegisterDeviceNotification(
-            IntPtr windowHandle, Guid deviceInterfaceClass)
+        public void RegisterDeviceNotification(IntPtr windowHandle, Guid deviceInterfaceClass)
         {
             // Specifies which type of device to send notifications for. Here
             // DeviceType is 5 which means notifications will be sent for all devices
@@ -41,8 +40,7 @@ namespace DCIMIngester.Routines
 
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr RegisterDeviceNotification(
-            IntPtr recipient, IntPtr notificationFilter, int flags);
+        private static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr notificationFilter, int flags);
 
         [DllImport("user32.dll")]
         private static extern bool UnregisterDeviceNotification(IntPtr handle);

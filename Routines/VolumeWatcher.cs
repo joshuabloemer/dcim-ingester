@@ -39,8 +39,8 @@ namespace DCIMIngester.Routines
             windowHandle.AddHook(WindowProcedure);
             volumes = GetVolumes();
 
-            DeviceWatcher.RegisterDeviceNotification(windowHandle.Handle,
-                new Guid("53F5630D-B6BF-11D0-94F2-00A0C91EFB8B")); // Volume devices
+            DeviceWatcher.RegisterDeviceNotification(
+                windowHandle.Handle, new Guid("53F5630D-B6BF-11D0-94F2-00A0C91EFB8B")); // Volume devices
         }
         public void StopWatching()
         {
@@ -48,18 +48,14 @@ namespace DCIMIngester.Routines
             volumes = null;
         }
 
-        private IntPtr WindowProcedure(
-            IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        private IntPtr WindowProcedure(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
             // Only process device addition and removal messages
-            if (msg == DeviceChangeWatcher.WM_DEVICE_CHANGE
-                && (int)wparam == DeviceChangeWatcher.DBT_DEVICE_ARRIVAL
-                || (int)wparam == DeviceChangeWatcher.DBT_DEVICE_REMOVE_COMPLETE)
+            if (msg == DeviceChangeWatcher.WM_DEVICE_CHANGE && ((int)wparam == DeviceChangeWatcher.DBT_DEVICE_ARRIVAL
+                || (int)wparam == DeviceChangeWatcher.DBT_DEVICE_REMOVE_COMPLETE))
             {
-                DeviceChangeWatcher.DevBroadcastDeviceInterface dbdi
-                    = (DeviceChangeWatcher.DevBroadcastDeviceInterface)
-                    Marshal.PtrToStructure(lparam, typeof(DeviceChangeWatcher
-                    .DevBroadcastDeviceInterface));
+                DeviceChangeWatcher.DevBroadcastDeviceInterface dbdi = (DeviceChangeWatcher.DevBroadcastDeviceInterface)
+                    Marshal.PtrToStructure(lparam, typeof(DeviceChangeWatcher.DevBroadcastDeviceInterface));
 
                 if (dbdi.Name.StartsWith("\\\\?\\")) // Ignore invalid false positives
                 {
@@ -71,7 +67,7 @@ namespace DCIMIngester.Routines
                             isHandlingMessage = true;
 
                             // Handle message in new thread to allow this method to return
-                            new Thread(delegate () { VolumesChanged(); }).Start();
+                            new Thread(() => VolumesChanged()).Start();
                         }
                     }
                 }
@@ -89,11 +85,8 @@ namespace DCIMIngester.Routines
             {
                 if (!Volumes.Contains(volume))
                 {
-                    Application.Current.Dispatcher.Invoke(delegate ()
-                    {
-                        VolumeAdded?.Invoke(
-                            this, new VolumeChangedEventArgs(volume));
-                    });
+                    Application.Current.Dispatcher.Invoke(() =>
+                        VolumeAdded?.Invoke(this, new VolumeChangedEventArgs(volume)));
                 }
             }
 
@@ -102,11 +95,8 @@ namespace DCIMIngester.Routines
             {
                 if (!newVolumes.Contains(volume))
                 {
-                    Application.Current.Dispatcher.Invoke(delegate ()
-                    {
-                        VolumeRemoved?.Invoke(
-                            this, new VolumeChangedEventArgs(volume));
-                    });
+                    Application.Current.Dispatcher.Invoke(() =>
+                        VolumeRemoved?.Invoke(this, new VolumeChangedEventArgs(volume)));
                 }
             }
 
@@ -131,16 +121,14 @@ namespace DCIMIngester.Routines
             List<Guid> volumes = new List<Guid>();
             ManagementObjectSearcher query = new ManagementObjectSearcher(
                 "SELECT DeviceID FROM Win32_Volume WHERE DriveLetter != NULL "
-                + "AND (FileSystem = 'FAT12' OR FileSystem = 'FAT16' OR "
-                + "FileSystem = 'FAT32' OR FileSystem = 'exFAT') AND BootVolume "
-                + "= False");
+                + "AND (FileSystem = 'FAT12' OR FileSystem = 'FAT16' OR FileSystem = 'FAT32' "
+                + "OR FileSystem = 'exFAT') AND BootVolume = False");
 
             foreach (ManagementObject volume in query.Get())
             {
                 // Extract GUID to avoid a mess with slashes and escaping
                 string volumeId = volume["DeviceID"].ToString();
-                volumeId = volumeId.Substring(volumeId.IndexOf('{'),
-                    volumeId.IndexOf('}') - volumeId.IndexOf('{') + 1);
+                volumeId = volumeId.Substring(volumeId.IndexOf('{'), volumeId.IndexOf('}') - volumeId.IndexOf('{') + 1);
                 volumes.Add(new Guid(volumeId));
             }
 
