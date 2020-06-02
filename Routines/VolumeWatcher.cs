@@ -133,7 +133,7 @@ namespace DCIMIngester.Routines
                 "SELECT DeviceID FROM Win32_Volume WHERE DriveLetter != NULL "
                 + "AND (FileSystem = 'FAT12' OR FileSystem = 'FAT16' OR "
                 + "FileSystem = 'FAT32' OR FileSystem = 'exFAT') AND BootVolume "
-                + "= False AND Label != NULL");
+                + "= False");
 
             foreach (ManagementObject volume in query.Get())
             {

@@ -57,10 +57,19 @@ namespace DCIMIngester.Ingester
                 // Update interface to reflect progress
                 Application.Current.Dispatcher.Invoke(delegate ()
                 {
-                    LabelCaption.Text =
-                        string.Format("Transferring file {0} of {1} from {2}",
-                        LastFileTransferred + 2, FilesToTransfer.Count,
-                        VolumeLabel);
+                    if (VolumeLabel == "")
+                    {
+                        LabelCaption.Text =
+                            string.Format("Transferring file {0} of {1} from unnamed volume",
+                            LastFileTransferred + 2, FilesToTransfer.Count);
+                    }
+                    else
+                    {
+                        LabelCaption.Text =
+                            string.Format("Transferring file {0} of {1} from '{2}'",
+                            LastFileTransferred + 2, FilesToTransfer.Count,
+                            VolumeLabel);
+                    }
 
                     LabelPercentage.Content =
                         string.Format("{0}%", Math.Round(percentage));
@@ -103,7 +112,10 @@ namespace DCIMIngester.Ingester
         private void TransferFilesCompleted()
         {
             SetStatus(TaskStatus.Completed);
-            LabelCaption.Text = string.Format("Transfer from {0} complete", VolumeLabel);
+
+            if (VolumeLabel == "")
+                LabelCaption.Text = string.Format("Transfer from unnamed volume complete");
+            else LabelCaption.Text = string.Format("Transfer from '{0}' complete", VolumeLabel);
 
             LabelPercentage.Content = "100%";
             ProgressBarA.Value = 100;
@@ -119,7 +131,10 @@ namespace DCIMIngester.Ingester
         private void TransferFilesFailed()
         {
             SetStatus(TaskStatus.Failed);
-            LabelCaption.Text = string.Format("Transfer from {0} failed", VolumeLabel);
+
+            if (VolumeLabel == "")
+                LabelCaption.Text = string.Format("Transfer from unnamed volume failed");
+            else LabelCaption.Text = string.Format("Transfer from '{0}' failed", VolumeLabel);
 
             ButtonCancel.Content = "Dismiss";
             ButtonCancel.IsEnabled = true;
@@ -135,7 +150,10 @@ namespace DCIMIngester.Ingester
         private void TransferFilesCancelled()
         {
             SetStatus(TaskStatus.Cancelled);
-            LabelCaption.Text = string.Format("Transfer from {0} cancelled", VolumeLabel);
+
+            if (VolumeLabel == "")
+                LabelCaption.Text = string.Format("Transfer from unnamed volume cancelled");
+            else LabelCaption.Text = string.Format("Transfer from '{0}' cancelled", VolumeLabel);
 
             ButtonCancel.Content = "Dismiss";
             ButtonCancel.IsEnabled = true;

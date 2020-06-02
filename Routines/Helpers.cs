@@ -26,7 +26,10 @@ namespace DCIMIngester.Routines
             ManagementObjectCollection result = query.Get();
 
             if (result.Count > 0)
-                return result.OfType<ManagementObject>().First()["Label"].ToString();
+            {
+                object label = result.OfType<ManagementObject>().First()["Label"];
+                return label == null ? "" : label.ToString();
+            }
             return null;
         }
 

@@ -28,9 +28,18 @@ namespace DCIMIngester.Ingester
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LabelCaption.Text = string.Format("DCIM device {0} contains {1} files "
-                + "({2}). Do you want to transfer them?", VolumeLabel,
-                FilesToTransfer.Count, FormatBytes(TotalTransferSize));
+            if (VolumeLabel == "")
+            {
+                LabelCaption.Text = string.Format("Unnamed DCIM volume contains {0} files "
+                    + "({1}). Do you want to transfer them?",
+                    FilesToTransfer.Count, FormatBytes(TotalTransferSize));
+            }
+            else
+            {
+                LabelCaption.Text = string.Format("DCIM volume '{0}' contains {1} files "
+                    + "({2}). Do you want to transfer them?", VolumeLabel,
+                    FilesToTransfer.Count, FormatBytes(TotalTransferSize));
+            }
 
             CheckBoxDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
         }
