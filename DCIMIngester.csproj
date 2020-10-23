@@ -90,26 +90,11 @@
     <Compile Include="Ingesting\IngestTask.xaml.cs">
       <DependentUpon>IngestTask.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Ingesting\Pages\Ingest.xaml.cs">
-      <DependentUpon>Ingest.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Ingesting\Pages\Prompt.xaml.cs">
-      <DependentUpon>Prompt.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Ingesting\Pages\PageDismissedEventArgs.cs" />
     <Compile Include="Routines\VolumeWatcher.cs" />
     <Compile Include="Windows\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
     <Page Include="Ingesting\IngestTask.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Ingesting\Pages\Ingest.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Ingesting\Pages\Prompt.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
