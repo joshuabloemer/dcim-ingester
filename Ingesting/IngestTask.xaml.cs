@@ -17,7 +17,7 @@ namespace DCIMIngester.Ingesting
             InitializeComponent();
         }
 
-        public void Start()
+        public void Load()
         {
             Pages.Prompt promptPage = new Pages.Prompt(this);
             promptPage.Dismissed += Page_Dismissed;

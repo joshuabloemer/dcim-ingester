@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using ExifSubIfdDirectory = MetadataExtractor.Formats.Exif.ExifSubIfdDirectory;
 
 namespace DCIMIngester.Routines
@@ -127,5 +128,13 @@ namespace DCIMIngester.Routines
             File.Copy(sourceFilePath, Path.Combine(destinationDir, newFileName));
             return duplicateCounter == 0 ? false : true;
         }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        internal static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        internal const int GWL_EXSTYLE = -20;
+        internal const int WS_EX_TOOLWINDOW = 0x00000080;
     }
 }
