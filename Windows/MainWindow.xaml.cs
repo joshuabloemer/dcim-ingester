@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using static DCIMIngester.Ingesting.IngestTask;
@@ -13,8 +14,10 @@ namespace DCIMIngester.Windows
 {
     public partial class MainWindow : Window
     {
-        private readonly VolumeWatcher VolumeWatcher = new VolumeWatcher();
-        private readonly List<IngestTask> TasksInProgress = new List<IngestTask>();
+        private readonly VolumeWatcher volumeWatcher = new VolumeWatcher();
+        private readonly List<IngestTask> tasksInProgress = new List<IngestTask>();
+
+        public int TaskCount = 0;
 
         public MainWindow()
         {
@@ -30,13 +33,13 @@ namespace DCIMIngester.Windows
             extendedStyle |= Helpers.WS_EX_TOOLWINDOW;
             Helpers.SetWindowLong(windowHandle, Helpers.GWL_EXSTYLE, extendedStyle);
 
-            VolumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
-            VolumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
-            VolumeWatcher.StartWatching(HwndSource.FromHwnd(windowHandle));
+            volumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
+            volumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
+            volumeWatcher.StartWatching(HwndSource.FromHwnd(windowHandle));
         }
         private void Window_Closed(object sender, EventArgs e)
         {
-            VolumeWatcher.StopWatching();
+            volumeWatcher.StopWatching();
         }
 
         private void VolumeWatcher_VolumeAdded(object sender, VolumeChangedEventArgs e)
@@ -46,7 +49,8 @@ namespace DCIMIngester.Windows
 
             if (Directory.Exists(Path.Combine(Helpers.GetVolumeLetter(e.VolumeID), "DCIM")))
             {
-                IngestTask task = TasksInProgress.SingleOrDefault(ti => ti.Context.VolumeID == e.VolumeID);
+                Interlocked.Increment(ref TaskCount);
+                IngestTask task = tasksInProgress.SingleOrDefault(ti => ti.Context.VolumeID == e.VolumeID);
 
                 if (task != null)
                     RemoveTask(task);
@@ -60,10 +64,11 @@ namespace DCIMIngester.Windows
         {
             if (e.Result == FileDiscoveryCompletedEventArgs.FileDiscoveryResult.FilesFound)
                 AddTask(sender as IngestTaskContext);
+            else Interlocked.Decrement(ref TaskCount);
         }
         private void VolumeWatcher_VolumeRemoved(object sender, VolumeChangedEventArgs e)
         {
-            IngestTask task = TasksInProgress.SingleOrDefault(
+            IngestTask task = tasksInProgress.SingleOrDefault(
                 it => it.Context.VolumeID == e.VolumeID && it.Status == TaskStatus.Prompting);
 
             if (task != null)
@@ -76,7 +81,7 @@ namespace DCIMIngester.Windows
             task.Dismissed += Task_Dismissed;
             task.Load();
 
-            TasksInProgress.Add(task);
+            tasksInProgress.Add(task);
             StackPanelTasks.Children.Add(task);
 
             Height += 140;
@@ -90,14 +95,16 @@ namespace DCIMIngester.Windows
         }
         private void RemoveTask(IngestTask task)
         {
-            TasksInProgress.Remove(task);
+            Interlocked.Decrement(ref TaskCount);
+
+            tasksInProgress.Remove(task);
             StackPanelTasks.Children.Remove(task);
 
             Height -= 140;
             Left = SystemParameters.WorkArea.Right - Width - 20;
             Top = SystemParameters.WorkArea.Bottom - Height - 20;
 
-            if (TasksInProgress.Count == 0)
+            if (tasksInProgress.Count == 0)
                 Hide();
         }
     }

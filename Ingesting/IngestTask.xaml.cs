@@ -12,14 +12,14 @@ namespace DCIMIngester.Ingesting
     public partial class IngestTask : UserControl
     {
         public IngestTaskContext Context { get; private set; }
-        public TaskStatus Status { get; set; } = TaskStatus.Prompting;
+        public TaskStatus Status { get; private set; } = TaskStatus.Prompting;
 
-        private Thread IngestThread;
-        private bool ShouldCancelIngest = false;
-        private int LastFileIngested = -1;
-        private string FirstFileDestination = null;
-        private int DuplicateCounter = 0;
-        private int UnsortedCounter = 0;
+        private Thread ingestThread;
+        private bool shouldCancelIngest = false;
+        private int lastFileIngested = -1;
+        private string firstFileDestination = null;
+        private int duplicateCounter = 0;
+        private int unsortedCounter = 0;
 
         public event EventHandler Dismissed;
 
@@ -66,8 +66,8 @@ namespace DCIMIngester.Ingesting
             GridPrompt.Visibility = Visibility.Collapsed;
             GridIngest.Visibility = Visibility.Visible;
 
-            IngestThread = new Thread(IngestFiles);
-            IngestThread.Start();
+            ingestThread = new Thread(IngestFiles);
+            ingestThread.Start();
         }
         private void ButtonIngestCancel_Click(object sender, RoutedEventArgs e)
         {
@@ -75,7 +75,7 @@ namespace DCIMIngester.Ingesting
             {
                 ButtonIngestCancel.IsEnabled = false;
                 ButtonIngestCancel.Content = "Cancelling";
-                ShouldCancelIngest = true;
+                shouldCancelIngest = true;
             }
             else if (ButtonIngestCancel.Content.ToString() == "Dismiss")
                 Dismissed?.Invoke(this, new EventArgs());
@@ -84,7 +84,7 @@ namespace DCIMIngester.Ingesting
         {
             ButtonIngestCancel.Content = "Cancel";
             ButtonIngestCancel.IsEnabled = true;
-            ShouldCancelIngest = false;
+            shouldCancelIngest = false;
 
             ButtonIngestRetry.Visibility = Visibility.Collapsed;
             ButtonIngestView.Visibility = Visibility.Collapsed;
@@ -96,14 +96,14 @@ namespace DCIMIngester.Ingesting
             try
             {
                 // Open the destination directory of the first file transferred
-                Process.Start(new ProcessStartInfo(FirstFileDestination) { UseShellExecute = true, Verb = "open" });
+                Process.Start(new ProcessStartInfo(firstFileDestination) { UseShellExecute = true, Verb = "open" });
             }
             catch { }
         }
 
         private void IngestFiles()
         {
-            for (int i = LastFileIngested + 1; i < Context.FilesToIngest.Count; i++)
+            for (int i = lastFileIngested + 1; i < Context.FilesToIngest.Count; i++)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -123,7 +123,7 @@ namespace DCIMIngester.Ingesting
                     ProgressBarIngest.Value = percentage;
 
                     LabelIngestSubCaption.Text = string.Format(
-                        "{0} renamed duplicates, {1} ingested to 'Unsorted' folder", DuplicateCounter, UnsortedCounter);
+                        "{0} renamed duplicates, {1} ingested to 'Unsorted' folder", duplicateCounter, unsortedCounter);
                 });
 
                 if (!IngestFile(Context.FilesToIngest.ElementAt(i)))
@@ -132,12 +132,12 @@ namespace DCIMIngester.Ingesting
                     return;
                 }
 
-                LastFileIngested++;
+                lastFileIngested++;
 
-                if (ShouldCancelIngest)
+                if (shouldCancelIngest)
                 {
                     // Only cancel if the file we just ingested was not the final file
-                    if (LastFileIngested < Context.FilesToIngest.Count - 1)
+                    if (lastFileIngested < Context.FilesToIngest.Count - 1)
                     {
                         Application.Current.Dispatcher.Invoke(IngestCancelled);
                         return;
@@ -191,13 +191,13 @@ namespace DCIMIngester.Ingesting
                 destinationDir = Helpers.CreateDirectory(destinationDir);
 
                 if (Helpers.CopyFile(filePath, destinationDir))
-                    DuplicateCounter++;
+                    duplicateCounter++;
 
                 if (isUnsorted)
-                    UnsortedCounter++;
+                    unsortedCounter++;
 
-                if (FirstFileDestination == null)
-                    FirstFileDestination = destinationDir;
+                if (firstFileDestination == null)
+                    firstFileDestination = destinationDir;
 
                 if (Properties.Settings.Default.ShouldDeleteAfter)
                     File.Delete(filePath);
@@ -218,7 +218,7 @@ namespace DCIMIngester.Ingesting
             ProgressBarIngest.Value = 100;
 
             LabelIngestSubCaption.Text = string.Format(
-                "{0} renamed duplicates, {1} ingested to 'Unsorted' folder", DuplicateCounter, UnsortedCounter);
+                "{0} renamed duplicates, {1} ingested to 'Unsorted' folder", duplicateCounter, unsortedCounter);
 
             ButtonIngestCancel.Content = "Dismiss";
             ButtonIngestView.Visibility = Visibility.Visible;
@@ -234,7 +234,7 @@ namespace DCIMIngester.Ingesting
             ButtonIngestCancel.Content = "Dismiss";
             ButtonIngestRetry.Visibility = Visibility.Visible;
 
-            if (LastFileIngested > 0)
+            if (lastFileIngested > 0)
                 ButtonIngestView.Visibility = Visibility.Visible;
         }
         private void IngestCancelled()
@@ -248,10 +248,10 @@ namespace DCIMIngester.Ingesting
             ButtonIngestCancel.Content = "Dismiss";
             ButtonIngestRetry.Visibility = Visibility.Visible;
 
-            if (LastFileIngested > 0)
+            if (lastFileIngested > 0)
                 ButtonIngestView.Visibility = Visibility.Visible;
         }
 
-        public enum TaskStatus { Prompting, Ingesting, Completed, Failed, Cancelled };
+        public enum TaskStatus { Prompting, Ingesting, Completed, Failed, Cancelled }
     }
 }

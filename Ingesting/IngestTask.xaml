@@ -5,7 +5,7 @@
 
     <Grid>
         <Grid x:Name="GridPrompt">
-            <TextBlock x:Name="LabelPromptCaption" Margin="10" TextWrapping="Wrap" TextAlignment="Justify" VerticalAlignment="Top" Foreground="#FFEBEBEB" TextTrimming="CharacterEllipsis"/>
+            <TextBlock x:Name="LabelPromptCaption" Margin="10" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FFEBEBEB" TextTrimming="CharacterEllipsis"/>
 
             <Button x:Name="ButtonPromptYes" Content="Yes" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="100" Click="ButtonPromptYes_Click" Style="{DynamicResource ButtonStyle}"/>
             <Button x:Name="ButtonPromptNo" Content="No" HorizontalAlignment="Left" Margin="115,0,0,10" VerticalAlignment="Bottom" Width="80" Click="ButtonPromptNo_Click" Style="{DynamicResource ButtonStyle}"/>

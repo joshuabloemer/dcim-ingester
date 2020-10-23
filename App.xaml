@@ -4,13 +4,6 @@
              Startup="Application_Startup" ShutdownMode="OnExplicitShutdown" Exit="Application_Exit">
 
     <Application.Resources>
-        <SolidColorBrush x:Key="Button.Static.Background" Color="#FF3C3C3C"/>
-        <SolidColorBrush x:Key="Button.Static.Foreground" Color="#FFEBEBEB"/>
-        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FF5A5A5A"/>
-        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FF323232"/>
-        <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FF5A5A5A"/>
-        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FFAAAAAA"/>
-
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -21,6 +14,12 @@
             </Setter>
         </Style>
 
+        <SolidColorBrush x:Key="Button.Static.Background" Color="#FF3C3C3C"/>
+        <SolidColorBrush x:Key="Button.Static.Foreground" Color="#FFEBEBEB"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FF5A5A5A"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FF323232"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FF5A5A5A"/>
+        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FFAAAAAA"/>
 
         <Style x:Key="ButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
