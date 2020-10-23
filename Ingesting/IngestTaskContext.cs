@@ -24,7 +24,6 @@ namespace DCIMIngester.Ingesting
 
         public event EventHandler<FileDiscoveryCompletedEventArgs> FileDiscoveryCompleted;
 
-
         public IngestTaskContext(Guid volume)
         {
             VolumeID = volume;
@@ -42,20 +41,21 @@ namespace DCIMIngester.Ingesting
 
                     foreach (string directory in directories)
                     {
-                        // Ignore directory names not conforming to DCF spec, to avoid non-image directories
-                        if (!Regex.IsMatch(
-                            Path.GetFileName(directory), "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9a-zA-Z_]{5}$"))
-                        { continue; }
-
-                        foreach (string file in Directory.GetFiles(directory))
+                        // Ignore directory names not conforming to DCF spec to avoid non-image directories
+                        if (Regex.IsMatch(Path.GetFileName(directory),
+                            "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9a-zA-Z_]{5}$"))
                         {
-                            // Ignore files with names such as ".txt"
-                            if (Path.GetFileNameWithoutExtension(file) == "")
-                                continue;
+                            foreach (string file in Directory.GetFiles(directory))
+                            {
+                                // Ignore files with names such as ".txt"
+                                if (Path.GetFileNameWithoutExtension(file) == "")
+                                    continue;
 
-                            filesToIngest.Add(file);
-                            TotalIngestSize += new FileInfo(file).Length;
+                                filesToIngest.Add(file);
+                                TotalIngestSize += new FileInfo(file).Length;
+                            }
                         }
+                        else continue;
                     }
 
                     if (FilesToIngest.Count > 0)
