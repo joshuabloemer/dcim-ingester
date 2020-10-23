@@ -1,4 +1,4 @@
-﻿using DCIMIngester.Ingester;
+﻿using DCIMIngester.Ingesting;
 using DCIMIngester.Routines;
 using System;
 using System.Collections.Generic;
@@ -6,121 +6,120 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using static DCIMIngester.Ingester.IngesterTask;
-using static DCIMIngester.Routines.Helpers;
+using static DCIMIngester.Ingesting.IngestTask;
 using static DCIMIngester.Routines.VolumeWatcher;
 
 namespace DCIMIngester.Windows
 {
     public partial class MainWindow : Window
     {
-        private readonly VolumeWatcher Volumes = new VolumeWatcher();
+        private readonly VolumeWatcher VolumeWatcher = new VolumeWatcher();
 
-        private readonly List<IngesterTask> tasks = new List<IngesterTask>();
-        public IReadOnlyCollection<IngesterTask> Tasks
-        {
-            get { return tasks.AsReadOnly(); }
-        }
+        private readonly List<IngestTaskContext> TasksInDiscovery = new List<IngestTaskContext>();
+        private readonly List<IngestTask> TasksInProgress = new List<IngestTask>();
+
 
         public MainWindow()
         {
             InitializeComponent();
         }
 
-
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            base.OnSourceInitialized(e);
-            HwndSource windowHandle = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
-
-            // Register for events when volumes are added to or removed from the system
-            if (windowHandle != null)
-            {
-                Volumes.VolumeAdded += Devices_VolumeAdded;
-                Volumes.VolumeRemoved += Devices_VolumeRemoved;
-                Volumes.StartWatching(windowHandle);
-            }
-        }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var windowHandle = new WindowInteropHelper(this).Handle;
-
             int GWL_EX_STYLE = -20;
             int WS_EX_APPWINDOW = 0x00040000;
             int WS_EX_TOOLWINDOW = 0x00000080;
 
+            IntPtr windowHandlePtr = new WindowInteropHelper(this).Handle;
+
             // Hide this window from the Windows task switcher
-            SetWindowLong(windowHandle, GWL_EX_STYLE,
-                (GetWindowLong(windowHandle, GWL_EX_STYLE) | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+            SetWindowLong(windowHandlePtr, GWL_EX_STYLE,
+                (GetWindowLong(windowHandlePtr, GWL_EX_STYLE) | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+
+            HwndSource windowHandle = HwndSource.FromHwnd(windowHandlePtr);
+            VolumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
+            VolumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
+            VolumeWatcher.StartWatching(windowHandle);
         }
 
-        private void Devices_VolumeAdded(object sender, VolumeChangedEventArgs e)
+        private void VolumeWatcher_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
-            if (!IsLoaded || Properties.Settings.Default.Endpoint == "" || ((App)Application.Current).IsSettingsOpen)
+            if (Properties.Settings.Default.Endpoint == "" || ((App)Application.Current).IsSettingsOpen)
                 return;
 
-            // Dismiss any non-dismissed leftover tasks for this volume
-            foreach (IngesterTask task in new List<IngesterTask>(Tasks))
+            // Remove any leftover finished tasks for this volume
+            foreach (IngestTask task in new List<IngestTask>(TasksInProgress))
             {
-                if (task.Volume == e.VolumeID)
+                if (task.Context.VolumeID == e.VolumeID && (task.Status == TaskStatus.Completed ||
+                    task.Status == TaskStatus.Failed || task.Status == TaskStatus.Cancelled))
                 {
-                    StopIngesterTask(task);
+                    RemoveTask(task);
                     break;
                 }
             }
 
-            if (Directory.Exists(Path.Combine(GetVolumeLetter(e.VolumeID), "DCIM")))
-                StartIngesterTask(e.VolumeID);
-        }
-        private void Devices_VolumeRemoved(object sender, VolumeChangedEventArgs e)
-        {
-            if (!IsLoaded) return;
-
-            foreach (IngesterTask task in Tasks)
+            if (Directory.Exists(Path.Combine(Helpers.GetVolumeLetter(e.VolumeID), "DCIM")))
             {
-                // Only remove waiting tasks. Tasks in other states will be dealt with separately
-                if (task.Volume == e.VolumeID && task.Status == TaskStatus.Waiting)
+                IngestTaskContext context = new IngestTaskContext(e.VolumeID);
+                context.FileDiscoveryCompleted += Context_FileDiscoveryCompleted;
+                context.DiscoverFiles();
+            }
+        }
+        private void Context_FileDiscoveryCompleted(object sender, FileDiscoveryCompletedEventArgs e)
+        {
+            TasksInDiscovery.Remove(sender as IngestTaskContext);
+            (sender as IngestTaskContext).FileDiscoveryCompleted -= Context_FileDiscoveryCompleted;
+
+            if (e.Result == FileDiscoveryCompletedEventArgs.FileDiscoveryResult.FilesFound)
+                AddTask(sender as IngestTaskContext);
+        }
+        private void Task_Dismissed(object sender, EventArgs e)
+        {
+            RemoveTask(sender as IngestTask);
+        }
+        private void VolumeWatcher_VolumeRemoved(object sender, VolumeChangedEventArgs e)
+        {
+            // If a task exists for this volume in the prompting state, remove it
+            foreach (IngestTask task in TasksInProgress)
+            {
+                if (task.Context.VolumeID == e.VolumeID && task.Status == TaskStatus.Prompting)
                 {
-                    StopIngesterTask(task);
+                    RemoveTask(task);
                     break;
                 }
             }
         }
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            Volumes.StopWatching();
-        }
 
-        private void StartIngesterTask(Guid volume)
+        private void AddTask(IngestTaskContext context)
         {
+            IngestTask task = new IngestTask(context);
+            task.Dismissed += Task_Dismissed;
+            task.Start();
+            TasksInProgress.Add(task);
+            StackPanelTasks.Children.Add(task);
+
             Height += 140;
             Rect workArea = SystemParameters.WorkArea;
             Left = workArea.Right - Width - 20;
             Top = workArea.Bottom - Height - 20;
             Show();
-
-            IngesterTask task = new IngesterTask(volume);
-            task.TaskDismissed += Task_TaskDismissed;
-
-            tasks.Add(task);
-            StackPanelTasks.Children.Add(task);
-            task.DiscoverFiles();
         }
-        private void Task_TaskDismissed(object sender, TaskDismissEventArgs e)
-        {
-            StopIngesterTask(e.Task);
-        }
-        private void StopIngesterTask(IngesterTask task)
+        private void RemoveTask(IngestTask task)
         {
             StackPanelTasks.Children.Remove(task);
-            tasks.Remove(task);
+            TasksInProgress.Remove(task);
 
             Height -= 140;
             Rect workArea = SystemParameters.WorkArea;
             Left = workArea.Right - Width - 20;
             Top = workArea.Bottom - Height - 20;
 
-            if (Tasks.Count == 0) Hide();
+            if (TasksInProgress.Count == 0) Hide();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            VolumeWatcher.StopWatching();
         }
 
 

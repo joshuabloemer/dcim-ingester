@@ -36,7 +36,7 @@ namespace DCIMIngester
 
             // Need to show the window to get the Loaded method to run
             TaskWindow.Show();
-            TaskWindow.Hide();
+            //TaskWindow.Hide();
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)
@@ -46,19 +46,19 @@ namespace DCIMIngester
 
         private void MenuItemSettings_Click(object sender, EventArgs e)
         {
-            if (TaskWindow.Tasks.Count > 0)
-            {
-                MessageBox.Show("Dismiss all tasks before opening settings.", "DCIM Ingester",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
-                    MessageBoxOptions.DefaultDesktopOnly);
-            }
-            else
-            {
-                IsSettingsOpen = true;
-                Settings settingsWindow = new Settings();
-                settingsWindow.Closed += delegate { IsSettingsOpen = false; };
-                settingsWindow.Show();
-            }
+            //if (TaskWindow.Tasks.Count > 0)
+            //{
+            //    MessageBox.Show("Dismiss all tasks before opening settings.", "DCIM Ingester",
+            //        MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+            //        MessageBoxOptions.DefaultDesktopOnly);
+            //}
+            //else
+            //{
+            //    IsSettingsOpen = true;
+            //    Settings settingsWindow = new Settings();
+            //    settingsWindow.Closed += delegate { IsSettingsOpen = false; };
+            //    settingsWindow.Show();
+            //}
         }
         private void MenuItemAbout_Click(object sender, EventArgs e)
         {
@@ -72,13 +72,13 @@ namespace DCIMIngester
         }
         private void MenuItemExit_Click(object sender, EventArgs e)
         {
-            if (TaskWindow.Tasks.Count > 0)
-            {
-                MessageBox.Show("Dismiss all tasks before exiting.", "DCIM Ingester",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
-                    MessageBoxOptions.DefaultDesktopOnly);
-            }
-            else Current.Shutdown();
+            //if (TaskWindow.Tasks.Count > 0)
+            //{
+            //    MessageBox.Show("Dismiss all tasks before exiting.", "DCIM Ingester",
+            //        MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+            //        MessageBoxOptions.DefaultDesktopOnly);
+            //}
+            //else Current.Shutdown();
         }
     }
 }

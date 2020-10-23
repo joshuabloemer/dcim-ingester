@@ -34,7 +34,7 @@ namespace DCIMIngester.Routines
             return null;
         }
 
-        // Taken from https://stackoverflow.com/questions/1242266/converting-bytes-to-gb-in-c
+        // From https://stackoverflow.com/questions/1242266/converting-bytes-to-gb-in-c
         internal static string FormatBytes(long bytes)
         {
             string[] suffix = { "B", "KB", "MB", "GB", "TB" };

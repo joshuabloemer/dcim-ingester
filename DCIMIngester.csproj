@@ -14,6 +14,21 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -69,31 +84,32 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Routines\DeviceChangeWatcher.cs" />
+    <Compile Include="Ingesting\FileDiscoveryCompletedEventArgs.cs" />
+    <Compile Include="Ingesting\IngestTaskContext.cs" />
     <Compile Include="Routines\Helpers.cs" />
-    <Compile Include="Ingester\IngesterTask.xaml.cs">
-      <DependentUpon>IngesterTask.xaml</DependentUpon>
+    <Compile Include="Ingesting\IngestTask.xaml.cs">
+      <DependentUpon>IngestTask.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Ingester\TaskPageTransfer.xaml.cs">
-      <DependentUpon>TaskPageTransfer.xaml</DependentUpon>
+    <Compile Include="Ingesting\Pages\Ingest.xaml.cs">
+      <DependentUpon>Ingest.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Ingester\TaskPageStart.xaml.cs">
-      <DependentUpon>TaskPageStart.xaml</DependentUpon>
+    <Compile Include="Ingesting\Pages\Prompt.xaml.cs">
+      <DependentUpon>Prompt.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Routines\PageDismissEventArgs.cs" />
-    <Compile Include="Routines\TaskDismissEventArgs.cs" />
+    <Compile Include="Ingesting\Pages\PageDismissedEventArgs.cs" />
     <Compile Include="Routines\VolumeWatcher.cs" />
     <Compile Include="Windows\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
-    <Page Include="Ingester\IngesterTask.xaml">
+    <Page Include="Ingesting\IngestTask.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Ingester\TaskPageTransfer.xaml">
+    <Page Include="Ingesting\Pages\Ingest.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Ingester\TaskPageStart.xaml">
+    <Page Include="Ingesting\Pages\Prompt.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -143,6 +159,18 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
