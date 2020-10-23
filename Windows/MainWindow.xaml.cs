@@ -44,7 +44,7 @@ namespace DCIMIngester.Windows
 
         private void VolumeWatcher_VolumeAdded(object sender, VolumeChangedEventArgs e)
         {
-            if (Properties.Settings.Default.Endpoint == "" || ((App)Application.Current).IsSettingsOpen)
+            if (Properties.Settings.Default.Destination == "" || ((App)Application.Current).IsSettingsOpen)
                 return;
 
             if (Directory.Exists(Path.Combine(Helpers.GetVolumeLetter(e.VolumeID), "DCIM")))

@@ -87,11 +87,11 @@ namespace DCIMIngester.Ingesting
             shouldCancelIngest = false;
 
             ButtonIngestRetry.Visibility = Visibility.Collapsed;
-            ButtonIngestView.Visibility = Visibility.Collapsed;
+            ButtonIngestOpen.Visibility = Visibility.Collapsed;
 
             Ingest();
         }
-        private void ButtonIngestView_Click(object sender, RoutedEventArgs e)
+        private void ButtonIngestOpen_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -163,19 +163,19 @@ namespace DCIMIngester.Ingesting
                     {
                         case 0:
                             {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, string.Format(
+                                destinationDir = Path.Combine(Properties.Settings.Default.Destination, string.Format(
                                     "{0:D4}\\{1:D2}\\{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
                                 break;
                             }
                         case 1:
                             {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, string.Format(
+                                destinationDir = Path.Combine(Properties.Settings.Default.Destination, string.Format(
                                     "{0:D4}\\{0:D4}-{1:D2}-{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
                                 break;
                             }
                         case 2:
                             {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, string.Format(
+                                destinationDir = Path.Combine(Properties.Settings.Default.Destination, string.Format(
                                     "{0:D4}-{1:D2}-{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
                                 break;
                             }
@@ -185,7 +185,7 @@ namespace DCIMIngester.Ingesting
                 else
                 {
                     isUnsorted = true;
-                    destinationDir = Path.Combine(Properties.Settings.Default.Endpoint, "Unsorted");
+                    destinationDir = Path.Combine(Properties.Settings.Default.Destination, "Unsorted");
                 }
 
                 destinationDir = Helpers.CreateDirectory(destinationDir);
@@ -221,7 +221,7 @@ namespace DCIMIngester.Ingesting
                 "{0} renamed duplicates, {1} ingested to 'Unsorted' folder", duplicateCounter, unsortedCounter);
 
             ButtonIngestCancel.Content = "Dismiss";
-            ButtonIngestView.Visibility = Visibility.Visible;
+            ButtonIngestOpen.Visibility = Visibility.Visible;
         }
         private void IngestFailed()
         {
@@ -235,7 +235,7 @@ namespace DCIMIngester.Ingesting
             ButtonIngestRetry.Visibility = Visibility.Visible;
 
             if (lastFileIngested > 0)
-                ButtonIngestView.Visibility = Visibility.Visible;
+                ButtonIngestOpen.Visibility = Visibility.Visible;
         }
         private void IngestCancelled()
         {
@@ -249,7 +249,7 @@ namespace DCIMIngester.Ingesting
             ButtonIngestRetry.Visibility = Visibility.Visible;
 
             if (lastFileIngested > 0)
-                ButtonIngestView.Visibility = Visibility.Visible;
+                ButtonIngestOpen.Visibility = Visibility.Visible;
         }
 
         public enum TaskStatus { Prompting, Ingesting, Completed, Failed, Cancelled }

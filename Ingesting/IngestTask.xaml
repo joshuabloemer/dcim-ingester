@@ -22,7 +22,7 @@
             <StackPanel Margin="10,0,10,10" Height="26" VerticalAlignment="Bottom" Orientation="Horizontal">
                 <Button x:Name="ButtonIngestCancel" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="100" Style="{DynamicResource ButtonStyle}" Click="ButtonIngestCancel_Click"/>
                 <Button x:Name="ButtonIngestRetry" Content="Retry" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Bottom" Width="80" Style="{DynamicResource ButtonStyle}" Click="ButtonIngestRetry_Click" Visibility="Collapsed"/>
-                <Button x:Name="ButtonIngestView" Content="View" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Bottom" Width="80" Style="{DynamicResource ButtonStyle}" Click="ButtonIngestView_Click" Visibility="Collapsed"/>
+                <Button x:Name="ButtonIngestOpen" Content="Open Folder" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Bottom" Width="80" Style="{DynamicResource ButtonStyle}" Click="ButtonIngestOpen_Click" Visibility="Collapsed"/>
             </StackPanel>
         </Grid>
     </Grid>
