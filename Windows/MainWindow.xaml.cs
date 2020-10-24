@@ -8,7 +8,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using static DcimIngester.Ingesting.IngestTask;
-using static DcimIngester.Routines.VolumeWatcher;
 
 namespace DcimIngester.Windows
 {

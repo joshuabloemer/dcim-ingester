@@ -119,7 +119,7 @@ namespace DcimIngester.Routines
         /// <summary>
         /// Creates a directory if it does not exist. If the directory exists but has extra text appended to the directory name, it is not created.
         /// </summary>
-        /// <param name="path">The directory to create. Should contain at least one non-root path section.</param>
+        /// <param name="path">The directory to create. This should contain at least one non-root path section.</param>
         /// <returns>The created or already existing directory.</returns>
         public static string CreateIngestDirectory(string path)
         {

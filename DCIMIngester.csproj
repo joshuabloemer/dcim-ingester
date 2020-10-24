@@ -83,13 +83,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Routines\DeviceChangeWatcher.cs" />
     <Compile Include="Ingesting\FileDiscoveryCompletedEventArgs.cs" />
     <Compile Include="Ingesting\IngestTaskContext.cs" />
     <Compile Include="Routines\Helpers.cs" />
     <Compile Include="Ingesting\IngestTask.xaml.cs">
       <DependentUpon>IngestTask.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Routines\VolumeChangedEventArgs.cs" />
     <Compile Include="Routines\VolumeWatcher.cs" />
     <Compile Include="Windows\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
