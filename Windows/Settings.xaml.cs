@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
-namespace DCIMIngester.Windows
+namespace DcimIngester.Windows
 {
     public partial class Settings : Window
     {

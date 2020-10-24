@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DCIMIngester.Properties {
+namespace DcimIngester.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

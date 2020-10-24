@@ -6,7 +6,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using ExifSubIfdDirectory = MetadataExtractor.Formats.Exif.ExifSubIfdDirectory;
 
-namespace DCIMIngester.Routines
+namespace DcimIngester.Routines
 {
     internal static class Helpers
     {

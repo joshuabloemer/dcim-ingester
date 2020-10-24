@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DCIMIngester.Ingesting
+namespace DcimIngester.Ingesting
 {
     public class FileDiscoveryCompletedEventArgs : EventArgs
     {

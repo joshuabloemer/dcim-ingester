@@ -1,13 +1,13 @@
-﻿using DCIMIngester.Routines;
+﻿using DcimIngester.Routines;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
-using FileDiscoveryResult = DCIMIngester.Ingesting.FileDiscoveryCompletedEventArgs.FileDiscoveryResult;
+using FileDiscoveryResult = DcimIngester.Ingesting.FileDiscoveryCompletedEventArgs.FileDiscoveryResult;
 
-namespace DCIMIngester.Ingesting
+namespace DcimIngester.Ingesting
 {
     public class IngestTaskContext
     {

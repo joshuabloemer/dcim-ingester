@@ -1,4 +1,4 @@
-﻿using DCIMIngester.Windows;
+﻿using DcimIngester.Windows;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -9,7 +9,7 @@ using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 
-namespace DCIMIngester
+namespace DcimIngester
 {
     public partial class App : Application
     {
@@ -28,7 +28,7 @@ namespace DCIMIngester
             notifyIcon.ContextMenu = menu;
 
             using (Stream iconStream = GetResourceStream(new Uri(
-                "pack://application:,,,/DCIMIngester;component/Resources/Icon.ico")).Stream)
+                "pack://application:,,,/DcimIngester;component/Resources/Icon.ico")).Stream)
             {
                 notifyIcon.Icon = new Icon(iconStream);
             }

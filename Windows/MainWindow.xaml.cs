@@ -1,5 +1,5 @@
-﻿using DCIMIngester.Ingesting;
-using DCIMIngester.Routines;
+﻿using DcimIngester.Ingesting;
+using DcimIngester.Routines;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,10 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using static DCIMIngester.Ingesting.IngestTask;
-using static DCIMIngester.Routines.VolumeWatcher;
+using static DcimIngester.Ingesting.IngestTask;
+using static DcimIngester.Routines.VolumeWatcher;
 
-namespace DCIMIngester.Windows
+namespace DcimIngester.Windows
 {
     public partial class MainWindow : Window
     {
