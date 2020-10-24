@@ -47,15 +47,10 @@ namespace DCIMIngester.Ingesting
                         {
                             foreach (string file in Directory.GetFiles(directory))
                             {
-                                // Ignore files with names such as ".txt"
-                                if (Path.GetFileNameWithoutExtension(file) == "")
-                                    continue;
-
                                 filesToIngest.Add(file);
                                 TotalIngestSize += new FileInfo(file).Length;
                             }
                         }
-                        else continue;
                     }
 
                     if (FilesToIngest.Count > 0)

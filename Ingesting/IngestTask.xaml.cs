@@ -147,64 +147,69 @@ namespace DCIMIngester.Ingesting
 
             Application.Current.Dispatcher.Invoke(IngestCompleted);
         }
-        private bool IngestFile(string filePath)
+        private bool IngestFile(string path)
         {
+            DateTime? dateTaken;
             try
             {
-                DateTime? timeTaken = Helpers.GetTimeTaken(filePath);
+                dateTaken = Helpers.GetDateTaken(path);
+            }
+            catch { return false; }
 
-                string destinationDir;
-                bool isUnsorted = false;
+            string destination;
+            bool isUnsorted = false;
 
-                // Determine destination based on time taken and selected subfolder organisation
-                if (timeTaken != null)
+            // Determine destination based on date taken and selected subfolder template
+            if (dateTaken != null)
+            {
+                switch (Properties.Settings.Default.Subfolders)
                 {
-                    switch (Properties.Settings.Default.Subfolders)
-                    {
-                        case 0:
-                            {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Destination, string.Format(
-                                    "{0:D4}\\{1:D2}\\{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
-                                break;
-                            }
-                        case 1:
-                            {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Destination, string.Format(
-                                    "{0:D4}\\{0:D4}-{1:D2}-{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
-                                break;
-                            }
-                        case 2:
-                            {
-                                destinationDir = Path.Combine(Properties.Settings.Default.Destination, string.Format(
-                                    "{0:D4}-{1:D2}-{2:D2}", timeTaken?.Year, timeTaken?.Month, timeTaken?.Day));
-                                break;
-                            }
-                        default: return false;
-                    }
+                    case 0:
+                        {
+                            destination = Path.Combine(Properties.Settings.Default.Destination, string.Format(
+                                "{0:D4}\\{1:D2}\\{2:D2}", dateTaken?.Year, dateTaken?.Month, dateTaken?.Day));
+                            break;
+                        }
+                    case 1:
+                        {
+                            destination = Path.Combine(Properties.Settings.Default.Destination, string.Format(
+                                "{0:D4}\\{0:D4}-{1:D2}-{2:D2}", dateTaken?.Year, dateTaken?.Month, dateTaken?.Day));
+                            break;
+                        }
+                    case 2:
+                        {
+                            destination = Path.Combine(Properties.Settings.Default.Destination, string.Format(
+                                "{0:D4}-{1:D2}-{2:D2}", dateTaken?.Year, dateTaken?.Month, dateTaken?.Day));
+                            break;
+                        }
+                    default: return false;
                 }
-                else
-                {
-                    isUnsorted = true;
-                    destinationDir = Path.Combine(Properties.Settings.Default.Destination, "Unsorted");
-                }
+            }
+            else
+            {
+                isUnsorted = true;
+                destination = Path.Combine(Properties.Settings.Default.Destination, "Unsorted");
+            }
 
-                destinationDir = Helpers.CreateDirectory(destinationDir);
+            try
+            {
+                destination = Helpers.CreateIngestDirectory(destination);
+                Helpers.CopyFile(path, destination, out bool isRenamed);
 
-                if (Helpers.CopyFile(filePath, destinationDir))
+                if (isRenamed)
                     duplicateCounter++;
-
                 if (isUnsorted)
                     unsortedCounter++;
 
                 if (firstFileDestination == null)
-                    firstFileDestination = destinationDir;
+                    firstFileDestination = destination;
 
                 if (Properties.Settings.Default.ShouldDeleteAfter)
-                    File.Delete(filePath);
+                    File.Delete(path);
+
+                return true;
             }
             catch { return false; }
-
-            return true;
         }
         private void IngestCompleted()
         {

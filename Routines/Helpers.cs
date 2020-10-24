@@ -10,7 +10,12 @@ namespace DCIMIngester.Routines
 {
     internal static class Helpers
     {
-        internal static string GetVolumeLetter(Guid volumeId)
+        /// <summary>
+        /// Gets the letter of a volume that is mounted to the system.
+        /// </summary>
+        /// <param name="volumeId">The GUID of the volume.</param>
+        /// <returns>The volume letter followed by a colon, or <see langword="null"/> if the volume was not found</returns>
+        public static string GetVolumeLetter(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
                 "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
@@ -20,7 +25,13 @@ namespace DCIMIngester.Routines
                 return result.OfType<ManagementObject>().First()["DriveLetter"].ToString();
             return null;
         }
-        internal static string GetVolumeLabel(Guid volumeId)
+
+        /// <summary>
+        /// Gets the label of a volume that is mounted to the system.
+        /// </summary>
+        /// <param name="volumeId">The GUID of the volume.</param>
+        /// <returns>The volume label, an empty string if the volume has no label, or <see langword="null"/> if the volume was not found.</returns>
+        public static string GetVolumeLabel(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
                 "SELECT Label FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
@@ -35,106 +46,131 @@ namespace DCIMIngester.Routines
             return null;
         }
 
-        // From https://stackoverflow.com/questions/1242266/converting-bytes-to-gb-in-c
-        internal static string FormatBytes(long bytes)
+        /// <summary>
+        /// Formats a numerical storage size into a string with the relevant units.
+        /// </summary>
+        /// <param name="bytes">The storage size in bytes.</param>
+        /// <returns>The formatted storage size.</returns>
+        public static string FormatBytes(long bytes)
         {
-            string[] suffix = { "B", "KB", "MB", "GB", "TB" };
-            double dblSByte = bytes;
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            double bytesDouble = bytes;
 
             int i;
-            for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
-                dblSByte = bytes / 1024.0;
+            for (i = 0; i < units.Length && bytes >= 1024; i++, bytes /= 1024)
+                bytesDouble = bytes / 1024.0;
 
-            return string.Format("{0:0.#} {1}", dblSByte, suffix[i]);
+            return string.Format("{0:0.#} {1}", bytesDouble, units[i]);
         }
 
-        internal static DateTime? GetTimeTaken(string filePath)
+        /// <summary>
+        /// Gets the "Date/Time Original" attribute from the EXIF data of a file.
+        /// </summary>
+        /// <param name="path">The file to get the attribute for.</param>
+        /// <returns>The "Date/Time Original" attribute value, or <see langword="null"/> if the attribute does not exist.</returns>
+        public static DateTime? GetDateTaken(string path)
         {
-            IEnumerable<MetadataExtractor.Directory> metadataGroups;
+            IEnumerable<MetadataExtractor.Directory> metadata;
             try
             {
-                metadataGroups = MetadataExtractor.ImageMetadataReader.ReadMetadata(filePath);
+                metadata = MetadataExtractor.ImageMetadataReader.ReadMetadata(path);
             }
             catch (MetadataExtractor.ImageProcessingException) { return null; }
 
-            // Search for the field containing the time that the image was taken
-            ExifSubIfdDirectory subIfdGroup = metadataGroups.OfType<ExifSubIfdDirectory>().FirstOrDefault();
-            if (subIfdGroup == null) return null;
-
-            MetadataExtractor.Tag dateTimeOriginal =
-                subIfdGroup.Tags.FirstOrDefault(tag => tag.Name == "Date/Time Original");
-            if (dateTimeOriginal == null) return null;
+            string dateTime;
+            try
+            {
+                ExifSubIfdDirectory exifSubIfd = metadata.OfType<ExifSubIfdDirectory>().Single();
+                dateTime = exifSubIfd.Tags.Single(tag => tag.Name == "Date/Time Original").Description;
+            }
+            catch (InvalidOperationException) { return null; }
 
             try
             {
-                DateTime timeTaken = DateTime.ParseExact(dateTimeOriginal.Description, "yyyy:MM:dd HH:mm:ss", null);
-                return timeTaken;
+                return DateTime.ParseExact(dateTime, "yyyy:MM:dd HH:mm:ss", null);
             }
-            catch { return null; }
+            catch (FormatException) { return null; }
         }
 
-        internal static bool DirectoryExists(string directory)
+        /// <summary>
+        /// Checks if a directory exists. Differs from <see cref="Directory.Exists(string)"/> by throwing an exception if there is an error.
+        /// </summary>
+        /// <param name="path">The directory to check.</param>
+        /// <returns><see langword="true"/> if the directory exists, <see langword="false"/> if it does not exist.</returns>
+        public static bool DirectoryExists(string path)
         {
-            // GetCreationTime() will throw an exception if there is any error, otherwise
-            // it will return the below constant time if the directory does not exist
-            DateTime creationTime = Directory.GetCreationTime(directory);
-            return creationTime == new DateTime(1601, 1, 1, 0, 0, 0) ? false : true;
+            // GetCreationTime() returns the below time if the directory does not exist and throws
+            // an exception if there was an error
+            return Directory.GetCreationTime(path) != new DateTime(1601, 1, 1, 0, 0, 0);
         }
-        internal static string CreateDirectory(string directory)
-        {
-            string lastSegment = Path.GetFileName(directory);
-            int lastSegmentPosition = directory.IndexOf(lastSegment);
-            string withoutLastSegment = directory.Remove(lastSegmentPosition, lastSegment.Length);
 
-            // First ensure the directory tree excluding the final directory name exists
-            if (!DirectoryExists(withoutLastSegment))
+        /// <summary>
+        /// Checks if a file exists. Differs from <see cref="File.Exists(string)"/> by throwing an exception if there is an error.
+        /// </summary>
+        /// <param name="path">The file to check.</param>
+        /// <returns><see langword="true"/> if the file exists, <see langword="false"/> if it does not exist.</returns>
+        public static bool FileExists(string path)
+        {
+            // GetCreationTime() returns the below time if the file does not exist and throws an
+            // exception if there was an error
+            return File.GetCreationTime(path) != new DateTime(1601, 1, 1, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// Creates a directory if it does not exist. If the directory exists but has extra text appended to the directory name, it is not created.
+        /// </summary>
+        /// <param name="path">The directory to create. Should contain at least one non-root path section.</param>
+        /// <returns>The created or already existing directory.</returns>
+        public static string CreateIngestDirectory(string path)
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(path);
+
+            if (DirectoryExists(dirInfo.Parent.FullName))
             {
-                Directory.CreateDirectory(directory);
-                return directory;
+                // Check if any directory names starting with the final directory name exist .This
+                // allows users to have e.g. a description at the end of the directory name
+                string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + "*");
+
+                if (directories.Length > 0)
+                    return Path.Combine(dirInfo.Parent.FullName, new DirectoryInfo(directories[0]).Name);
             }
 
-            // Then check if any directory names starting with the final directory name exist
-            // (this allows adding e.g. a description to the end of an image directory name).
-            // Also, this method allows us to distinguish a directory not existing from an
-            // error determining whether it exists
-            string[] directories = Directory.GetDirectories(withoutLastSegment, lastSegment + "*");
-
-            if (directories.Length > 0)
-                return Path.Combine(withoutLastSegment, Path.GetFileName(directories[0]));
-
-            // Directory doesn't exist so create it
-            Directory.CreateDirectory(directory);
-            return directory;
+            return Directory.CreateDirectory(path).FullName;
         }
-        internal static bool CopyFile(string sourceFilePath, string destinationDir)
+
+        /// <summary>
+        /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the file name.
+        /// </summary>
+        /// <param name="sourcePath">The file to copy.</param>
+        /// <param name="destDirectory">The directory to copy the file to.</param>
+        /// <param name="isRenamed">Indicates whether the destination file name was changed to avoid duplication.</param>
+        public static void CopyFile(string sourcePath, string destDirectory, out bool isRenamed)
         {
-            string fileName = Path.GetFileName(sourceFilePath);
-            string newFileName = fileName;
-
-            // This method allows us to distinguish a file not existing from an error
-            // determining whether it exists
-            string[] files = Directory.GetFiles(destinationDir, Path.GetFileNameWithoutExtension(fileName) + "*");
-
-            int duplicateCounter = 0;
+            string fileName = Path.GetFileName(sourcePath);
+            int duplicates = 0;
 
             // Increment a duplicate counter until the file name does not exist
-            while (files.Contains(Path.Combine(destinationDir, newFileName)))
+            while (FileExists(Path.Combine(destDirectory, fileName)))
             {
-                newFileName = string.Format("{0} ({1}){2}", Path.GetFileNameWithoutExtension(fileName),
-                    duplicateCounter + 1, Path.GetExtension(fileName));
-                duplicateCounter++;
+                if (Path.GetFileNameWithoutExtension(sourcePath) != "")
+                {
+                    fileName = string.Format("{0} ({1}){2}", Path.GetFileNameWithoutExtension(sourcePath),
+                        ++duplicates, Path.GetExtension(sourcePath));
+                }
+                else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
             }
 
-            File.Copy(sourceFilePath, Path.Combine(destinationDir, newFileName));
-            return duplicateCounter == 0 ? false : true;
+            File.Copy(sourcePath, Path.Combine(destDirectory, fileName));
+            isRenamed = duplicates != 0;
         }
 
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-        [DllImport("user32.dll")]
-        internal static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
-        internal const int GWL_EXSTYLE = -20;
-        internal const int WS_EX_TOOLWINDOW = 0x00000080;
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        public const int GWL_EXSTYLE = -20;
+        public const int WS_EX_TOOLWINDOW = 0x00000080;
     }
 }

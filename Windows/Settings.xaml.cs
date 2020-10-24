@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
