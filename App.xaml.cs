@@ -1,40 +1,33 @@
 ﻿using DcimIngester.Windows;
+using Hardcodet.Wpf.TaskbarNotification;
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Windows;
-using ContextMenu = System.Windows.Forms.ContextMenu;
-using MenuItem = System.Windows.Forms.MenuItem;
-using NotifyIcon = System.Windows.Forms.NotifyIcon;
+using System.Windows.Controls;
 
 namespace DcimIngester
 {
     public partial class App : Application
     {
-        private readonly NotifyIcon notifyIcon = new NotifyIcon();
+        private readonly TaskbarIcon taskbarIcon = new TaskbarIcon();
         private readonly MainWindow mainWindow = new MainWindow();
 
         public bool IsSettingsOpen { get; private set; } = false;
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            ContextMenu menu = new ContextMenu();
-            menu.MenuItems.Add(new MenuItem("Settings", MenuItemSettings_Click));
-            menu.MenuItems.Add(new MenuItem("-"));
-            menu.MenuItems.Add(new MenuItem("About", MenuItemAbout_Click));
-            menu.MenuItems.Add(new MenuItem("Exit", MenuItemExit_Click));
-            notifyIcon.ContextMenu = menu;
-
             using (Stream iconStream = GetResourceStream(new Uri(
                 "pack://application:,,,/DcimIngester;component/Resources/Icon.ico")).Stream)
             {
-                notifyIcon.Icon = new Icon(iconStream);
+                taskbarIcon.Icon = new Icon(iconStream);
             }
 
-            notifyIcon.Text = "DCIM Ingester";
-            notifyIcon.Visible = true;
+            taskbarIcon.ToolTip = "DCIM Ingester";
+            taskbarIcon.ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu");
+            taskbarIcon.Visibility = Visibility.Visible;
 
             // We need to show the window to get the Loaded method to run
             mainWindow.Show();
@@ -42,10 +35,10 @@ namespace DcimIngester
         }
         private void Application_Exit(object sender, ExitEventArgs e)
         {
-            notifyIcon.Visible = false;
+            taskbarIcon.Visibility = Visibility.Collapsed;
         }
 
-        private void MenuItemSettings_Click(object sender, EventArgs e)
+        private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
             if (mainWindow.TaskCount > 0)
             {
@@ -61,7 +54,7 @@ namespace DcimIngester
                 settingsWindow.Show();
             }
         }
-        private void MenuItemAbout_Click(object sender, EventArgs e)
+        private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
         {
             FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
             string versionString = string.Format("{0} V{1}. Created by {2}.",
@@ -70,7 +63,7 @@ namespace DcimIngester
             MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.Information,
                 MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
         }
-        private void MenuItemExit_Click(object sender, EventArgs e)
+        private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
             if (mainWindow.TaskCount > 0)
             {

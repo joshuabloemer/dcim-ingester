@@ -53,6 +53,9 @@
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Hardcodet.NotifyIcon.Wpf.1.0.8\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+    </Reference>
     <Reference Include="MetadataExtractor, Version=2.4.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\MetadataExtractor.2.4.3\lib\net45\MetadataExtractor.dll</HintPath>
     </Reference>

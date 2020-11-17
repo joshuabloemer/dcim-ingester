@@ -4,6 +4,13 @@
              Startup="Application_Startup" ShutdownMode="OnExplicitShutdown" Exit="Application_Exit">
 
     <Application.Resources>
+        <ContextMenu x:Key="TaskbarIconContextMenu">
+            <MenuItem Header="Settings" Click="MenuItemSettings_Click"/>
+            <Separator/>
+            <MenuItem Header="About" Click="MenuItemAbout_Click"/>
+            <MenuItem Header="Exit" Click="MenuItemExit_Click"/>
+        </ContextMenu>
+        
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
