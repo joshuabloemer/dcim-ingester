@@ -52,22 +52,22 @@ namespace DcimIngester.Ingesting
                             }
                         }
                     }
-
-                    if (FilesToIngest.Count > 0)
-                    {
-                        Application.Current.Dispatcher.Invoke(() => FileDiscoveryCompleted?.Invoke(this,
-                            new FileDiscoveryCompletedEventArgs(FileDiscoveryResult.FilesFound)));
-                    }
-                    else
-                    {
-                        Application.Current.Dispatcher.Invoke(() => FileDiscoveryCompleted?.Invoke(this,
-                            new FileDiscoveryCompletedEventArgs(FileDiscoveryResult.NoFilesFound)));
-                    }
                 }
                 catch
                 {
                     Application.Current.Dispatcher.Invoke(() => FileDiscoveryCompleted?.Invoke(this,
                         new FileDiscoveryCompletedEventArgs(FileDiscoveryResult.Error)));
+                }
+
+                if (FilesToIngest.Count > 0)
+                {
+                    Application.Current.Dispatcher.Invoke(() => FileDiscoveryCompleted?.Invoke(this,
+                        new FileDiscoveryCompletedEventArgs(FileDiscoveryResult.FilesFound)));
+                }
+                else
+                {
+                    Application.Current.Dispatcher.Invoke(() => FileDiscoveryCompleted?.Invoke(this,
+                        new FileDiscoveryCompletedEventArgs(FileDiscoveryResult.NoFilesFound)));
                 }
             }).Start();
         }
