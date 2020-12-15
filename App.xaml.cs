@@ -19,11 +19,11 @@ namespace DcimIngester
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            using (Stream iconStream = GetResourceStream(new Uri(
-                "pack://application:,,,/DcimIngester;component/Resources/Icon.ico")).Stream)
-            {
-                taskbarIcon.Icon = new Icon(iconStream);
-            }
+            //using (Stream iconStream = GetResourceStream(new Uri(
+            //    "pack://application:,,,/DcimIngester;component/Resources/Icon.ico")).Stream)
+            //{
+            //    taskbarIcon.Icon = new Icon(iconStream);
+            //}
 
             taskbarIcon.ToolTip = "DCIM Ingester";
             taskbarIcon.ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu");

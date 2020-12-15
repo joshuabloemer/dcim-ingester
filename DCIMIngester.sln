@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.29424.173
+VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DcimIngester", "DcimIngester.csproj", "{9FB48958-952B-4000-9B7A-B43323E022B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DcimIngester", "DcimIngester.csproj", "{AF3553F5-DEC0-4B55-ABAD-174DCE352B24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9FB48958-952B-4000-9B7A-B43323E022B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9FB48958-952B-4000-9B7A-B43323E022B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9FB48958-952B-4000-9B7A-B43323E022B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9FB48958-952B-4000-9B7A-B43323E022B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF3553F5-DEC0-4B55-ABAD-174DCE352B24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF3553F5-DEC0-4B55-ABAD-174DCE352B24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF3553F5-DEC0-4B55-ABAD-174DCE352B24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF3553F5-DEC0-4B55-ABAD-174DCE352B24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {DD6578BE-1FB0-403F-99B8-33C545E83394}
+		SolutionGuid = {A1E52DE2-4D40-4642-92F6-08F9964086AE}
 	EndGlobalSection
 EndGlobal
