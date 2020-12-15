@@ -10,7 +10,5 @@ namespace DcimIngester.Ingesting
         {
             Result = result;
         }
-
-        public enum FileDiscoveryResult { FilesFound, NoFilesFound, Error }
     }
 }

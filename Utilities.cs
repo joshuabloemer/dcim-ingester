@@ -6,9 +6,9 @@ using System.Management;
 using System.Runtime.InteropServices;
 using ExifSubIfdDirectory = MetadataExtractor.Formats.Exif.ExifSubIfdDirectory;
 
-namespace DcimIngester.Routines
+namespace DcimIngester
 {
-    internal static class Helpers
+    internal static class Utilities
     {
         /// <summary>
         /// Gets the letter of a volume that is mounted to the system.
@@ -170,7 +170,7 @@ namespace DcimIngester.Routines
         [DllImport("user32.dll")]
         public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
-        public const int GWL_EXSTYLE = -20;
-        public const int WS_EX_TOOLWINDOW = 0x00000080;
+        public static int GWL_EXSTYLE = -20;
+        public static int WS_EX_TOOLWINDOW = 0x00000080;
     }
 }

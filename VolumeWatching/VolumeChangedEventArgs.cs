@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DcimIngester.Routines
+namespace DcimIngester.VolumeWatching
 {
     public class VolumeChangedEventArgs : EventArgs
     {

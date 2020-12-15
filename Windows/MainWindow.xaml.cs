@@ -1,5 +1,5 @@
 ﻿using DcimIngester.Ingesting;
-using DcimIngester.Routines;
+using DcimIngester.VolumeWatching;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using static DcimIngester.Ingesting.IngestTask;
 
 namespace DcimIngester.Windows
 {
@@ -28,9 +27,9 @@ namespace DcimIngester.Windows
             IntPtr windowHandle = new WindowInteropHelper(this).Handle;
 
             // Hide window from the Windows task switcher by making it a tool window
-            int extendedStyle = Helpers.GetWindowLong(windowHandle, Helpers.GWL_EXSTYLE);
-            extendedStyle |= Helpers.WS_EX_TOOLWINDOW;
-            Helpers.SetWindowLong(windowHandle, Helpers.GWL_EXSTYLE, extendedStyle);
+            int extendedStyle = Utilities.GetWindowLong(windowHandle, Utilities.GWL_EXSTYLE);
+            extendedStyle |= Utilities.WS_EX_TOOLWINDOW;
+            Utilities.SetWindowLong(windowHandle, Utilities.GWL_EXSTYLE, extendedStyle);
 
             volumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
             volumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
@@ -46,7 +45,7 @@ namespace DcimIngester.Windows
             if (Properties.Settings.Default.Destination == "" || ((App)Application.Current).IsSettingsOpen)
                 return;
 
-            if (Directory.Exists(Path.Combine(Helpers.GetVolumeLetter(e.VolumeID), "DCIM")))
+            if (Directory.Exists(Path.Combine(Utilities.GetVolumeLetter(e.VolumeID), "DCIM")))
             {
                 Interlocked.Increment(ref TaskCount);
                 IngestTask task = tasksInProgress.SingleOrDefault(ti => ti.Context.VolumeID == e.VolumeID);
@@ -61,14 +60,14 @@ namespace DcimIngester.Windows
         }
         private void TaskContext_FileDiscoveryCompleted(object sender, FileDiscoveryCompletedEventArgs e)
         {
-            if (e.Result == FileDiscoveryCompletedEventArgs.FileDiscoveryResult.FilesFound)
+            if (e.Result == FileDiscoveryResult.FilesFound)
                 AddTask(sender as IngestTaskContext);
             else Interlocked.Decrement(ref TaskCount);
         }
         private void VolumeWatcher_VolumeRemoved(object sender, VolumeChangedEventArgs e)
         {
             IngestTask task = tasksInProgress.SingleOrDefault(
-                it => it.Context.VolumeID == e.VolumeID && it.Status == TaskStatus.Prompting);
+                it => it.Context.VolumeID == e.VolumeID && it.Status == IngestTaskStatus.Prompting);
 
             if (task != null)
                 RemoveTask(task);

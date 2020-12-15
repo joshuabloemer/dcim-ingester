@@ -1,11 +1,9 @@
-﻿using DcimIngester.Routines;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
-using FileDiscoveryResult = DcimIngester.Ingesting.FileDiscoveryCompletedEventArgs.FileDiscoveryResult;
 
 namespace DcimIngester.Ingesting
 {
@@ -27,8 +25,8 @@ namespace DcimIngester.Ingesting
         public IngestTaskContext(Guid volume)
         {
             VolumeID = volume;
-            VolumeLetter = Helpers.GetVolumeLetter(volume);
-            VolumeLabel = Helpers.GetVolumeLabel(volume);
+            VolumeLetter = Utilities.GetVolumeLetter(volume);
+            VolumeLabel = Utilities.GetVolumeLabel(volume);
         }
 
         public void DiscoverFiles()

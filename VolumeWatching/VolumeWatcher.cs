@@ -7,7 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace DcimIngester.Routines
+namespace DcimIngester.VolumeWatching
 {
     public class VolumeWatcher
     {

@@ -1,5 +1,4 @@
-﻿using DcimIngester.Routines;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,7 @@ namespace DcimIngester.Ingesting
     public partial class IngestTask : UserControl
     {
         public IngestTaskContext Context { get; private set; }
-        public TaskStatus Status { get; private set; } = TaskStatus.Prompting;
+        public IngestTaskStatus Status { get; private set; } = IngestTaskStatus.Prompting;
 
         private Thread ingestThread;
         private bool shouldCancelIngest = false;
@@ -37,13 +36,13 @@ namespace DcimIngester.Ingesting
             {
                 LabelPromptCaption.Text =
                     string.Format("Unnamed volume contains {0} files ({1}). Do you want to ingest them?",
-                    Context.FilesToIngest.Count, Helpers.FormatBytes(Context.TotalIngestSize));
+                    Context.FilesToIngest.Count, Utilities.FormatBytes(Context.TotalIngestSize));
             }
             else
             {
                 LabelPromptCaption.Text =
                     string.Format("Volume '{0}' contains {1} files ({2}). Do you want to ingest them?",
-                    Context.VolumeLabel, Context.FilesToIngest.Count, Helpers.FormatBytes(Context.TotalIngestSize));
+                    Context.VolumeLabel, Context.FilesToIngest.Count, Utilities.FormatBytes(Context.TotalIngestSize));
             }
 
             CheckBoxPromptDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
@@ -62,7 +61,7 @@ namespace DcimIngester.Ingesting
 
         private void Ingest()
         {
-            Status = TaskStatus.Ingesting;
+            Status = IngestTaskStatus.Ingesting;
             GridPrompt.Visibility = Visibility.Collapsed;
             GridIngest.Visibility = Visibility.Visible;
 
@@ -152,7 +151,7 @@ namespace DcimIngester.Ingesting
             DateTime? dateTaken;
             try
             {
-                dateTaken = Helpers.GetDateTaken(path);
+                dateTaken = Utilities.GetDateTaken(path);
             }
             catch { return false; }
 
@@ -193,8 +192,8 @@ namespace DcimIngester.Ingesting
 
             try
             {
-                destination = Helpers.CreateIngestDirectory(destination);
-                Helpers.CopyFile(path, destination, out bool isRenamed);
+                destination = Utilities.CreateIngestDirectory(destination);
+                Utilities.CopyFile(path, destination, out bool isRenamed);
 
                 if (isRenamed)
                     duplicateCounter++;
@@ -213,7 +212,7 @@ namespace DcimIngester.Ingesting
         }
         private void IngestCompleted()
         {
-            Status = TaskStatus.Completed;
+            Status = IngestTaskStatus.Completed;
 
             if (Context.VolumeLabel == "")
                 LabelIngestCaption.Text = string.Format("Ingest from unnamed volume complete");
@@ -230,7 +229,7 @@ namespace DcimIngester.Ingesting
         }
         private void IngestFailed()
         {
-            Status = TaskStatus.Failed;
+            Status = IngestTaskStatus.Failed;
 
             if (Context.VolumeLabel == "")
                 LabelIngestCaption.Text = string.Format("Ingest from unnamed volume failed");
@@ -244,7 +243,7 @@ namespace DcimIngester.Ingesting
         }
         private void IngestCancelled()
         {
-            Status = TaskStatus.Cancelled;
+            Status = IngestTaskStatus.Cancelled;
 
             if (Context.VolumeLabel == "")
                 LabelIngestCaption.Text = string.Format("Ingest from unnamed volume cancelled");
@@ -256,7 +255,5 @@ namespace DcimIngester.Ingesting
             if (lastFileIngested > 0)
                 ButtonIngestOpen.Visibility = Visibility.Visible;
         }
-
-        public enum TaskStatus { Prompting, Ingesting, Completed, Failed, Cancelled }
     }
 }
