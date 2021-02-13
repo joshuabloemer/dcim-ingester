@@ -19,14 +19,15 @@ namespace DcimIngester
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            using (Stream iconStream = GetResourceStream(new Uri(
-                "pack://application:,,,/DcimIngester;component/Icon.ico")).Stream)
-            {
-                taskbarIcon.Icon = new Icon(iconStream);
-            }
-
             taskbarIcon.ToolTip = "DCIM Ingester";
             taskbarIcon.ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu");
+
+            using (Stream stream = GetResourceStream(new Uri(
+                "pack://application:,,,/DcimIngester;component/Icon.ico")).Stream)
+            {
+                taskbarIcon.Icon = new Icon(stream);
+            }
+
             taskbarIcon.Visibility = Visibility.Visible;
 
             // We need to show the window to get the Loaded method to run
@@ -40,35 +41,39 @@ namespace DcimIngester
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow.TaskCount > 0)
+            if (mainWindow.WorkCount > 0)
             {
-                MessageBox.Show("Dismiss all tasks before opening settings.", "DCIM Ingester",
+                MessageBox.Show("Dismiss all ingests before opening Settings.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
                     MessageBoxOptions.DefaultDesktopOnly);
             }
             else
             {
                 IsSettingsOpen = true;
-                Settings settingsWindow = new Settings();
-                settingsWindow.Closed += delegate { IsSettingsOpen = false; };
-                settingsWindow.Show();
+                Settings settings = new Settings();
+                settings.Closed += delegate { IsSettingsOpen = false; };
+                settings.Show();
             }
         }
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
         {
-            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+            FileVersionInfo versionInfo =
+                FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location);
+
             string versionString = string.Format("{0} V{1}. Created by {2}.",
                 versionInfo.ProductName, versionInfo.FileVersion, versionInfo.CompanyName);
 
-            MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.Information,
-                MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+            MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK,
+                MessageBoxImage.Information, MessageBoxResult.OK,
+                MessageBoxOptions.DefaultDesktopOnly);
         }
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow.TaskCount > 0)
+            if (mainWindow.WorkCount > 0)
             {
-                MessageBox.Show("Dismiss all tasks before exiting.", "DCIM Ingester", MessageBoxButton.OK,
-                    MessageBoxImage.Exclamation, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+                MessageBox.Show("Dismiss all ingests before exiting.", "DCIM Ingester",
+                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+                    MessageBoxOptions.DefaultDesktopOnly);
             }
             else Current.Shutdown();
         }

@@ -1,56 +1,52 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
-using ExifSubIfdDirectory = MetadataExtractor.Formats.Exif.ExifSubIfdDirectory;
 
 namespace DcimIngester
 {
-    internal static class Utilities
+    public static class Utilities
     {
         /// <summary>
         /// Gets the letter of a volume that is mounted to the system.
         /// </summary>
         /// <param name="volumeId">The GUID of the volume.</param>
-        /// <returns>The volume letter followed by a colon, or <see langword="null"/> if the volume was not found</returns>
-        public static string GetVolumeLetter(Guid volumeId)
+        /// <returns>The volume letter followed by a colon, or <see langword="null"/> if the volume was not found or has
+        /// no drive letter.</returns>
+        public static string? GetVolumeLetter(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
                 "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
             ManagementObjectCollection result = query.Get();
 
-            if (result.Count > 0)
-                return result.OfType<ManagementObject>().First()["DriveLetter"].ToString();
-            return null;
+            return result.OfType<ManagementObject>().SingleOrDefault()?["DriveLetter"]?.ToString();
         }
 
         /// <summary>
         /// Gets the label of a volume that is mounted to the system.
         /// </summary>
         /// <param name="volumeId">The GUID of the volume.</param>
-        /// <returns>The volume label, an empty string if the volume has no label, or <see langword="null"/> if the volume was not found.</returns>
-        public static string GetVolumeLabel(Guid volumeId)
+        /// <returns>The volume label, <see cref="string.Empty"/> if the volume has no label, or <see langword="null"/>
+        /// if the volume was not found.</returns>
+        public static string? GetVolumeLabel(Guid volumeId)
         {
             ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
                 "SELECT Label FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
             ManagementObjectCollection result = query.Get();
 
-            if (result.Count > 0)
-            {
-                object label = result.OfType<ManagementObject>().First()["Label"];
-                return label == null ? "" : label.ToString();
-            }
+            ManagementObject? row = result.OfType<ManagementObject>().SingleOrDefault();
 
-            return null;
+            if (row != null)
+                return row["Label"] != null ? row["Label"].ToString() : "";
+            else return null;
         }
 
         /// <summary>
-        /// Formats a numerical storage size into a string with the relevant units.
+        /// Formats a numerical storage size into a string with units based on the magnitude of the value.
         /// </summary>
         /// <param name="bytes">The storage size in bytes.</param>
-        /// <returns>The formatted storage size.</returns>
+        /// <returns>The formatted storage size with units based on the magnitude of the value.</returns>
         public static string FormatBytes(long bytes)
         {
             string[] units = { "B", "KB", "MB", "GB", "TB" };
@@ -64,36 +60,8 @@ namespace DcimIngester
         }
 
         /// <summary>
-        /// Gets the "Date/Time Original" attribute from the EXIF data of a file.
-        /// </summary>
-        /// <param name="path">The file to get the attribute for.</param>
-        /// <returns>The "Date/Time Original" attribute value, or <see langword="null"/> if the attribute does not exist.</returns>
-        public static DateTime? GetDateTaken(string path)
-        {
-            IEnumerable<MetadataExtractor.Directory> metadata;
-            try
-            {
-                metadata = MetadataExtractor.ImageMetadataReader.ReadMetadata(path);
-            }
-            catch (MetadataExtractor.ImageProcessingException) { return null; }
-
-            string dateTime;
-            try
-            {
-                ExifSubIfdDirectory exifSubIfd = metadata.OfType<ExifSubIfdDirectory>().Single();
-                dateTime = exifSubIfd.Tags.Single(tag => tag.Name == "Date/Time Original").Description;
-            }
-            catch (InvalidOperationException) { return null; }
-
-            try
-            {
-                return DateTime.ParseExact(dateTime, "yyyy:MM:dd HH:mm:ss", null);
-            }
-            catch (FormatException) { return null; }
-        }
-
-        /// <summary>
-        /// Checks if a directory exists. Differs from <see cref="Directory.Exists(string)"/> by throwing an exception if there is an error.
+        /// Checks if a directory exists. Differs from <see cref="Directory.Exists(string)"/> by throwing an exception
+        /// if there is an error.
         /// </summary>
         /// <param name="path">The directory to check.</param>
         /// <returns><see langword="true"/> if the directory exists, <see langword="false"/> if it does not exist.</returns>
@@ -105,7 +73,8 @@ namespace DcimIngester
         }
 
         /// <summary>
-        /// Checks if a file exists. Differs from <see cref="File.Exists(string)"/> by throwing an exception if there is an error.
+        /// Checks if a file exists. Differs from <see cref="File.Exists(string)"/> by throwing an exception if there
+        /// is an error.
         /// </summary>
         /// <param name="path">The file to check.</param>
         /// <returns><see langword="true"/> if the file exists, <see langword="false"/> if it does not exist.</returns>
@@ -117,34 +86,14 @@ namespace DcimIngester
         }
 
         /// <summary>
-        /// Creates a directory if it does not exist. If the directory exists but has extra text appended to the directory name, it is not created.
-        /// </summary>
-        /// <param name="path">The directory to create. This should contain at least one non-root path section.</param>
-        /// <returns>The created or already existing directory.</returns>
-        public static string CreateIngestDirectory(string path)
-        {
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
-
-            if (DirectoryExists(dirInfo.Parent.FullName))
-            {
-                // Check if any directory names starting with the final directory name exist .This
-                // allows users to have e.g. a description at the end of the directory name
-                string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + "*");
-
-                if (directories.Length > 0)
-                    return Path.Combine(dirInfo.Parent.FullName, new DirectoryInfo(directories[0]).Name);
-            }
-
-            return Directory.CreateDirectory(path).FullName;
-        }
-
-        /// <summary>
-        /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the file name.
+        /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the
+        /// file name.
         /// </summary>
         /// <param name="sourcePath">The file to copy.</param>
         /// <param name="destDirectory">The directory to copy the file to.</param>
-        /// <param name="isRenamed">Indicates whether the destination file name was changed to avoid duplication.</param>
-        public static void CopyFile(string sourcePath, string destDirectory, out bool isRenamed)
+        /// <param name="renamed">Indicates whether the file name was changed to avoid duplication in the
+        /// destination.</param>
+        public static void CopyFile(string sourcePath, string destDirectory, out bool renamed)
         {
             string fileName = Path.GetFileName(sourcePath);
             int duplicates = 0;
@@ -161,7 +110,7 @@ namespace DcimIngester
             }
 
             File.Copy(sourcePath, Path.Combine(destDirectory, fileName));
-            isRenamed = duplicates != 0;
+            renamed = duplicates != 0;
         }
 
 
@@ -172,5 +121,49 @@ namespace DcimIngester
 
         public static int GWL_EXSTYLE = -20;
         public static int WS_EX_TOOLWINDOW = 0x00000080;
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr filter, int flags);
+
+        [DllImport("user32.dll")]
+        public static extern bool UnregisterDeviceNotification(IntPtr recipient);
+
+        /// <summary>
+        /// Represents information related to a WM_DEVICECHANGE message. This struct is actually a DEV_BROADCAST_HDR,
+        /// but when <see cref="DeviceType"/> is 5 it takes on the <see cref="ClassGuid"/> and <see cref="Name"/> fields
+        /// and becomes a DEV_BROADCAST_DEVICEINTERFACE.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct DevBroadcastDeviceInterface
+        {
+            public int Size;
+            public int DeviceType;
+            public int Reserved;
+            public Guid ClassGuid;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+            public string Name;
+
+            /// <summary>
+            /// Initialises a new instance of the <see cref="DevBroadcastDeviceInterface"/> struct.
+            /// </summary>
+            /// <param name="classGuid">The device interface class. Specifies the class of devices that will trigger
+            /// the message.</param>
+            public DevBroadcastDeviceInterface(Guid classGuid)
+            {
+                Size = 0;
+                DeviceType = DBT_DEVTYP_DEVICEINTERFACE;
+                Reserved = 0;
+                ClassGuid = classGuid;
+                Name = "";
+            }
+        }
+
+        public static Guid GUID_DEVINTERFACE_VOLUME = new Guid("53F5630D-B6BF-11D0-94F2-00A0C91EFB8B");
+        public static int DBT_DEVTYP_DEVICEINTERFACE = 5;
+
+        public static int WM_DEVICE_CHANGE = 0x0219;
+        public static int DBT_DEVICE_ARRIVAL = 0x8000;
+        public static int DBT_DEVICE_REMOVE_COMPLETE = 0x8004;
     }
 }

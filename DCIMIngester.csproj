@@ -11,6 +11,7 @@
     <Description>Automatically detect and transfer files from volumes with a DCIM folder</Description>
     <Copyright>Copyright © Henry Hunt 2020</Copyright>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -21,7 +21,7 @@ namespace DcimIngester.Windows
         {
             ValidateFields();
         }
-        private void ButtonBrowseDestination_Click(object sender, RoutedEventArgs e)
+        private void ButtonBrowseDest_Click(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog folderDialog = new FolderBrowserDialog();
 
@@ -35,17 +35,13 @@ namespace DcimIngester.Windows
 
         private void ValidateFields()
         {
-            if (TextBoxDestination.Text != Properties.Settings.Default.Destination ||
+            if ((TextBoxDestination.Text.Length > 0 &&
+                TextBoxDestination.Text != Properties.Settings.Default.Destination) ||
                 ComboBoxSubfolders.SelectedIndex != Properties.Settings.Default.Subfolders)
             {
-                if (TextBoxDestination.Text.Length > 0)
-                {
-                    ButtonSave.IsEnabled = true;
-                    return;
-                }
+                ButtonSave.IsEnabled = true;
             }
-
-            ButtonSave.IsEnabled = false;
+            else ButtonSave.IsEnabled = false;
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
@@ -56,7 +52,7 @@ namespace DcimIngester.Windows
 
             Close();
         }
-        private void ButtonCancel_Click(object sender, RoutedEventArgs e)
+        private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

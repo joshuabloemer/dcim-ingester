@@ -2,10 +2,10 @@
 {
     public enum IngestTaskStatus
     {
-        Prompting,
+        Ready,
         Ingesting,
         Completed,
         Failed,
-        Cancelled
+        Aborted
     }
 }
