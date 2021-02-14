@@ -186,7 +186,7 @@ namespace DcimIngester.Ingesting
 
         /// <summary>
         /// Creates a directory if it does not exist. If the directory exists but has additional text appended to the
-        /// final directory in the path, it is not created.
+        /// final directory in the path, it is not created. If the directory path has no parent then it is not ceated.
         /// </summary>
         /// <param name="path">The directory to create.</param>
         /// <returns>The created or already existing directory.</returns>
@@ -194,6 +194,7 @@ namespace DcimIngester.Ingesting
         {
             DirectoryInfo dirInfo = new DirectoryInfo(path);
 
+            // No parent means we're at a root, which isn't something that can be created
             if (dirInfo.Parent == null)
                 return path;
 

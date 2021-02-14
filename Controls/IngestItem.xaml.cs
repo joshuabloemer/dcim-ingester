@@ -112,8 +112,8 @@ namespace DcimIngester.Controls
 
             Application.Current.Dispatcher.Invoke(() =>
             {
-                LabelIngestPercentage.Content = string.Format("{0}%", Math.Round(percentage));
-                ProgressBarIngest.Value = percentage;
+                LabelIngestPercent.Content = string.Format("{0}%", Math.Round(percentage));
+                ProgressBar1.Value = percentage;
 
                 LabelIngestSubCaption.Text = string.Format(
                     "{0} sorted, {1} unsorted, {2} renamed", sortedCount, unsortedCount, renamedCount);
