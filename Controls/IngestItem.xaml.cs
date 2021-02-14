@@ -137,10 +137,11 @@ namespace DcimIngester.Controls
         private void ButtonIngestOpen_Click(object sender, RoutedEventArgs e)
         {
             ProcessStartInfo psi = new ProcessStartInfo(
-                new FileInfo(firstFileDest!).DirectoryName!);
-
-            psi.Verb = "open";
-            psi.UseShellExecute = true;
+                new FileInfo(firstFileDest!).DirectoryName!)
+            {
+                Verb = "open",
+                UseShellExecute = true
+            };
 
             try
             {
