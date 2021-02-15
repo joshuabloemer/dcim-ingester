@@ -12,9 +12,6 @@ A simple system tray application that ingests images from SD cards and sorts the
 	- Select the subfolder structure, which determines how ingested files are organised by their date taken. Note that extra text can be added to the end of the name of the final folder in the structure and that folder will still be used by any subsequent ingests if needed.
 - Connect an SD card and respond to the prompt.
 
-# Dependencies
-- MetadataExtractor
-
 # Version History
 - 1.0 (Dec 21, 2019) -- First version.
 - 1.1 (Jan 16, 2020)
