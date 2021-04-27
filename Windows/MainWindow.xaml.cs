@@ -52,14 +52,14 @@ namespace DcimIngester.Windows
             IngestItem? item = items.SingleOrDefault(i => i.VolumeLetter == e.VolumeLetter);
 
             if (item != null)
-                RemoveItem(item);
+                Application.Current.Dispatcher.Invoke(() => RemoveItem(item));
 
             try
             {
                 IngestWork work = new IngestWork(e.VolumeLetter);
 
                 if (await work.DiscoverFilesAsync())
-                    AddItem(work);
+                    Application.Current.Dispatcher.Invoke(() => AddItem(work));
                 else Interlocked.Decrement(ref workCount);
             }
             catch
@@ -73,7 +73,7 @@ namespace DcimIngester.Windows
                 i => i.VolumeLetter == e.VolumeLetter && i.Status == IngestTaskStatus.Ready);
 
             if (item != null)
-                RemoveItem(item);
+                Application.Current.Dispatcher.Invoke(() => RemoveItem(item));
         }
 
         private void AddItem(IngestWork work)

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Windows;
+using System.Threading;
 using System.Windows.Interop;
 using static DcimIngester.Utilities;
 
@@ -116,16 +116,13 @@ namespace DcimIngester.VolumeWatching
 
                     string volumeLetter = UnitMaskToDriveLetter(volume.dbcv_unitmask) + ":";
 
-                    if ((int)wparam == NativeMethods.DBT_DEVICEARRIVAL)
+                    // Invoke events in new thread to allow WndProc to return quickly
+                    new Thread(() =>
                     {
-                        Application.Current.Dispatcher.Invoke(
-                            () => VolumeAdded?.Invoke(this, new VolumeChangedEventArgs(volumeLetter)));
-                    }
-                    else
-                    {
-                        Application.Current.Dispatcher.Invoke(
-                            () => VolumeRemoved?.Invoke(this, new VolumeChangedEventArgs(volumeLetter)));
-                    }
+                        if ((int)wparam == NativeMethods.DBT_DEVICEARRIVAL)
+                            VolumeAdded?.Invoke(this, new VolumeChangedEventArgs(volumeLetter));
+                        else VolumeRemoved?.Invoke(this, new VolumeChangedEventArgs(volumeLetter));
+                    }).Start();
                 }
             }
 
