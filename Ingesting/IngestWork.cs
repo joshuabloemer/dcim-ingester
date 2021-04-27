@@ -60,6 +60,7 @@ namespace DcimIngester.Ingesting
         /// specification, which in turn is within the DCIM directory, will be found. The files found are placed in 
         /// <see cref="FilesToIngest"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if file discovery is already in progress.</exception>
         /// <returns><see langword="true"/> if any files were found, otherwise <see langword="false"/>.</returns>
         public Task<bool> DiscoverFilesAsync()
         {

@@ -9,6 +9,8 @@ namespace DcimIngester
         /// Converts a <see cref="NativeMethods.DEV_BROADCAST_VOLUME.dbcv_unitmask"/> value to a drive letter.
         /// </summary>
         /// <param name="unitMask">The <see cref="NativeMethods.DEV_BROADCAST_VOLUME.dbcv_unitmask"/> value.</param>
+        /// <exception cref="FormatException">Thrown if <paramref name="unitMask"/> does not represent a valid drive
+        /// letter.</exception>
         /// <returns>The drive letter, followed by a colon.</returns>
         public static char UnitMaskToDriveLetter(int unitMask)
         {

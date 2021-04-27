@@ -49,6 +49,7 @@ namespace DcimIngester.VolumeWatching
         /// <summary>
         /// Starts watching for changes to the removable volumes mounted to the system.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if volume watching has already started.</exception>
         public void StartWatching()
         {
             if (IsWatching)
@@ -81,6 +82,7 @@ namespace DcimIngester.VolumeWatching
         /// <summary>
         /// Stops watching for changes to the removable volumes mounted to the system.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if volume watching has already stopped.</exception>
         public void StopWatching()
         {
             if (!IsWatching)

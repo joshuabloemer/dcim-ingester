@@ -55,6 +55,8 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Executes the ingest. If the ingest fails, this can be called again to attempt to continue.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if the ingest is completed, aborted or already in
+        /// progress.</exception>
         /// <returns><see langword="true"/> if all files were successfully ingested, or <see langword="false"/> if the
         /// ingest was aborted.</returns>
         public Task<bool> IngestAsync()
@@ -113,6 +115,7 @@ namespace DcimIngester.Ingesting
         /// Aborts the ingest. The abort takes effect once the file that is currently being ingested has finished
         /// ingesting. The ingest can only be aborted when it is actvely ingesting.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if the ingest isn't actively ingesting.</exception>
         public void AbortIngest()
         {
             if (Status != IngestTaskStatus.Ingesting)
