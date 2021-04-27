@@ -50,6 +50,7 @@ namespace DcimIngester.Windows
             Properties.Settings.Default.Subfolders = ComboBoxSubfolders.SelectedIndex;
             Properties.Settings.Default.Save();
 
+            DialogResult = true;
             Close();
         }
         private void ButtonClose_Click(object sender, RoutedEventArgs e)

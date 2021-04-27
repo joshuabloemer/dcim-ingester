@@ -12,13 +12,18 @@ namespace DcimIngester
 {
     public partial class App : Application
     {
-        private readonly TaskbarIcon taskbarIcon = new TaskbarIcon();
-        private readonly MainWindow mainWindow = new MainWindow();
-
+        private MainWindow? mainWindow = null;
         public bool IsSettingsOpen { get; private set; } = false;
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            if (DcimIngester.Properties.Settings.Default.Destination.Length == 0)
+            {
+                if (new Settings().ShowDialog() == false)
+                    Shutdown();
+            }
+
+            TaskbarIcon taskbarIcon = new TaskbarIcon();
             taskbarIcon.ToolTip = "DCIM Ingester";
             taskbarIcon.ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu");
 
@@ -29,19 +34,16 @@ namespace DcimIngester
             }
 
             taskbarIcon.Visibility = Visibility.Visible;
+            mainWindow = new MainWindow();
 
             // We need to show the window to get the Loaded method to run
             mainWindow.Show();
             mainWindow.Hide();
         }
-        private void Application_Exit(object sender, ExitEventArgs e)
-        {
-            taskbarIcon.Visibility = Visibility.Collapsed;
-        }
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow.WorkCount > 0)
+            if (mainWindow!.WorkCount > 0)
             {
                 MessageBox.Show("Dismiss all ingests before opening Settings.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
@@ -69,13 +71,13 @@ namespace DcimIngester
         }
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow.WorkCount > 0)
+            if (mainWindow!.WorkCount > 0)
             {
                 MessageBox.Show("Dismiss all ingests before exiting.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
                     MessageBoxOptions.DefaultDesktopOnly);
             }
-            else Current.Shutdown();
+            else Shutdown();
         }
     }
 }
