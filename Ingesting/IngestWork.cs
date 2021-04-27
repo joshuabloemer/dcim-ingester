@@ -57,7 +57,7 @@ namespace DcimIngester.Ingesting
 
         /// <summary>
         /// Searches the volume for files to ingest. Only files within a directory whose name conforms to the DCF
-        /// specification, which in turn is within the DCIM directory, will be found. The result is placed in 
+        /// specification, which in turn is within the DCIM directory, will be found. The files found are placed in 
         /// <see cref="FilesToIngest"/>.
         /// </summary>
         /// <returns><see langword="true"/> if any files were found, otherwise <see langword="false"/>.</returns>
@@ -85,7 +85,7 @@ namespace DcimIngester.Ingesting
                     {
                         // Ignore directory names not conforming to DCF spec to avoid non-image directories
                         if (Regex.IsMatch(Path.GetFileName(directory),
-                            "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9a-zA-Z_]{5}$"))
+                            "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9A-Z]{5}$"))
                         {
                             foreach (string file in Directory.GetFiles(directory))
                             {
