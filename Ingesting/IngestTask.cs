@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using static DcimIngester.Utilities;
 
 namespace DcimIngester.Ingesting
 {
@@ -153,7 +154,7 @@ namespace DcimIngester.Ingesting
             }
 
             destination = CreateDestination(destination);
-            Utilities.CopyFile(path, destination, out renamed);
+            CopyFile(path, destination, out renamed);
         }
 
         /// <summary>
@@ -198,7 +199,7 @@ namespace DcimIngester.Ingesting
             if (dirInfo.Parent == null)
                 return path;
 
-            if (Utilities.DirectoryExists(dirInfo.Parent.FullName))
+            if (DirectoryExists(dirInfo.Parent.FullName))
             {
                 string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + "*");
 

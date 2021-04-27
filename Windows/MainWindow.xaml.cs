@@ -29,9 +29,9 @@ namespace DcimIngester.Windows
             volumeWatcher = new VolumeWatcher(HwndSource.FromHwnd(windowHandle));
 
             // Hide window from the Windows task switcher by making it a tool window
-            int extendedStyle = Utilities.GetWindowLong(windowHandle, Utilities.GWL_EXSTYLE);
-            extendedStyle |= Utilities.WS_EX_TOOLWINDOW;
-            Utilities.SetWindowLong(windowHandle, Utilities.GWL_EXSTYLE, extendedStyle);
+            int extendedStyle = NativeMethods.GetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE) |
+                NativeMethods.WS_EX_TOOLWINDOW;
+            NativeMethods.SetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle);
 
             volumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
             volumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
@@ -45,32 +45,21 @@ namespace DcimIngester.Windows
         private async void VolumeWatcher_VolumeAdded(object? sender, VolumeChangedEventArgs e)
         {
             // Don't want settings to change in the middle of an ingest
-            if (Properties.Settings.Default.Destination == "" ||
-                ((App)Application.Current).IsSettingsOpen)
-            {
+            if (((App)Application.Current).IsSettingsOpen)
                 return;
-            }
 
             Interlocked.Increment(ref workCount);
-            IngestItem? item = items.SingleOrDefault(i => i.VolumeID == e.VolumeID);
+            IngestItem? item = items.SingleOrDefault(i => i.VolumeLetter == e.VolumeLetter);
 
             if (item != null)
-            {
-                if (item.Status == IngestTaskStatus.Ingesting ||
-                    item.Status == IngestTaskStatus.Failed)
-                {
-                    Interlocked.Decrement(ref workCount);
-                    return;
-                }
-                else RemoveItem(item);
-            }
+                RemoveItem(item);
 
             try
             {
-                IngestWork work = new IngestWork(e.VolumeID);
+                IngestWork work = new IngestWork(e.VolumeLetter);
 
                 if (await work.DiscoverFilesAsync())
-                    Application.Current.Dispatcher.Invoke(() => AddItem(work));
+                    AddItem(work);
                 else Interlocked.Decrement(ref workCount);
             }
             catch
@@ -81,22 +70,26 @@ namespace DcimIngester.Windows
         private void VolumeWatcher_VolumeRemoved(object? sender, VolumeChangedEventArgs e)
         {
             IngestItem? item = items.SingleOrDefault(
-                i => i.VolumeID == e.VolumeID && i.Status == IngestTaskStatus.Ready);
+                i => i.VolumeLetter == e.VolumeLetter && i.Status == IngestTaskStatus.Ready);
 
             if (item != null)
-                Application.Current.Dispatcher.Invoke(() => RemoveItem(item));
+                RemoveItem(item);
         }
 
         private void AddItem(IngestWork work)
         {
             IngestItem item = new IngestItem(work);
-            item.Margin = new Thickness(0, 20, 0, 0);
+            if (items.Count > 0)
+                item.Margin = new Thickness(0, 0, 0, 20);
             item.Dismissed += Item_Dismissed;
+
+            Height += item.Height;
+            if (items.Count > 0)
+                Height += 20;
 
             items.Add(item);
             StackPanel1.Children.Add(item);
 
-            Height += item.Height + 20;
             Left = SystemParameters.WorkArea.Right - Width - 20;
             Top = SystemParameters.WorkArea.Bottom - Height - 20;
             Show();
@@ -105,10 +98,12 @@ namespace DcimIngester.Windows
         {
             Interlocked.Decrement(ref workCount);
 
+            Height -= item.Height;
+            if (items.Count > 1)
+                Height -= 20;
+
             items.Remove(item);
             StackPanel1.Children.Remove(item);
-
-            Height -= item.Height - 20;
 
             if (items.Count == 0)
                 Hide();

@@ -4,11 +4,11 @@ namespace DcimIngester.VolumeWatching
 {
     public class VolumeChangedEventArgs : EventArgs
     {
-        public Guid VolumeID { get; private set; }
+        public string VolumeLetter { get; private set; }
 
-        public VolumeChangedEventArgs(Guid volumeId)
+        public VolumeChangedEventArgs(string volumeLetter)
         {
-            VolumeID = volumeId;
+            VolumeLetter = volumeLetter;
         }
     }
 }

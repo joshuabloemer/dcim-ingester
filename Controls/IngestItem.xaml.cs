@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using static DcimIngester.Utilities;
 
 namespace DcimIngester.Controls
 {
@@ -12,7 +13,7 @@ namespace DcimIngester.Controls
         private readonly IngestWork work;
         private readonly IngestTask task;
 
-        public Guid VolumeID => work.VolumeID;
+        public string VolumeLetter => work.VolumeLetter;
         public IngestTaskStatus Status => task.Status;
 
         private string? firstFileDest = null;
@@ -36,12 +37,12 @@ namespace DcimIngester.Controls
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            string volumeLabel = work.VolumeLabel == "" ? "unnamed" : work.VolumeLabel;
+            string volumeLabel = work.VolumeLabel.Length == 0 ? "unnamed" : work.VolumeLabel;
 
             LabelPromptCaption.Text = string.Format(
                 "{0} ({1}) contains {2} files ({3}). Do you want to ingest them?",
                 work.VolumeLetter, volumeLabel, work.FilesToIngest.Count,
-                Utilities.FormatBytes(work.TotalIngestSize));
+                FormatBytes(work.TotalIngestSize));
 
             CheckBoxPromptDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
         }

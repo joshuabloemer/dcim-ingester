@@ -1,45 +1,31 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Management;
-using System.Runtime.InteropServices;
 
 namespace DcimIngester
 {
     public static class Utilities
     {
         /// <summary>
-        /// Gets the letter of a volume that is mounted to the system.
+        /// Converts a <see cref="NativeMethods.DEV_BROADCAST_VOLUME.dbcv_unitmask"/> value to a drive letter.
         /// </summary>
-        /// <param name="volumeId">The GUID of the volume.</param>
-        /// <returns>The volume letter followed by a colon, or <see langword="null"/> if the volume was not found or has
-        /// no drive letter.</returns>
-        public static string? GetVolumeLetter(Guid volumeId)
+        /// <param name="unitMask">The <see cref="NativeMethods.DEV_BROADCAST_VOLUME.dbcv_unitmask"/> value.</param>
+        /// <returns>The drive letter, followed by a colon.</returns>
+        public static char UnitMaskToDriveLetter(int unitMask)
         {
-            ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
-                "SELECT DriveLetter FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
-            ManagementObjectCollection result = query.Get();
+            int driveIndex = 1;
+            int bitCount = 1;
 
-            return result.OfType<ManagementObject>().SingleOrDefault()?["DriveLetter"]?.ToString();
-        }
+            while (bitCount <= 0x2000000)
+            {
+                driveIndex++;
+                bitCount *= 2;
 
-        /// <summary>
-        /// Gets the label of a volume that is mounted to the system.
-        /// </summary>
-        /// <param name="volumeId">The GUID of the volume.</param>
-        /// <returns>The volume label, <see cref="string.Empty"/> if the volume has no label, or <see langword="null"/>
-        /// if the volume was not found.</returns>
-        public static string? GetVolumeLabel(Guid volumeId)
-        {
-            ManagementObjectSearcher query = new ManagementObjectSearcher(string.Format(
-                "SELECT Label FROM Win32_Volume WHERE DeviceID LIKE '%{0}%'", volumeId));
-            ManagementObjectCollection result = query.Get();
+                if ((bitCount & unitMask) != 0)
+                    return (char)(driveIndex + 64);
+            }
 
-            ManagementObject? row = result.OfType<ManagementObject>().SingleOrDefault();
-
-            if (row != null)
-                return row["Label"] != null ? row["Label"].ToString() : "";
-            else return null;
+            throw new FormatException(nameof(unitMask) +
+                " does not represent a valid drive letter");
         }
 
         /// <summary>
@@ -112,58 +98,5 @@ namespace DcimIngester
             File.Copy(sourcePath, Path.Combine(destDirectory, fileName));
             renamed = duplicates != 0;
         }
-
-
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-        [DllImport("user32.dll")]
-        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
-        public static int GWL_EXSTYLE = -20;
-        public static int WS_EX_TOOLWINDOW = 0x00000080;
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr filter, int flags);
-
-        [DllImport("user32.dll")]
-        public static extern bool UnregisterDeviceNotification(IntPtr recipient);
-
-        /// <summary>
-        /// Represents information related to a WM_DEVICECHANGE message. This struct is actually a DEV_BROADCAST_HDR,
-        /// but when <see cref="DeviceType"/> is 5 it takes on the <see cref="ClassGuid"/> and <see cref="Name"/> fields
-        /// and becomes a DEV_BROADCAST_DEVICEINTERFACE.
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct DevBroadcastDeviceInterface
-        {
-            public int Size;
-            public int DeviceType;
-            public int Reserved;
-            public Guid ClassGuid;
-
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
-            public string Name;
-
-            /// <summary>
-            /// Initialises a new instance of the <see cref="DevBroadcastDeviceInterface"/> struct.
-            /// </summary>
-            /// <param name="classGuid">The device interface class. Specifies the class of devices that will trigger
-            /// the message.</param>
-            public DevBroadcastDeviceInterface(Guid classGuid)
-            {
-                Size = 0;
-                DeviceType = DBT_DEVTYP_DEVICEINTERFACE;
-                Reserved = 0;
-                ClassGuid = classGuid;
-                Name = "";
-            }
-        }
-
-        public static Guid GUID_DEVINTERFACE_VOLUME = new Guid("53F5630D-B6BF-11D0-94F2-00A0C91EFB8B");
-        public static int DBT_DEVTYP_DEVICEINTERFACE = 5;
-
-        public static int WM_DEVICE_CHANGE = 0x0219;
-        public static int DBT_DEVICE_ARRIVAL = 0x8000;
-        public static int DBT_DEVICE_REMOVE_COMPLETE = 0x8004;
     }
 }

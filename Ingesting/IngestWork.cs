@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static DcimIngester.Utilities;
 
 namespace DcimIngester.Ingesting
 {
@@ -11,11 +12,6 @@ namespace DcimIngester.Ingesting
     /// </summary>
     public class IngestWork
     {
-        /// <summary>
-        /// The GUID of the volume to ingest from.
-        /// </summary>
-        public readonly Guid VolumeID;
-
         /// <summary>
         /// The letter of the volume to ingest from, followed by a colon.
         /// </summary>
@@ -52,21 +48,11 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestWork"/> class.
         /// </summary>
-        /// <param name="volumeId">The GUID of the volume to ingest from.</param>
-        public IngestWork(Guid volumeId)
+        /// <param name="volumeLetter">The letter of the volume to ingest from, followed by a colon.</param>
+        public IngestWork(string volumeLetter)
         {
-            VolumeID = volumeId;
-
-            string? letter = Utilities.GetVolumeLetter(volumeId);
-            string? label = Utilities.GetVolumeLabel(volumeId);
-
-            if (letter == null || label == null)
-                throw new VolumeNotFoundException(VolumeID);
-            else
-            {
-                VolumeLetter = letter;
-                VolumeLabel = label;
-            }
+            VolumeLetter = volumeLetter;
+            VolumeLabel = new DriveInfo(VolumeLetter).VolumeLabel;
         }
 
         /// <summary>
@@ -90,7 +76,7 @@ namespace DcimIngester.Ingesting
                     isDiscovering = true;
                     filesToIngest.Clear();
 
-                    if (!Directory.Exists(Path.Combine(VolumeLetter, "DCIM")))
+                    if (!DirectoryExists(Path.Combine(VolumeLetter, "DCIM")))
                         return false;
 
                     string[] directories = Directory.GetDirectories(Path.Combine(VolumeLetter, "DCIM"));
