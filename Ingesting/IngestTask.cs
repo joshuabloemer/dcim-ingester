@@ -119,7 +119,10 @@ namespace DcimIngester.Ingesting
         public void AbortIngest()
         {
             if (Status != IngestTaskStatus.Ingesting)
-                throw new InvalidOperationException("Cannot abort an ingest that isn't actively ingesting.");
+            {
+                throw new InvalidOperationException(
+                    "Cannot abort an ingest that isn't actively ingesting.");
+            }
             else abort = true;
         }
 

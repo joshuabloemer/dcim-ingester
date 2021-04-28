@@ -13,6 +13,10 @@ namespace DcimIngester
     public partial class App : Application
     {
         private MainWindow? mainWindow = null;
+
+        /// <summary>
+        /// Indicates whether the settings window is currently open.
+        /// </summary>
         public bool IsSettingsOpen { get; private set; } = false;
 
         private void Application_Startup(object sender, StartupEventArgs e)
@@ -36,14 +40,14 @@ namespace DcimIngester
             taskbarIcon.Visibility = Visibility.Visible;
             mainWindow = new MainWindow();
 
-            // We need to show the window to get the Loaded method to run
+            // Need to show the window to get the Loaded event to trigger
             mainWindow.Show();
             mainWindow.Hide();
         }
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.WorkCount > 0)
+            if (mainWindow!.IngestsInWork > 0)
             {
                 MessageBox.Show("Dismiss all ingests before opening Settings.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
@@ -57,6 +61,7 @@ namespace DcimIngester
                 settings.ShowDialog();
             }
         }
+
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
         {
             FileVersionInfo versionInfo =
@@ -69,9 +74,10 @@ namespace DcimIngester
                 MessageBoxImage.Information, MessageBoxResult.OK,
                 MessageBoxOptions.DefaultDesktopOnly);
         }
+
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.WorkCount > 0)
+            if (mainWindow!.IngestsInWork > 0)
             {
                 MessageBox.Show("Dismiss all ingests before exiting.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,

@@ -21,6 +21,7 @@ namespace DcimIngester.Windows
         {
             ValidateFields();
         }
+
         private void ButtonBrowseDest_Click(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog folderDialog = new FolderBrowserDialog();
@@ -28,6 +29,7 @@ namespace DcimIngester.Windows
             if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 TextBoxDestination.Text = folderDialog.SelectedPath;
         }
+
         private void ComboBoxSubfolders_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ValidateFields();
@@ -53,6 +55,7 @@ namespace DcimIngester.Windows
             DialogResult = true;
             Close();
         }
+
         private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
             Close();

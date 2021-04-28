@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Interop;
-using static DcimIngester.Utilities;
 
 namespace DcimIngester.VolumeWatching
 {
