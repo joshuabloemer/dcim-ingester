@@ -6,31 +6,6 @@ namespace DcimIngester
     public static class Utilities
     {
         /// <summary>
-        /// Converts a <see cref="NativeMethods.DEV_BROADCAST_VOLUME.dbcv_unitmask"/> value to a drive letter.
-        /// </summary>
-        /// <param name="unitMask">The <see cref="NativeMethods.DEV_BROADCAST_VOLUME.dbcv_unitmask"/> value.</param>
-        /// <exception cref="FormatException">Thrown if <paramref name="unitMask"/> does not represent a valid drive
-        /// letter.</exception>
-        /// <returns>The drive letter, followed by a colon.</returns>
-        public static char UnitMaskToDriveLetter(int unitMask)
-        {
-            int driveIndex = 1;
-            int bitCount = 1;
-
-            while (bitCount <= 0x2000000)
-            {
-                driveIndex++;
-                bitCount *= 2;
-
-                if ((bitCount & unitMask) != 0)
-                    return (char)(driveIndex + 64);
-            }
-
-            throw new FormatException(nameof(unitMask) +
-                " does not represent a valid drive letter");
-        }
-
-        /// <summary>
         /// Formats a numerical storage size into a string with units based on the magnitude of the value.
         /// </summary>
         /// <param name="bytes">The storage size in bytes.</param>

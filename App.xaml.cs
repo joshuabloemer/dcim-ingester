@@ -54,7 +54,7 @@ namespace DcimIngester
                 IsSettingsOpen = true;
                 Settings settings = new Settings();
                 settings.Closed += delegate { IsSettingsOpen = false; };
-                settings.Show();
+                settings.ShowDialog();
             }
         }
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)

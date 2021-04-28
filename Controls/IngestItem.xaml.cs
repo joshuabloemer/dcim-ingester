@@ -13,7 +13,7 @@ namespace DcimIngester.Controls
         private readonly IngestWork work;
         private readonly IngestTask task;
 
-        public string VolumeLetter => work.VolumeLetter;
+        public char VolumeLetter => work.VolumeLetter;
         public IngestTaskStatus Status => task.Status;
 
         private string? firstFileDest = null;
@@ -40,7 +40,7 @@ namespace DcimIngester.Controls
             string volumeLabel = work.VolumeLabel.Length == 0 ? "unnamed" : work.VolumeLabel;
 
             LabelPromptCaption.Text = string.Format(
-                "{0} ({1}) contains {2} files ({3}). Do you want to ingest them?",
+                "{0}: ({1}) contains {2} files ({3}). Do you want to ingest them?",
                 work.VolumeLetter, volumeLabel, work.FilesToIngest.Count,
                 FormatBytes(work.TotalIngestSize));
 
@@ -69,17 +69,27 @@ namespace DcimIngester.Controls
             ButtonIngestRetry.Visibility = Visibility.Collapsed;
             ButtonIngestOpen.Visibility = Visibility.Collapsed;
 
+            string volumeLabel = work.VolumeLabel.Length == 0 ? "unnamed" : work.VolumeLabel;
+
             try
             {
                 bool result = await task.IngestAsync();
 
                 if (result)
-                    LabelIngestCaption.Text = string.Format("Ingest from {0} complete", work.VolumeLabel);
-                else LabelIngestCaption.Text = string.Format("Ingest from {0} cancelled", work.VolumeLabel);
+                {
+                    LabelIngestCaption.Text = string.Format(
+                        "Ingest from {0}: ({1}) complete", work.VolumeLabel, volumeLabel);
+                }
+                else
+                {
+                    LabelIngestCaption.Text = string.Format(
+                        "Ingest from {0}: ({1}) cancelled", work.VolumeLabel, volumeLabel);
+                }
             }
             catch
             {
-                LabelIngestCaption.Text = string.Format("Ingest from {0} failed", work.VolumeLetter);
+                LabelIngestCaption.Text = string.Format(
+                    "Ingest from {0}: ({1}) failed", work.VolumeLetter, volumeLabel);
                 ButtonIngestRetry.Visibility = Visibility.Visible;
             }
 
@@ -93,8 +103,10 @@ namespace DcimIngester.Controls
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                LabelIngestCaption.Text = string.Format("Transferring file {0} of {1} from {2}",
-                    e.FileNumber, work.FilesToIngest.Count, work.VolumeLetter);
+                string volumeLabel = work.VolumeLabel.Length == 0 ? "unnamed" : work.VolumeLabel;
+
+                LabelIngestCaption.Text = string.Format("Transferring file {0} of {1} from {2}: ({3})",
+                    e.FileNumber, work.FilesToIngest.Count, work.VolumeLetter, volumeLabel);
             });
         }
         private void Task_PostFileIngested(object? sender, PostFileIngestedEventArgs e)

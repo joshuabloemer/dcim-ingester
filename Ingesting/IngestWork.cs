@@ -13,9 +13,9 @@ namespace DcimIngester.Ingesting
     public class IngestWork
     {
         /// <summary>
-        /// The letter of the volume to ingest from, followed by a colon.
+        /// The letter of the volume to ingest from.
         /// </summary>
-        public readonly string VolumeLetter;
+        public readonly char VolumeLetter;
 
         /// <summary>
         /// The label of the volume to ingest from.
@@ -48,17 +48,21 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestWork"/> class.
         /// </summary>
-        /// <param name="volumeLetter">The letter of the volume to ingest from, followed by a colon.</param>
-        public IngestWork(string volumeLetter)
+        /// <param name="volumeLetter">The letter of the volume to ingest from.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="volumeLetter"/> is not a letter.</exception>
+        public IngestWork(char volumeLetter)
         {
+            if (!char.IsLetter(volumeLetter))
+                throw new ArgumentException(nameof(volumeLetter) + " must be a letter");
+
             VolumeLetter = volumeLetter;
-            VolumeLabel = new DriveInfo(VolumeLetter).VolumeLabel;
+            VolumeLabel = new DriveInfo(VolumeLetter.ToString() + ":").VolumeLabel;
         }
 
         /// <summary>
         /// Searches the volume for files to ingest. Only files within a directory whose name conforms to the DCF
-        /// specification, which in turn is within the DCIM directory, will be found. The files found are placed in 
-        /// <see cref="FilesToIngest"/>.
+        /// specification, which in turn is within the DCIM directory, will be found. The paths of the files found
+        /// are placed in <see cref="FilesToIngest"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if file discovery is already in progress.</exception>
         /// <returns><see langword="true"/> if any files were found, otherwise <see langword="false"/>.</returns>
@@ -77,10 +81,11 @@ namespace DcimIngester.Ingesting
                     isDiscovering = true;
                     filesToIngest.Clear();
 
-                    if (!DirectoryExists(Path.Combine(VolumeLetter, "DCIM")))
+                    if (!DirectoryExists(Path.Combine(VolumeLetter + ":", "DCIM")))
                         return false;
 
-                    string[] directories = Directory.GetDirectories(Path.Combine(VolumeLetter, "DCIM"));
+                    string[] directories =
+                        Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"));
 
                     foreach (string directory in directories)
                     {

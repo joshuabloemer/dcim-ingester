@@ -77,7 +77,7 @@ namespace DcimIngester.Ingesting
                     for (int i = lastIngested + 1; i < Work.FilesToIngest.Count; i++)
                     {
                         string path = Work.FilesToIngest.ElementAt(i);
-                        PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(path, i + 1));
+                        PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(i + 1));
 
                         IngestFile(path, out bool unsorted, out bool renamed);
 

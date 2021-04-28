@@ -80,7 +80,7 @@ namespace DcimIngester.Windows
         {
             IngestItem item = new IngestItem(work);
             if (items.Count > 0)
-                item.Margin = new Thickness(0, 0, 0, 20);
+                item.Margin = new Thickness(0, 20, 0, 0);
             item.Dismissed += Item_Dismissed;
 
             Height += item.Height;
@@ -104,6 +104,9 @@ namespace DcimIngester.Windows
 
             items.Remove(item);
             StackPanel1.Children.Remove(item);
+
+            Left = SystemParameters.WorkArea.Right - Width - 20;
+            Top = SystemParameters.WorkArea.Bottom - Height - 20;
 
             if (items.Count == 0)
                 Hide();
