@@ -24,9 +24,9 @@ namespace DcimIngester.Ingesting
         public IngestTaskStatus Status { get; private set; } = IngestTaskStatus.Ready;
 
         /// <summary>
-        /// The index of the last file (in the list of files in <see cref="Work"/>) that was successfully ingested.
+        /// The index of the current or next file to be ingested.
         /// </summary>
-        private int lastIngested = -1;
+        private int lastIngested = 0;
 
         /// <summary>
         /// Indicates whether the ingest should abort.
@@ -74,10 +74,10 @@ namespace DcimIngester.Ingesting
                 {
                     Status = IngestTaskStatus.Ingesting;
 
-                    for (int i = lastIngested + 1; i < Work.FilesToIngest.Count; i++)
+                    for (int i = lastIngested; i < Work.FilesToIngest.Count; i++)
                     {
                         string path = Work.FilesToIngest.ElementAt(i);
-                        PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(i + 1));
+                        PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(i));
 
                         IngestFile(path, out bool unsorted, out bool renamed);
 
@@ -87,7 +87,7 @@ namespace DcimIngester.Ingesting
                         lastIngested++;
 
                         PostFileIngested?.Invoke(this,
-                            new PostFileIngestedEventArgs(path, i + 1, unsorted, renamed));
+                            new PostFileIngestedEventArgs(path, i, unsorted, renamed));
 
                         // Only abort if the file we just ingested was not the final file
                         if (abort && lastIngested < Work.FilesToIngest.Count - 1)

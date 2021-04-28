@@ -13,7 +13,7 @@ namespace DcimIngester.Ingesting
         public string FilePath { get; private set; }
 
         /// <summary>
-        /// The one-based index of the file in the list of files to ingest.
+        /// The index of the file in the list of files to ingest.
         /// </summary>
         public int FileNumber { get; private set; }
 
@@ -31,7 +31,7 @@ namespace DcimIngester.Ingesting
         /// Initialises a new instance of the <see cref="PostFileIngestedEventArgs"/> class.
         /// </summary>
         /// <param name="filePath">The path of the file.</param>
-        /// <param name="fileNumber">The one-based index of the file in the list of files to ingest.</param>
+        /// <param name="fileNumber">The index of the file in the list of files to ingest.</param>
         /// <param name="unsorted">Was the file sorted into an "unsorted" folder?</param>
         /// <param name="renamed">Was the file renamed to avoid a duplicate file name?</param>
         public PostFileIngestedEventArgs(string filePath, int fileNumber, bool unsorted, bool renamed)

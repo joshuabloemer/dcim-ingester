@@ -8,14 +8,14 @@ namespace DcimIngester.Ingesting
     public class PreFileIngestedEventArgs : EventArgs
     {
         /// <summary>
-        /// The one-based index of the file in the list of files to ingest.
+        /// The index of the file in the list of files to ingest.
         /// </summary>
         public int FileNumber { get; private set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="PreFileIngestedEventArgs"/> class.
         /// </summary>
-        /// <param name="fileNumber">The one-based index of the file in the list of files to ingest.</param>
+        /// <param name="fileNumber">The index of the file in the list of files to ingest.</param>
         public PreFileIngestedEventArgs(int fileNumber)
         {
             FileNumber = fileNumber;

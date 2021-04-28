@@ -113,12 +113,12 @@ namespace DcimIngester.Controls
                 if (result)
                 {
                     LabelIngestCaption.Text = string.Format(
-                        "Ingest from {0}: ({1}) complete", task.Work.VolumeLabel, label);
+                        "Ingest from {0}: ({1}) complete", task.Work.VolumeLetter, label);
                 }
                 else
                 {
                     LabelIngestCaption.Text = string.Format(
-                        "Ingest from {0}: ({1}) cancelled", task.Work.VolumeLabel, label);
+                        "Ingest from {0}: ({1}) cancelled", task.Work.VolumeLetter, label);
                 }
             }
             catch
@@ -142,7 +142,7 @@ namespace DcimIngester.Controls
                 string label = task.Work.VolumeLabel.Length == 0 ? "unnamed" : task.Work.VolumeLabel;
 
                 LabelIngestCaption.Text = string.Format("Transferring file {0} of {1} from {2}: ({3})",
-                    e.FileNumber, task.Work.FilesToIngest.Count, task.Work.VolumeLetter, label);
+                    e.FileNumber + 1, task.Work.FilesToIngest.Count, task.Work.VolumeLetter, label);
             });
         }
 
@@ -158,7 +158,7 @@ namespace DcimIngester.Controls
             if (e.IsRenamed)
                 renamedCount++;
 
-            double percentage = ((double)e.FileNumber / task.Work.FilesToIngest.Count) * 100;
+            double percentage = ((double)(e.FileNumber + 1) / task.Work.FilesToIngest.Count) * 100;
 
             Application.Current.Dispatcher.Invoke(() =>
             {
