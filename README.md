@@ -1,9 +1,9 @@
 # DCIM Ingester
 A simple system tray application that ingests images from SD cards and sorts them into folders by date taken. The user is automatically prompted to start an ingest whenever an applicable volume is mounted to the system.
 
-- The user is only prompted if the volume is formatted with a FAT file system, contains a DCIM folder and contains at least one ingestable file.
-- Within DCIM, only folders that conform to the DCF specification are ingested, which means non-image directories that cameras often create are ignored.
-- Only files with a date taken EXIF attribute are sorted into folders by date taken. All other files are ingested into an "Unsorted" folder.
+- The user is only prompted if the volume contains a DCIM folder and contains at least one ingestable file.
+- Within DCIM, only folders that conform to the DCF specification are ingested from, which means non-image directories that cameras often create are ignored.
+- Only files with a date taken EXIF attribute are sorted into folders by date taken. All other files are ingested into an "unsorted" folder.
 
 # Usage
 - Open the project in Visual Studio, restore the NuGet packages and run the project.
@@ -22,3 +22,11 @@ A simple system tray application that ingests images from SD cards and sorts the
 - 2.0 (Feb 15, 2021)
 	- Major rework of the code including an upgrade to .NET 5.
 	- A few small UI changes.
+- 2.1 (Apr 28, 2021)
+	- Significant change to the way volumes are detected.
+	- Settings now opens at startup if the ingest destination is not set.
+	- Drive labels are now included next to drive letters.
+	- Fixed a bug where the ingest percentage would not display until the first file had been ingested.
+	- Updated the SD card directory name regex to better comply with the DCF specification.
+	- Various other assorted improvements.
+	- Added some more code documentation.
