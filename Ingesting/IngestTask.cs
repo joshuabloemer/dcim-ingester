@@ -90,7 +90,7 @@ namespace DcimIngester.Ingesting
                             new PostFileIngestedEventArgs(path, i, unsorted, renamed));
 
                         // Only abort if the file we just ingested was not the final file
-                        if (abort && lastIngested < Work.FilesToIngest.Count - 1)
+                        if (abort && i < Work.FilesToIngest.Count - 1)
                         {
                             Status = IngestTaskStatus.Aborted;
                             abort = false;
