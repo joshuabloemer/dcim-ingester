@@ -30,3 +30,5 @@ A simple system tray application that ingests images from SD cards and sorts the
 	- Updated the SD card directory name regex to better comply with the DCF specification.
 	- Various other assorted improvements.
 	- Added some more code documentation.
+- 2.2 (Dec 25, 2021)
+	- Fixed a bug where the "Open Folder" button opens the source folder instead of the destination folder.
