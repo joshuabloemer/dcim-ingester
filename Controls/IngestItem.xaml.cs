@@ -31,7 +31,7 @@ namespace DcimIngester.Controls
         /// <summary>
         /// The directory that the first file was ingested to.
         /// </summary>
-        private string? firstFileDest = null;
+        private string? firstIngestDir = null;
 
         /// <summary>
         /// The number of ingested files that were sorted into directories by date taken.
@@ -131,7 +131,7 @@ namespace DcimIngester.Controls
             ButtonIngestCancel.Content = "Dismiss";
             ButtonIngestCancel.IsEnabled = true;
 
-            if (firstFileDest != null)
+            if (firstIngestDir != null)
                 ButtonIngestOpen.Visibility = Visibility.Visible;
         }
 
@@ -148,8 +148,8 @@ namespace DcimIngester.Controls
 
         private void Task_PostFileIngested(object? sender, PostFileIngestedEventArgs e)
         {
-            if (firstFileDest == null)
-                firstFileDest = e.FilePath;
+            if (firstIngestDir == null)
+                firstIngestDir = Path.GetDirectoryName(e.NewFilePath);
 
             if (e.IsUnsorted)
                 unsortedCount++;
@@ -188,8 +188,7 @@ namespace DcimIngester.Controls
 
         private void ButtonIngestOpen_Click(object sender, RoutedEventArgs e)
         {
-            ProcessStartInfo psi = new ProcessStartInfo(
-                new FileInfo(firstFileDest!).DirectoryName!)
+            ProcessStartInfo psi = new ProcessStartInfo(firstIngestDir!)
             {
                 Verb = "open",
                 UseShellExecute = true

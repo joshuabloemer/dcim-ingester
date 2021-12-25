@@ -8,9 +8,9 @@ namespace DcimIngester.Ingesting
     public class PostFileIngestedEventArgs : EventArgs
     {
         /// <summary>
-        /// The path of the file.
+        /// The new path of the ingested file.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string NewFilePath { get; private set; }
 
         /// <summary>
         /// The index of the file in the list of files to ingest.
@@ -18,7 +18,7 @@ namespace DcimIngester.Ingesting
         public int FileNumber { get; private set; }
 
         /// <summary>
-        /// Indicates whether the file was sorted into an "unsorted" folder.
+        /// Indicates whether the file was ingested into an "unsorted" folder.
         /// </summary>
         public bool IsUnsorted { get; private set; }
 
@@ -30,13 +30,13 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Initialises a new instance of the <see cref="PostFileIngestedEventArgs"/> class.
         /// </summary>
-        /// <param name="filePath">The path of the file.</param>
+        /// <param name="newFilePath">The new path of the ingested file.</param>
         /// <param name="fileNumber">The index of the file in the list of files to ingest.</param>
-        /// <param name="unsorted">Was the file sorted into an "unsorted" folder?</param>
+        /// <param name="unsorted">Was the file ingested into an "unsorted" folder?</param>
         /// <param name="renamed">Was the file renamed to avoid a duplicate file name?</param>
-        public PostFileIngestedEventArgs(string filePath, int fileNumber, bool unsorted, bool renamed)
+        public PostFileIngestedEventArgs(string newFilePath, int fileNumber, bool unsorted, bool renamed)
         {
-            FilePath = filePath;
+            NewFilePath = newFilePath;
             FileNumber = fileNumber;
             IsUnsorted = unsorted;
             IsRenamed = renamed;

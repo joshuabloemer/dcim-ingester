@@ -54,9 +54,10 @@ namespace DcimIngester
         /// </summary>
         /// <param name="sourcePath">The file to copy.</param>
         /// <param name="destDirectory">The directory to copy the file to.</param>
+        /// <param name="newPath">Contains the new path of the copied file.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid duplication in the
         /// destination.</param>
-        public static void CopyFile(string sourcePath, string destDirectory, out bool renamed)
+        public static void CopyFile(string sourcePath, string destDirectory, out string newPath, out bool renamed)
         {
             string fileName = Path.GetFileName(sourcePath);
             int duplicates = 0;
@@ -72,7 +73,10 @@ namespace DcimIngester
                 else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
             }
 
-            File.Copy(sourcePath, Path.Combine(destDirectory, fileName));
+            string destination = Path.Combine(destDirectory, fileName);
+            File.Copy(sourcePath, destination);
+
+            newPath = destination;
             renamed = duplicates != 0;
         }
     }

@@ -79,7 +79,7 @@ namespace DcimIngester.Ingesting
                         string path = Work.FilesToIngest.ElementAt(i);
                         PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(i));
 
-                        IngestFile(path, out bool unsorted, out bool renamed);
+                        IngestFile(path, out string newPath, out bool unsorted, out bool renamed);
 
                         if (Properties.Settings.Default.ShouldDeleteAfter)
                             File.Delete(path);
@@ -87,7 +87,7 @@ namespace DcimIngester.Ingesting
                         lastIngested++;
 
                         PostFileIngested?.Invoke(this,
-                            new PostFileIngestedEventArgs(path, i, unsorted, renamed));
+                            new PostFileIngestedEventArgs(newPath, i, unsorted, renamed));
 
                         // Only abort if the file we just ingested was not the final file
                         if (abort && i < Work.FilesToIngest.Count - 1)
@@ -131,9 +131,10 @@ namespace DcimIngester.Ingesting
         /// available then the file is ingested into an "unsorted" directory.
         /// </summary>
         /// <param name="path">The file to ingest.</param>
+        /// <param name="newPath">Contains the new path of the ingested file.</param>
         /// <param name="unsorted">Indicates whether the file was ingested into an "unsorted" directory.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid a clash.</param>
-        private static void IngestFile(string path, out bool unsorted, out bool renamed)
+        private static void IngestFile(string path, out string newPath, out bool unsorted, out bool renamed)
         {
             DateTime? dateTaken = GetDateTaken(path);
             string destination;
@@ -160,7 +161,7 @@ namespace DcimIngester.Ingesting
             }
 
             destination = CreateDestination(destination);
-            CopyFile(path, destination, out renamed);
+            CopyFile(path, destination, out newPath, out renamed);
         }
 
         /// <summary>
