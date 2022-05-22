@@ -178,18 +178,21 @@ namespace DcimIngester.Ingesting
                 metadata = MetadataExtractor.ImageMetadataReader.ReadMetadata(path);
             }
             catch (MetadataExtractor.ImageProcessingException) { return null; }
-
-            ExifSubIfdDirectory? exif = metadata.OfType<ExifSubIfdDirectory>().SingleOrDefault();
-            string? dto = exif?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
-
-            if (dto == null)
-                return null;
-
-            try
+                                  
+            // Search all exif subdirs for date taken
+            foreach (ExifSubIfdDirectory exif in metadata.OfType<ExifSubIfdDirectory>()) 
             {
-                return DateTime.ParseExact(dto, "yyyy:MM:dd HH:mm:ss", null);
-            }
-            catch (FormatException) { return null; }
+                string? dto = exif?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
+                if (dto != null) 
+                {
+                    try 
+                    {
+                        return DateTime.ParseExact(dto, "yyyy:MM:dd HH:mm:ss", null);
+                    }
+                    catch (FormatException) { return null; }
+                }
+            };
+            return null;
         }
 
         /// <summary>
