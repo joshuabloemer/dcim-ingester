@@ -45,7 +45,7 @@ namespace DcimIngester
         {
             // GetCreationTime() returns the below time if the file does not exist and throws an
             // exception if there was an error
-            return File.GetCreationTime(path) != new DateTime(1601, 1, 1, 0, 0, 0);
+            return File.GetCreationTimeUtc(path) != new DateTime(1601, 1, 1, 0, 0, 0);
         }
 
         /// <summary>
