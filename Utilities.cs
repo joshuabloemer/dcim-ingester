@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using MetadataExtractor.Formats.Exif;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DcimIngester
 {
@@ -49,6 +52,30 @@ namespace DcimIngester
         }
 
         /// <summary>
+        /// Checks if two files are the same (name independent)
+        /// </summary>
+        /// <param name="path1">The path of the first file</param>
+        /// <param name="path2">The path of the second file</param>
+        /// <returns><see langword="true"/> if the files are identical, <see langword="false"/> if the are not.</returns>
+        public static bool isSameFile(string path1, string path2)
+        {
+            IEnumerable<MetadataExtractor.Directory> metadata1 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path1);
+            IEnumerable<MetadataExtractor.Directory> metadata2 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path2);
+            foreach (var directories in metadata1.Zip(metadata2, Tuple.Create))
+            {
+                foreach(var tags in directories.Item1.Tags.Zip(directories.Item2.Tags, Tuple.Create))
+                {
+                    if(tags.Item1.Description != tags.Item2.Description && tags.Item1.Name != "File Name" && tags.Item1.Name != "File Modified Date")
+                    {
+                        return false;
+                    }
+                }
+            } 
+            return true;
+        }
+
+
+        /// <summary>
         /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the
         /// file name.
         /// </summary>
@@ -61,21 +88,31 @@ namespace DcimIngester
         {
             string fileName = Path.GetFileName(sourcePath);
             int duplicates = 0;
+            bool copy = true;
+            String path = Path.Combine(destDirectory, fileName);
 
-            // Increment a duplicate counter until the file name does not exist
-            while (FileExists(Path.Combine(destDirectory, fileName)))
-            {
-                if (Path.GetFileNameWithoutExtension(sourcePath) != "")
+            if (FileExists(path))
+            {   
+                if (!isSameFile(sourcePath,path))
                 {
-                    fileName = string.Format("{0} ({1}){2}", Path.GetFileNameWithoutExtension(sourcePath),
-                        ++duplicates, Path.GetExtension(sourcePath));
+                    // Increment a duplicate counter until the file name does not exist
+                    while (FileExists(Path.Combine(destDirectory, fileName)))
+                    {
+                        if (Path.GetFileNameWithoutExtension(sourcePath) != "")
+                        {
+                            fileName = string.Format("{0} ({1}){2}", Path.GetFileNameWithoutExtension(sourcePath),
+                                ++duplicates, Path.GetExtension(sourcePath));
+                        }
+                        else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
+                    }
                 }
-                else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
+                else copy = false;              
             }
-
             string destination = Path.Combine(destDirectory, fileName);
-            File.Copy(sourcePath, destination);
-
+            if (copy)
+            {
+                File.Copy(sourcePath, destination);
+            }
             newPath = destination;
             renamed = duplicates != 0;
         }
