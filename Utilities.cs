@@ -35,7 +35,7 @@ namespace DcimIngester
         {
             // GetCreationTime() returns the below time if the directory does not exist and throws
             // an exception if there was an error
-            return Directory.GetCreationTime(path) != new DateTime(1601, 1, 1, 0, 0, 0);
+            return Directory.GetCreationTimeUtc(path) != new DateTime(1601, 1, 1, 0, 0, 0);
         }
 
         /// <summary>
@@ -73,7 +73,6 @@ namespace DcimIngester
             } 
             return true;
         }
-
 
         /// <summary>
         /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the
