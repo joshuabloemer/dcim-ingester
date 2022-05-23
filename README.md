@@ -32,3 +32,7 @@ A simple system tray application that ingests images from SD cards and sorts the
 	- Added some more code documentation.
 - 2.2 (Dec 25, 2021)
 	- Fixed a bug where the "Open Folder" button opens the source folder instead of the destination folder.
+- 2.3 (May 23, 2022)
+	- Fixed a Bug where injecting would hang if the timezone was set to anything other than UTC
+	- Added support for files with multiple  EXIF SubIFD directories (DNG files created by DJI drones)
+	- Changed the way duplicate files are detected. Files with different name but same metadata or files with same name and same metadata as already existing files will not be ingested   
