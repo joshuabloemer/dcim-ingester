@@ -13,12 +13,6 @@ namespace DcimIngester
         public static int GWL_EXSTYLE = -20;
         public static int WS_EX_TOOLWINDOW = 0x00000080;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr filter, int flags);
-
-        [DllImport("user32.dll")]
-        public static extern bool UnregisterDeviceNotification(IntPtr recipient);
-
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct DEV_BROADCAST_DEVICEINTERFACE
         {
