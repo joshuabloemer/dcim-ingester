@@ -36,3 +36,5 @@ A simple system tray application that ingests images from SD cards and sorts the
 	- Fixed a Bug where injecting would hang if the timezone was set to anything other than UTC
 	- Added support for files with multiple  EXIF SubIFD directories (DNG files created by DJI drones)
 	- Changed the way duplicate files are detected. Files with different name but same metadata or files with same name and same metadata as already existing files will not be ingested   
+- 2.4 (June 6, 2022)
+	- Changed the Volume Watcher to respond to sd card inserts into already attached reader 
