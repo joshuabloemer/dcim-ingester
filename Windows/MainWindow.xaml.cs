@@ -43,7 +43,7 @@ namespace DcimIngester.Windows
                 NativeMethods.WS_EX_TOOLWINDOW;
             NativeMethods.SetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle);
 
-            volumeWatcher = new VolumeWatcher(HwndSource.FromHwnd(windowHandle));
+            volumeWatcher = new VolumeWatcher();
             volumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
             volumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
             volumeWatcher.StartWatching();
@@ -53,7 +53,7 @@ namespace DcimIngester.Windows
         {
             volumeWatcher!.StopWatching();
         }
-
+        
         private async void VolumeWatcher_VolumeAdded(object? sender, VolumeChangedEventArgs e)
         {
             // Don't want settings to change in the middle of an ingest
