@@ -85,19 +85,16 @@ namespace DcimIngester.Ingesting
                         return false;
 
                     string[] directories =
-                        Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"));
+                        Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"), "*.*", SearchOption.AllDirectories);
 
                     foreach (string directory in directories)
                     {
-                        // Ignore directory names not conforming to DCF spec to avoid non-image directories
-                        if (Regex.IsMatch(Path.GetFileName(directory),
-                            "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9A-Z]{5}$"))
+                        Console.WriteLine(directory);
+
+                        foreach (string file in Directory.GetFiles(directory))
                         {
-                            foreach (string file in Directory.GetFiles(directory))
-                            {
-                                filesToIngest.Add(file);
-                                TotalIngestSize += new FileInfo(file).Length;
-                            }
+                            filesToIngest.Add(file);
+                            TotalIngestSize += new FileInfo(file).Length;
                         }
                     }
 
