@@ -11,5 +11,7 @@
     <Setting Name="Subfolders" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
+    <Setting Name="Rules" Type="System.String[]" Scope="User">
+    </Setting>
   </Settings>
 </SettingsFile>
