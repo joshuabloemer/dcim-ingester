@@ -79,7 +79,7 @@ namespace DcimIngester.Ingesting
                         string path = Work.FilesToIngest.ElementAt(i);
                         PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(i));
 
-                        IngestFile(path, out string newPath, out bool unsorted, out bool renamed);
+                        IngestFile(path, out string newPath, out bool unsorted, out bool renamed, out bool skipped);
 
                         if (Properties.Settings.Default.ShouldDeleteAfter)
                             File.Delete(path);
@@ -87,7 +87,7 @@ namespace DcimIngester.Ingesting
                         lastIngested++;
 
                         PostFileIngested?.Invoke(this,
-                            new PostFileIngestedEventArgs(newPath, i, unsorted, renamed));
+                            new PostFileIngestedEventArgs(newPath, i, unsorted, renamed, skipped));
 
                         // Only abort if the file we just ingested was not the final file
                         if (abort && i < Work.FilesToIngest.Count - 1)
@@ -134,7 +134,7 @@ namespace DcimIngester.Ingesting
         /// <param name="newPath">Contains the new path of the ingested file.</param>
         /// <param name="unsorted">Indicates whether the file was ingested into an "unsorted" directory.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid a clash.</param>
-        private static void IngestFile(string path, out string newPath, out bool unsorted, out bool renamed)
+        private static void IngestFile(string path, out string newPath, out bool unsorted, out bool renamed, out bool skipped)
         {
             DateTime? dateTaken = GetDateTaken(path);
             string destination;
@@ -161,7 +161,7 @@ namespace DcimIngester.Ingesting
             }
 
             destination = CreateDestination(destination);
-            CopyFile(path, destination, out newPath, out renamed);
+            CopyFile(path, destination, out newPath, out renamed, out skipped);
         }
 
         /// <summary>

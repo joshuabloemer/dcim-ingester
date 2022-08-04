@@ -49,6 +49,11 @@ namespace DcimIngester.Controls
         private int renamedCount = 0;
 
         /// <summary>
+        /// The number of ingested files that were skipped because they were already present.
+        /// </summary>
+        private int skippedCount = 0;
+
+        /// <summary>
         /// Occurs when the user dismisses the item.
         /// </summary>
         public event EventHandler? Dismissed;
@@ -153,6 +158,8 @@ namespace DcimIngester.Controls
 
             if (e.IsUnsorted)
                 unsortedCount++;
+            else if (e.IsSkipped)
+                skippedCount++;
             else sortedCount++;
 
             if (e.IsRenamed)
@@ -166,7 +173,7 @@ namespace DcimIngester.Controls
                 ProgressBar1.Value = percentage;
 
                 LabelIngestSubCaption.Text = string.Format(
-                    "{0} sorted, {1} unsorted, {2} renamed", sortedCount, unsortedCount, renamedCount);
+                    "{0} sorted, {1} unsorted, {2} renamed, {3} skipped", sortedCount, unsortedCount, renamedCount, skippedCount);
             });
         }
 

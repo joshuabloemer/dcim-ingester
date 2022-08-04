@@ -83,11 +83,12 @@ namespace DcimIngester
         /// <param name="newPath">Contains the new path of the copied file.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid duplication in the
         /// destination.</param>
-        public static void CopyFile(string sourcePath, string destDirectory, out string newPath, out bool renamed)
+        public static void CopyFile(string sourcePath, string destDirectory, out string newPath, out bool renamed, out bool skipped)
         {
             string fileName = Path.GetFileName(sourcePath);
             int duplicates = 0;
             bool copy = true;
+            skipped = false;
             String path = Path.Combine(destDirectory, fileName);
 
             if (FileExists(path))
@@ -105,7 +106,12 @@ namespace DcimIngester
                         else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
                     }
                 }
-                else copy = false;              
+                else 
+                {
+                    Console.WriteLine("Skipped");
+                    copy = false;
+                    skipped = true;              
+                }
             }
             string destination = Path.Combine(destDirectory, fileName);
             if (copy)
