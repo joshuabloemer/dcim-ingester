@@ -156,10 +156,10 @@ namespace DcimIngester.Controls
             if (firstIngestDir == null)
                 firstIngestDir = Path.GetDirectoryName(e.NewFilePath);
 
-            if (e.IsUnsorted)
-                unsortedCount++;
-            else if (e.IsSkipped)
+            if (e.IsSkipped)
                 skippedCount++;
+            else if (e.IsUnsorted)
+                unsortedCount++;
             else sortedCount++;
 
             if (e.IsRenamed)

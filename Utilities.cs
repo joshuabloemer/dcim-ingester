@@ -108,7 +108,6 @@ namespace DcimIngester
                 }
                 else 
                 {
-                    Console.WriteLine("Skipped");
                     copy = false;
                     skipped = true;              
                 }
