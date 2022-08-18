@@ -17,8 +17,9 @@ namespace DcimIngester.Windows
         {
             TextBoxDestination.Text = Properties.Settings.Default.Destination;
             ComboBoxSubfolders.SelectedIndex = Properties.Settings.Default.Subfolders;
-            Rule Rule1 = new Rule("1_1");
-            Generate_Ui(Rule1);
+            // Initialize first Rule
+            Rule Rule0 = new Rule(0);
+            // Generate_Ui(Rule0);
 
         }
 
