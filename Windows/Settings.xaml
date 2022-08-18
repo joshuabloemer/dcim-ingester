@@ -31,36 +31,15 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="10" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
 
                     <ColumnDefinition Width="10" />
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="10"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+
                     <RowDefinition Height="10"/>
                 </Grid.RowDefinitions>
-
-                <!-- <TextBox Name="Rule1_1" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" TextChanged="Rule1_TextChanged"/>
-                <TextBox Name="Path1_1" Grid.Row="1" Grid.Column="5" Grid.ColumnSpan="5"/>
-                <TextBox Name="Regex1_1" Grid.Row="1" Grid.Column="10" Grid.ColumnSpan="4"/> -->
-
-
             </Grid>
         </TabItem>
     </TabControl>
