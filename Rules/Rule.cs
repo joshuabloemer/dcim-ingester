@@ -13,9 +13,9 @@ public class Rule {
     }
 
     public string? path {get;set;}
-    private Rule? under {get;set;}
-    private Rule? indent {get;set;}
-    private Rule? next {get;set;}
+    public Rule? under {get;private set;}
+    public Rule? indent {get;private set;}
+    public Rule? next {get;private set;}
 
     public Rule(int indentLevel){
         this.indentLevel = indentLevel;
@@ -25,7 +25,6 @@ public class Rule {
     }
 
     private void updateChildren(){
-        Console.WriteLine(this.rule.Length);
         if (this._rule.Length > 0) {
             under = new Rule(this.indentLevel);
             indent = new Rule(this.indentLevel+1);
