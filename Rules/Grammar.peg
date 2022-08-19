@@ -1,3 +1,3 @@
-@namespace Rules
+@namespace DcimIngester.Rules
 @classname Parser
 any = a:("" .+){a}
