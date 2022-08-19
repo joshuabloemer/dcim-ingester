@@ -1,3 +1,13 @@
 @namespace DcimIngester.Rules
 @classname Parser
-any = a:("" .+){a}
+
+block<BlockNode>
+    = head:statement EOL tail:block { new BlockNode(head).Concat(tail)}
+    / line:statement { new BlockNode(line) }
+
+string<StringNode> = s:("" [a-zA-z"/1-9]+) {new StringNode(s)}
+
+statement = string
+
+_ = [\t ]+
+EOL = '\n' / '\r\n'

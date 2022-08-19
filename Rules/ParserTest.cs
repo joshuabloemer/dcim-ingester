@@ -9,8 +9,12 @@ namespace DcimIngester.Rules
         {
             var source = File.ReadAllText("Rules/rules");
             var parser = new Parser();
-            var result = parser.Parse(source);
-            Console.WriteLine(result);
+            var syntax = parser.Parse(source);
+            var evaluator = new Evaluator();
+            Console.WriteLine("==== SYNTAX ====");
+            Console.WriteLine(syntax.PrettyPrint());
+            Console.WriteLine("==== OUTPUT ====");
+            Console.WriteLine(evaluator.Evaluate(syntax));
         }
     }
 }
