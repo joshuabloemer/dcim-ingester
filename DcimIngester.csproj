@@ -22,11 +22,15 @@
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="MetadataExtractor" Version="2.7.2" />
+    <PackageReference Include="Pegasus" Version="4.1.0" />
     <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PegGrammar Include="Rules/Grammar.peg" />
   </ItemGroup>
 
   <ItemGroup>
