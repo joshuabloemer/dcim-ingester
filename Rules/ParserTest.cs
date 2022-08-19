@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace DcimIngester.Rules
 {
@@ -6,8 +7,9 @@ namespace DcimIngester.Rules
     {
         public static void TestParser()
         {
+            var source = File.ReadAllText("Rules/rules");
             var parser = new Parser();
-            var result = parser.Parse("123as");
+            var result = parser.Parse(source);
             Console.WriteLine(result);
         }
     }

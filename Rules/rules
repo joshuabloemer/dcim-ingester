@@ -1,0 +1,9 @@
+extension="html" "Photos/SD Card Dump/Panorama/$date_created/html"
+
+extension="mp4" "Videos/SD Card Dump/$date_created"
+
+extension=image "Photos/SD Card Dump"
+    extension="DNG" "RAW"
+    extension="JPG" "JPG"
+        any "$date_created"
+
