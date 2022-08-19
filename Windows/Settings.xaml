@@ -6,42 +6,20 @@
         
         Title="DCIM Ingester Settings" Width="480" Height="500" WindowStartupLocation="CenterScreen" ResizeMode="CanResize" Background="#FF1E1E1E" Loaded="Window_Loaded" SizeToContent="Height" Icon="../Icon.ico">
 
+        <Grid Background="#FF1E1E1E">
+            <Label Content="Ingest Destination" Margin="10,6,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
+            <TextBox x:Name="TextBoxDestination" Style="{DynamicResource TextBoxStyle}" Margin="10,27,41,0" VerticalAlignment="Top" IsReadOnly="True" TextChanged="TextBoxDestination_TextChanged"/>
+            <Button x:Name="ButtonBrowseDest" Style="{DynamicResource ButtonStyle}" Content="..." HorizontalAlignment="Right" Margin="0,27,10,0" VerticalAlignment="Top" Width="26" Click="ButtonBrowseDest_Click"/>
 
+            <Label Content="Destination Subfolder Structure" Margin="10,63,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
+            <ComboBox x:Name="ComboBoxSubfolders" Margin="10,84,10,0" VerticalAlignment="Top" Style="{DynamicResource ComboBoxStyle}" SelectionChanged="ComboBoxSubfolders_SelectionChanged">
+                <ComboBoxItem Content="Destination\YYYY\MM\DD" Style="{DynamicResource ComboBoxItemStyle}"/>
+                <ComboBoxItem Content="Destination\YYYY\YYYY-MM-DD" Style="{DynamicResource ComboBoxItemStyle}"/>
+                <ComboBoxItem Content="Destination\YYYY-MM-DD" Style="{DynamicResource ComboBoxItemStyle}"/>
+            </ComboBox>
 
-    <TabControl BorderThickness="0">
-        <TabItem Header="General">
-
-            <Grid Background="#FF1E1E1E">
-                <Label Content="Ingest Destination" Margin="10,6,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
-                <TextBox x:Name="TextBoxDestination" Style="{DynamicResource TextBoxStyle}" Margin="10,27,41,0" VerticalAlignment="Top" IsReadOnly="True" TextChanged="TextBoxDestination_TextChanged"/>
-                <Button x:Name="ButtonBrowseDest" Style="{DynamicResource ButtonStyle}" Content="..." HorizontalAlignment="Right" Margin="0,27,10,0" VerticalAlignment="Top" Width="26" Click="ButtonBrowseDest_Click"/>
-
-                <Label Content="Destination Subfolder Structure" Margin="10,63,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
-                <ComboBox x:Name="ComboBoxSubfolders" Margin="10,84,10,0" VerticalAlignment="Top" Style="{DynamicResource ComboBoxStyle}" SelectionChanged="ComboBoxSubfolders_SelectionChanged">
-                    <ComboBoxItem Content="Destination\YYYY\MM\DD" Style="{DynamicResource ComboBoxItemStyle}"/>
-                    <ComboBoxItem Content="Destination\YYYY\YYYY-MM-DD" Style="{DynamicResource ComboBoxItemStyle}"/>
-                    <ComboBoxItem Content="Destination\YYYY-MM-DD" Style="{DynamicResource ComboBoxItemStyle}"/>
-                </ComboBox>
-
-                <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,125,95,10" VerticalAlignment="Top" Width="100" Click="ButtonSave_Click"/>
-                <Button x:Name="ButtonClose" Style="{DynamicResource ButtonStyle}" Content="Close" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonClose_Click" IsCancel="True"/>
-            </Grid>
-        </TabItem>
-        <TabItem Header="Rules">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="10" />
-
-                    <ColumnDefinition Width="10" />
-                </Grid.ColumnDefinitions>
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="10"/>
-
-                    <RowDefinition Height="10"/>
-                </Grid.RowDefinitions>
-            </Grid>
-        </TabItem>
-    </TabControl>
+            <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,125,95,10" VerticalAlignment="Top" Width="100" Click="ButtonSave_Click"/>
+            <Button x:Name="ButtonClose" Style="{DynamicResource ButtonStyle}" Content="Close" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonClose_Click" IsCancel="True"/>
+        </Grid>
 
 </Window>
