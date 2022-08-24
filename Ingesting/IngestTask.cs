@@ -73,7 +73,7 @@ namespace DcimIngester.Ingesting
                 try
                 {
                     Status = IngestTaskStatus.Ingesting;
-
+                    // Parse rules here to avoid parsing again for each file to ingest
                     for (int i = lastIngested; i < Work.FilesToIngest.Count; i++)
                     {
                         string path = Work.FilesToIngest.ElementAt(i);
