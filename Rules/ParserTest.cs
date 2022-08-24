@@ -12,9 +12,10 @@ namespace DcimIngester.Rules
             var syntax = parser.Parse(source);
             var evaluator = new Evaluator();
             Console.WriteLine("==== SYNTAX ====");
+            Console.WriteLine(syntax);
             Console.WriteLine(syntax.PrettyPrint());
-            Console.WriteLine("==== OUTPUT ====");
-            Console.WriteLine(evaluator.Evaluate(syntax));
+            // Console.WriteLine("==== OUTPUT ====");
+            // Console.WriteLine(evaluator.Evaluate(syntax));
         }
     }
 }

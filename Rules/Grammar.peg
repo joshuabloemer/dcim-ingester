@@ -1,13 +1,39 @@
 @namespace DcimIngester.Rules
 @classname Parser
 
+program<ProgramNode>
+ = #{ state["Indentation"] = 0; } b:block {new ProgramNode(b)} 
+
 block<BlockNode>
-    = head:statement EOL tail:block { new BlockNode(head).Concat(tail)}
-    / line:statement { new BlockNode(line) }
+  = INDENTATION head:rule EOL<2> tail:block { new BlockNode(head).Concat(tail)}
+  / INDENTATION line:rule { new BlockNode(line) }
 
-string<StringNode> = s:("" [a-zA-z"/1-9]+) {new StringNode(s)}
+string = ("" [a-zA-z"/1-9]+)
 
-statement = string
+rule<RuleNode> 
+  = (c:condition " " p:path EOL b:block) {new RuleNode(c,p,b,new EmptyNode())}
+  / (c:condition " " p:path EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 
+  / (c:condition " " p:path ) {new RuleNode(c,p,new EmptyNode(),new EmptyNode())}
+
+condition<ConditionNode> = (t:conditionType o:comparisonOperator v:string) {new ConditionNode(t,o,v)}
+
+path<StringNode> = s:string {new StringNode(s)}
+
+comparisonOperator
+    = "="
+
+conditionType
+    = "extension"
+    / "camera"
 
 _ = [\t ]+
 EOL = '\n' / '\r\n'
+
+INDENTATION
+  = spaces:" "* &{ spaces.Count == state["Indentation"] }
+
+INDENT
+  = #{ state["Indentation"] += 4; }
+
+UNDENT
+  = #{ state["Indentation"] -= 4; }
