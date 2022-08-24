@@ -3,4 +3,9 @@ public class StringNode : SyntaxNode{
     public StringNode(string value){
         this.Value = value;
     }
+
+    public override string ToString()
+    {
+        return this.Value;
+    }
 }
