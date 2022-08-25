@@ -11,13 +11,13 @@ block<BlockNode>
 string = ("" [a-zA-z"/1-9]+)
 
 rule<RuleNode> 
-  = (c:condition " " p:path EOL b:block) {new RuleNode(c,p,b,new EmptyNode())}
-  / (c:condition " " p:path EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 
-  / (c:condition " " p:path ) {new RuleNode(c,p,new EmptyNode(),new EmptyNode())}
+  = (c:condition _ p:path EOL b:block) {new RuleNode(c,p,b,new EmptyNode())}
+  / (c:condition _ p:path EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 
+  / (c:condition _ p:path ) {new RuleNode(c,p,new EmptyNode(),new EmptyNode())}
 
-condition<ConditionNode> = (t:conditionType o:comparisonOperator v:string) {new ConditionNode(t,o,v)}
+condition<ConditionNode> = (t:conditionType o:comparisonOperator '"' v:("" [^\\/:*?"<>|]+) '"' ) {new ConditionNode(t,o,v)}
 
-path<StringNode> = s:string {new StringNode(s)}
+path<StringNode> = '"' s:("" [^\\:*?"<>|]+) '"' {new StringNode(s)}
 
 comparisonOperator
     = "="
