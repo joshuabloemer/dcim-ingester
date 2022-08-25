@@ -8,8 +8,6 @@ block<BlockNode>
   = INDENTATION head:rule EOL<2> tail:block { new BlockNode(head).Concat(tail)}
   / INDENTATION line:rule { new BlockNode(line) }
 
-string = ("" [a-zA-z"/1-9]+)
-
 rule<RuleNode> 
   = (c:condition _ p:path EOL b:block) {new RuleNode(c,p,b,new EmptyNode())}
   / (c:condition _ p:path EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 

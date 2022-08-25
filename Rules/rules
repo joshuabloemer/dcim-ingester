@@ -1,1 +1,5 @@
 extension="dng" "Abcde/d"
+    camera="12321321" "cam1"
+    camera="4543545" "cam2"
+    
+    camera = "whatever" "adad/asd"
