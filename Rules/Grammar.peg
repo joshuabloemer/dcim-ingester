@@ -15,6 +15,7 @@ rule<RuleNode>
 
 condition<SyntaxNode> 
   = (l:conditionType '=' '"' r:("" [^\\/:*?"<>|.]+) '"' ) {new EqualsNode(l,r)}
+  / 'any' {new AnyNode()}
 
 path<PathNode> = '"' s:("" [^\\:*?"<>|]+) '"' {new PathNode(s)}
 
