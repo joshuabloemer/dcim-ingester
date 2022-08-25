@@ -17,7 +17,7 @@ rule<RuleNode>
 
 condition<ConditionNode> = (t:conditionType o:comparisonOperator '"' v:("" [^\\/:*?"<>|]+) '"' ) {new ConditionNode(t,o,v)}
 
-path<StringNode> = '"' s:("" [^\\:*?"<>|]+) '"' {new StringNode(s)}
+path<PathNode> = '"' s:("" [^\\:*?"<>|]+) '"' {new PathNode(s)}
 
 comparisonOperator
     = "="

@@ -1,6 +1,6 @@
-public class StringNode : SyntaxNode{
+public class PathNode : SyntaxNode{
     public string Value {get;}
-    public StringNode(string value){
+    public PathNode(string value){
         this.Value = value;
     }
 
