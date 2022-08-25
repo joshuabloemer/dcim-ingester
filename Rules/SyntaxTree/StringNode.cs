@@ -6,6 +6,6 @@ public class StringNode : SyntaxNode{
 
     public override string ToString()
     {
-        return this.Value;
+        return base.ToString() + " " + this.Value;
     }
 }

@@ -9,4 +9,9 @@ public class ConditionNode : SyntaxNode{
         this.Value=value;
 
     }
+
+    public override string ToString()
+    {
+        return base.ToString() + " " + this.Type + this.Operand + this.Value;
+    }
 }
