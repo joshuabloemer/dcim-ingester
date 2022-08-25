@@ -15,16 +15,14 @@ rule<RuleNode>
   / (c:condition _ p:path EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 
   / (c:condition _ p:path ) {new RuleNode(c,p,new EmptyNode(),new EmptyNode())}
 
-condition<ConditionNode> = (t:conditionType o:comparisonOperator '"' v:("" [^\\/:*?"<>|]+) '"' ) {new ConditionNode(t,o,v)}
+condition<SyntaxNode> 
+  = (l:conditionType '=' '"' r:("" [^\\/:*?"<>|.]+) '"' ) {new EqualsNode(l,r)}
 
 path<PathNode> = '"' s:("" [^\\:*?"<>|]+) '"' {new PathNode(s)}
 
-comparisonOperator
-    = "="
-
-conditionType
-    = "extension"
-    / "camera"
+conditionType<SyntaxNode>
+    = "extension" {new ExtensionNode()}
+    / "camera"  {new CameraNode()}
 
 _ = [\t ]+
 EOL = '\n' / '\r\n'
