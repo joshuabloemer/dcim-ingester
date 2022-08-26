@@ -15,6 +15,11 @@ rule<RuleNode>
 
 condition<SyntaxNode> 
   = (l:conditionType '=' '"' r:conditionString '"' ) {new EqualsNode(l,r)}
+  / (l:conditionType '!=' '"' r:conditionString '"' ) {new NotNode(l,r)}
+  / (l:conditionType '>' '"' r:conditionString '"' ) {new GreaterThanNode(l,r)}
+  / (l:conditionType '<' '"' r:conditionString '"' ) {new LessThanNode(l,r)}
+  / (l:conditionType '<=' '"' r:conditionString '"' ) {new GreaterOrEqualsNode(l,r)}
+  / (l:conditionType '>=' '"' r:conditionString '"' ) {new LessOrEqualsNode(l,r)}
   / 'any' {new AnyNode()}
 
 conditionString<StringNode> = s:("" [^\\/:*?"<>|.]+) {new StringNode(s)}
