@@ -1,6 +1,1 @@
-extension="dng" "Abcde/d"
-    camera="12321321" "cam1"
-    camera="4543545" "cam2"
-        any "test"
-
-    camera = "whatever" "adad/asd"
+extension="dng" "{camera}/{camera}/{camera}"

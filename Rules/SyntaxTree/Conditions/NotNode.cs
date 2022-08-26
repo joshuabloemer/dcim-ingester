@@ -1,4 +1,4 @@
 public class NotNode : ConditionNode{
     
-    public NotNode(SyntaxNode l, string r):base(l,r){}
+    public NotNode(SyntaxNode l, SyntaxNode r):base(l,r){}
 }

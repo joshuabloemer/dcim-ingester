@@ -1,4 +1,4 @@
 public class GreaterOrEqualNode : ConditionNode{
     
-    public GreaterOrEqualNode(SyntaxNode l, string r):base(l,r){}
+    public GreaterOrEqualNode(SyntaxNode l, SyntaxNode r):base(l,r){}
 }

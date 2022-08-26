@@ -5,7 +5,7 @@ namespace DcimIngester.Rules {
     class Evaluator {
         public object Evaluate(SyntaxNode node) {
             switch(node) {
-                case PathNode n: return n.Value;
+                // case PathNode n: return n.Value;
                 case BlockNode b: return BlockNode(b);
 
             }

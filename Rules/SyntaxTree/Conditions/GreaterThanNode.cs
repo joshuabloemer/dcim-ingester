@@ -1,4 +1,4 @@
 public class GreaterThanNode : ConditionNode{
     
-    public GreaterThanNode(SyntaxNode l, string r):base(l,r){}
+    public GreaterThanNode(SyntaxNode l, SyntaxNode r):base(l,r){}
 }

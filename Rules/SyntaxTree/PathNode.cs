@@ -1,11 +1,13 @@
-public class PathNode : SyntaxNode{
-    public string Value {get;}
-    public PathNode(string value){
-        this.Value = value;
-    }
+using System.Collections.Generic;
 
-    public override string ToString()
-    {
-        return base.ToString() + " " + this.Value;
+public class PathNode : SyntaxNode{
+    public List<SyntaxNode> Parts {get;}
+    public PathNode(SyntaxNode node){
+        this.Parts = new List<SyntaxNode> {node};
+    }
+    
+    public PathNode Concat(PathNode tail) {
+        this.Parts.AddRange(tail.Parts);
+        return(this);
     }
 }
