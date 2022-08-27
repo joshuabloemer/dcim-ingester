@@ -15,4 +15,14 @@ public class RuleNode : SyntaxNode {
         this.Indent = indent;
     }
 
+    public SyntaxNode GetIndent(){
+        if (this.Indent is not EmptyNode){
+            return (BlockNode)this.Indent;   
+        }
+        if (this.Under is not EmptyNode){ 
+            RuleNode under = (RuleNode)this.Under;
+            return under.GetIndent();
+        }
+        return null;
+    }
 }
