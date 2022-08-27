@@ -1,1 +1,3 @@
-extension="dng" "{camera}/{camera}/{camera}"
+any "test/test"
+any "test2"
+    any "test3"
