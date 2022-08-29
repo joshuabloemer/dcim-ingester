@@ -21,6 +21,7 @@ condition<SyntaxNode>
   / (l:conditionType '<=' '"' r:conditionString '"' ) {new GreaterOrEqualNode(l,r)}
   / (l:conditionType '>=' '"' r:conditionString '"' ) {new LessOrEqualNode(l,r)}
   / 'any' {new AnyNode()}
+  / (l:conditionType ' contains ' r:conditionString) {new ContainsNode(l,r)}
 
 conditionString<StringNode> = s:("" [^\\/:*?"<>|.]+) {new StringNode(s)}
 
