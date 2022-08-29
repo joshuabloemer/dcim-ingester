@@ -1,12 +1,24 @@
 using System;
 using System.Collections.Generic;
+using MetadataExtractor;
 
 namespace DcimIngester.Rules {
     class Evaluator {
         public string FilePath {get;}
+        
+        public Dictionary<String,Dictionary<String,String>> Metadata {get;} = new Dictionary<String,Dictionary<String,String>>();
+        
         public Evaluator(string filePath){
             this.FilePath = filePath;
+            IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(filePath);
+            foreach (var directory in directories){
+                Metadata[directory.Name] = new Dictionary<String, String>();
+                foreach (var tag in directory.Tags){
+                    Metadata[directory.Name][tag.Name] = tag.Description;
+                }
+            }
         }
+
         public object Evaluate(SyntaxNode node) {
             switch(node) {
                 case ProgramNode p: return program(p);
