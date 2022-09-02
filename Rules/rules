@@ -1,3 +1,1 @@
-any "test/test"
-any "test2"
-    any "test3"
+Exif SubIFD;Focal Length="50 mm" "{Exif SubIFD;Focal Length}"

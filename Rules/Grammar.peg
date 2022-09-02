@@ -40,6 +40,7 @@ pathString<StringNode> = s:("" [^\\:*?"<>|}{]+) {new StringNode(s)}
 conditionType<SyntaxNode>
     = "extension" {new ExtensionNode()}
     / "camera"  {new CameraNode()}
+    / d:("" [^;]+) ";" t:("" [^=}]+) {new MetadataNode(d,t)}
 
 _ = [\t ]+
 EOL = '\n' / '\r\n'

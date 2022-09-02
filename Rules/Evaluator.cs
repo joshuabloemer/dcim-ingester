@@ -33,9 +33,23 @@ namespace DcimIngester.Rules {
                 case GreaterThanNode g: return greater(g);
                 case LessOrEqualNode l: return lesseOrEqual(l);
                 case GreaterOrEqualNode g: return greaterOrEqual(g);
+                case MetadataNode m: return metadataNode(m);
 
             }
             throw(new Exception($"Unknown node type {node.GetType()}"));
+        }
+
+        private object metadataNode(MetadataNode m)
+        {
+            
+            Dictionary<String,String> directory;
+            String tag;
+            if (this.Metadata.TryGetValue(m.Directory, out directory)){
+                if (directory.TryGetValue(m.Tag, out tag)){
+                    return tag;
+                }
+            }
+            return null;
         }
 
         private object program(ProgramNode p)
@@ -70,7 +84,7 @@ namespace DcimIngester.Rules {
 
         private object equals(EqualsNode e)
         {
-            return Evaluate(e.l) == Evaluate(e.r);
+            return (string)Evaluate(e.l) == (string)Evaluate(e.r);
         }
 
         private string rule(RuleNode r)
