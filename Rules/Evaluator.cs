@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MetadataExtractor;
+using System.IO;
 
 namespace DcimIngester.Rules {
     class Evaluator {
@@ -34,6 +35,7 @@ namespace DcimIngester.Rules {
                 case LessOrEqualNode l: return lesseOrEqual(l);
                 case GreaterOrEqualNode g: return greaterOrEqual(g);
                 case MetadataNode m: return metadataNode(m);
+                case ExtensionNode : return Path.GetExtension(this.FilePath).Remove(0,1);
 
             }
             throw(new Exception($"Unknown node type {node.GetType()}"));
