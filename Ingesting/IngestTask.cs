@@ -31,7 +31,7 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Indicates whether the ingest should abort.
         /// </summary>
-        private bool abort = false;
+        private bool shouldAbort = false;
 
         /// <summary>
         /// Occurs when the ingest of an individual file begins.
@@ -90,10 +90,10 @@ namespace DcimIngester.Ingesting
                             new PostFileIngestedEventArgs(newPath, i, unsorted, renamed));
 
                         // Only abort if the file we just ingested was not the final file
-                        if (abort && i < Work.FilesToIngest.Count - 1)
+                        if (shouldAbort && i < Work.FilesToIngest.Count - 1)
                         {
                             Status = IngestTaskStatus.Aborted;
-                            abort = false;
+                            shouldAbort = false;
                             return false;
                         }
                     }
@@ -104,7 +104,7 @@ namespace DcimIngester.Ingesting
                 catch
                 {
                     Status = IngestTaskStatus.Failed;
-                    abort = false;
+                    shouldAbort = false;
 
                     throw;
                 }
@@ -123,7 +123,7 @@ namespace DcimIngester.Ingesting
                 throw new InvalidOperationException(
                     "Cannot abort an ingest that isn't actively ingesting.");
             }
-            else abort = true;
+            else shouldAbort = true;
         }
 
         /// <summary>
