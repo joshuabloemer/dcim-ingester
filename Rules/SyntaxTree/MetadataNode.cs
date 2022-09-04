@@ -10,6 +10,6 @@ public class MetadataNode : SyntaxNode{
 
     public override string ToString()
     {
-        return base.ToString() + " " + this.Directory + ":" + this.Tag;
+        return base.ToString() + " " + this.Directory + " - " + this.Tag;
     }
 }
