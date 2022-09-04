@@ -15,7 +15,7 @@ A simple system tray application that ingests images from SD cards and sorts the
 # Version History
 - 1.0 (Dec 21, 2019) -- First version.
 - 1.1 (Jan 16, 2020)
-	- Fixed a bug where the ingest progress did not update after the final file was ingested.
+	- Fixed an issue where the ingest progress did not update after the final file was ingested.
 	- Added checks for existence of the destination directory.
 	- Added a selectable list of destination directory structure formats.
 	- Can now ingest all file names instead of only those covered by the DCF specification.
@@ -26,9 +26,12 @@ A simple system tray application that ingests images from SD cards and sorts the
 	- Significant change to the way volumes are detected.
 	- Settings now opens at startup if the ingest destination is not set.
 	- Drive labels are now included next to drive letters.
-	- Fixed a bug where the ingest percentage would not display until the first file had been ingested.
+	- Fixed an issue where the ingest percentage would not display until the first file had been ingested.
 	- Updated the SD card directory name regex to better comply with the DCF specification.
 	- Various other assorted improvements.
 	- Added some more code documentation.
 - 2.2 (Dec 25, 2021)
-	- Fixed a bug where the "Open Folder" button opens the source folder instead of the destination folder.
+	- Fixed an issue where the "Open Folder" button opens the source folder instead of the destination folder.
+- 2.3 (Xxx XX, 2022)
+	- Reimplemented volume detection usin SHChangeNotifyRegister. This fixes an issue where an SD card inserted into a connected card reader would not be detected.
+	- Fixed an issue where cancelling the Settings window without having an ingest destination set (e.g. on first run) would throw an exception.

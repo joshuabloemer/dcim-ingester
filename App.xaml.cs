@@ -15,7 +15,7 @@ namespace DcimIngester
         private MainWindow? mainWindow = null;
 
         /// <summary>
-        /// Indicates whether the settings window is currently open.
+        /// Indicates whether the Settings window is currently open.
         /// </summary>
         public bool IsSettingsOpen { get; private set; } = false;
 
