@@ -1,8 +1,9 @@
 ﻿using DcimIngester.Controls;
 using DcimIngester.Ingesting;
-using DcimIngester.VolumeWatching;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
@@ -12,19 +13,22 @@ namespace DcimIngester.Windows
     public partial class MainWindow : Window
     {
         /// <summary>
-        /// Watches for volumes being mounted to or unmounted from the system.
+        /// The identifier returned from registering for volume change notifications.
         /// </summary>
-        private VolumeWatcher? volumeWatcher = null;
+        private uint notifyId = 0;
 
         /// <summary>
-        /// The number of ingests that are currently being dealt with.
+        /// The message ID that will be passed to WndProc when the volumes on the system have changed.
         /// </summary>
-        private int _IngestsInWork = 0;
+        private const uint MESSAGE_ID = 0x0401;
 
         /// <summary>
         /// The number of ingests that are currently being dealt with.
         /// </summary>
         public int IngestsInWork => _IngestsInWork;
+
+        private int _IngestsInWork = 0;
+
 
         /// <summary>
         /// Initialises a new instance of the <see cref="MainWindow"/> class.
@@ -38,23 +42,92 @@ namespace DcimIngester.Windows
         {
             IntPtr windowHandle = new WindowInteropHelper(this).Handle;
 
-            // Hide window from the Windows task switcher by making it a tool window
-            int extendedStyle = NativeMethods.GetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE) |
-                NativeMethods.WS_EX_TOOLWINDOW;
-            NativeMethods.SetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle);
+            bool shutdown = true;
 
-            volumeWatcher = new VolumeWatcher(HwndSource.FromHwnd(windowHandle));
-            volumeWatcher.VolumeAdded += VolumeWatcher_VolumeAdded;
-            volumeWatcher.VolumeRemoved += VolumeWatcher_VolumeRemoved;
-            volumeWatcher.StartWatching();
+            // TODO: This works, but should be GetWindowLongPtr intead
+            int extendedStyle = NativeMethods.GetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE);
+            extendedStyle |= NativeMethods.WS_EX_TOOLWINDOW;
+
+            // Hide window from Windows task switcher by making it a tool window
+            // TODO: This works, but should be SetWindowLongPtr intead
+            if (NativeMethods.SetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle) != 0)
+            {
+                NativeMethods.SHChangeNotifyEntry entry = new();
+                entry.fRecursive = false;
+
+                // TODO: Need to use SHGetFolderLocation instead, which is also deprecated
+                if (NativeMethods.SHGetSpecialFolderLocation(windowHandle, NativeMethods.CSIDL_DESKTOP, out entry.pIdl) == 0)
+                {
+                    // TODO: Should be SHCNRF according to docs but for some reason none of those values work
+                    // These values are from an example and I have no idea what they do or mean
+                    int sources = NativeMethods.SHCNF_TYPE | NativeMethods.SHCNF_IDLIST;
+
+                    int events = NativeMethods.SHCNE_DRIVEADD | NativeMethods.SHCNE_DRIVEREMOVED |
+                        NativeMethods.SHCNE_MEDIAINSERTED | NativeMethods.SHCNE_MEDIAREMOVED;
+
+                    // Register for notifications that indicate when volumes have been added or removed
+                    notifyId = NativeMethods.SHChangeNotifyRegister(windowHandle, sources, events, MESSAGE_ID, 1, ref entry);
+
+                    if (notifyId != 0)
+                    {
+                        HwndSource.FromHwnd(windowHandle).AddHook(WndProc);
+                        shutdown = false;
+                    }
+                }
+            }
+
+            if (shutdown)
+                ((App)Application.Current).Shutdown();
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            volumeWatcher!.StopWatching();
+            HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).RemoveHook(WndProc);
+            NativeMethods.SHChangeNotifyDeregister(notifyId);
         }
 
-        private async void VolumeWatcher_VolumeAdded(object? sender, VolumeChangedEventArgs e)
+        /// <summary>
+        /// Invoked when the window receives a message. Reacts to messages that indicate the volumes on the system have
+        /// changed.
+        /// </summary>
+        private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == MESSAGE_ID)
+            {
+                NativeMethods.SHNotifyWParam notif = (NativeMethods.SHNotifyWParam)
+                    Marshal.PtrToStructure(wParam, typeof(NativeMethods.SHNotifyWParam))!;
+
+                int @event = (int)lParam;
+
+                if (@event == NativeMethods.SHCNE_DRIVEADD || @event == NativeMethods.SHCNE_DRIVEREMOVED ||
+                    @event == NativeMethods.SHCNE_MEDIAINSERTED || @event == NativeMethods.SHCNE_MEDIAREMOVED)
+                {
+                    StringBuilder path = new(3);
+
+                    // Get the path of the volume that changed (expecting "X:/")
+                    if (NativeMethods.SHGetPathFromIDListW(notif.dwItem1, path) && path.Length == 3)
+                    {
+                        if (@event == NativeMethods.SHCNE_DRIVEADD || @event == NativeMethods.SHCNE_MEDIAINSERTED)
+                        {
+                            // Invoke events in new thread to allow WndProc to return quickly
+                            // TODO: Don't like this, probably a better way. Getting multiple of same volume added
+                            new Thread(() => { OnVolumeAdded(path.ToString()[0]); }).Start();
+                        }
+                        else if (@event == NativeMethods.SHCNE_DRIVEREMOVED ||
+                            @event == NativeMethods.SHCNE_MEDIAREMOVED)
+                        {
+                            // Invoke events in new thread to allow WndProc to return quickly
+                            new Thread(() => { OnVolumeRemoved(path.ToString()[0]); }).Start();
+                        }
+                    }
+                }
+            }
+
+            handled = false;
+            return IntPtr.Zero;
+        }
+
+        private async void OnVolumeAdded(char volumeLetter)
         {
             // Don't want settings to change in the middle of an ingest
             if (((App)Application.Current).IsSettingsOpen)
@@ -65,14 +138,14 @@ namespace DcimIngester.Windows
             await Application.Current.Dispatcher.Invoke(async () =>
             {
                 IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
-                    .SingleOrDefault(i => i.VolumeLetter == e.VolumeLetter);
+                    .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
 
                 if (item != null)
                     RemoveItem(item);
 
                 try
                 {
-                    IngestWork work = new IngestWork(e.VolumeLetter);
+                    IngestWork work = new(volumeLetter);
 
                     if (await work.DiscoverFilesAsync())
                         AddItem(work);
@@ -85,12 +158,12 @@ namespace DcimIngester.Windows
             });
         }
 
-        private void VolumeWatcher_VolumeRemoved(object? sender, VolumeChangedEventArgs e)
+        private void OnVolumeRemoved(char volumeLetter)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 IngestItem? item = StackPanel1.Children.OfType<IngestItem>().SingleOrDefault(
-                    i => i.VolumeLetter == e.VolumeLetter && i.Status == IngestTaskStatus.Ready);
+                    i => i.VolumeLetter == volumeLetter && i.Status == IngestTaskStatus.Ready);
 
                 if (item != null)
                     RemoveItem(item);
@@ -104,7 +177,7 @@ namespace DcimIngester.Windows
         /// <param name="work">The work to initialise the item with.</param>
         private void AddItem(IngestWork work)
         {
-            IngestItem item = new IngestItem(work);
+            IngestItem item = new(work);
             if (StackPanel1.Children.Count > 0)
                 item.Margin = new Thickness(0, 20, 0, 0);
             item.Dismissed += IngestItem_Dismissed;
