@@ -188,7 +188,7 @@ namespace DcimIngester.Controls
 
         private void ButtonIngestOpen_Click(object sender, RoutedEventArgs e)
         {
-            ProcessStartInfo psi = new ProcessStartInfo(firstIngestDir!)
+            ProcessStartInfo psi = new(firstIngestDir!)
             {
                 Verb = "open",
                 UseShellExecute = true

@@ -25,7 +25,7 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// The paths of the files to ingest from the volume.
         /// </summary>
-        private readonly List<string> filesToIngest = new List<string>();
+        private readonly List<string> filesToIngest = new();
 
         /// <summary>
         /// The paths of the files to ingest from the volume.

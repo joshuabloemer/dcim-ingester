@@ -24,7 +24,7 @@ namespace DcimIngester.Windows
 
         private void ButtonBrowseDest_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog folderDialog = new FolderBrowserDialog();
+            FolderBrowserDialog folderDialog = new();
 
             if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 TextBoxDestination.Text = folderDialog.SelectedPath;

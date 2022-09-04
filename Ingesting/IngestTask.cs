@@ -200,7 +200,7 @@ namespace DcimIngester.Ingesting
         /// <returns>The created or already existing directory.</returns>
         private static string CreateDestination(string path)
         {
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
+            DirectoryInfo dirInfo = new(path);
 
             // No parent means we're at a root, which isn't something that can be created
             if (dirInfo.Parent == null)

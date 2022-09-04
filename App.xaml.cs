@@ -21,30 +21,37 @@ namespace DcimIngester
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            bool shutdown = false;
+
             if (DcimIngester.Properties.Settings.Default.Destination.Length == 0)
             {
                 if (new Settings().ShowDialog() == false)
-                    Shutdown();
+                    shutdown = true;
             }
 
-            TaskbarIcon taskbarIcon = new TaskbarIcon
+            if (!shutdown)
             {
-                ToolTip = "DCIM Ingester",
-                ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
-            };
+                TaskbarIcon taskbarIcon = new()
+                {
+                    ToolTip = "DCIM Ingester",
+                    ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
+                };
 
-            using (Stream stream = GetResourceStream(new Uri(
-                "pack://application:,,,/DcimIngester;component/Icon.ico")).Stream)
-            {
-                taskbarIcon.Icon = new Icon(stream);
+                using (Stream stream = GetResourceStream(new Uri(
+                    "pack://application:,,,/DcimIngester;component/Icon.ico")).Stream)
+                {
+                    taskbarIcon.Icon = new Icon(stream);
+                }
+
+                taskbarIcon.Visibility = Visibility.Visible;
+
+                mainWindow = new MainWindow();
+
+                // Need to show the window to get the Loaded event to trigger
+                mainWindow.Show();
+                mainWindow.Hide();
             }
-
-            taskbarIcon.Visibility = Visibility.Visible;
-            mainWindow = new MainWindow();
-
-            // Need to show the window to get the Loaded event to trigger
-            mainWindow.Show();
-            mainWindow.Hide();
+            else Shutdown();
         }
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
@@ -58,7 +65,7 @@ namespace DcimIngester
             else
             {
                 IsSettingsOpen = true;
-                Settings settings = new Settings();
+                Settings settings = new();
                 settings.Closed += delegate { IsSettingsOpen = false; };
                 settings.ShowDialog();
             }

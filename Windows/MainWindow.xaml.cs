@@ -52,8 +52,10 @@ namespace DcimIngester.Windows
             // TODO: This works, but should be SetWindowLongPtr intead
             if (NativeMethods.SetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle) != 0)
             {
-                NativeMethods.SHChangeNotifyEntry entry = new();
-                entry.fRecursive = false;
+                NativeMethods.SHChangeNotifyEntry entry = new()
+                {
+                    fRecursive = false
+                };
 
                 if (NativeMethods.SHGetKnownFolderIDList(NativeMethods.FOLDERID_DESKTOP, 0, IntPtr.Zero, out entry.pIdl) == 0)
                 {
@@ -67,7 +69,7 @@ namespace DcimIngester.Windows
                     // Register for notifications that indicate when volumes have been added or removed
                     notifyId = NativeMethods.SHChangeNotifyRegister(windowHandle, sources, events, MESSAGE_ID, 1, ref entry);
 
-                    if (notifyId != 0)
+                    if (notifyId > 0)
                     {
                         HwndSource.FromHwnd(windowHandle).AddHook(WndProc);
                         shutdown = false;
@@ -81,8 +83,11 @@ namespace DcimIngester.Windows
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).RemoveHook(WndProc);
-            NativeMethods.SHChangeNotifyDeregister(notifyId);
+            if (notifyId > 0)
+            {
+                HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).RemoveHook(WndProc);
+                NativeMethods.SHChangeNotifyDeregister(notifyId);
+            }
         }
 
         /// <summary>
