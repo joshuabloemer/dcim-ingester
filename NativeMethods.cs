@@ -32,9 +32,8 @@ namespace DcimIngester
             public bool fRecursive;
         }
 
-        // Does not refer to an existing Win32 structure
         [StructLayout(LayoutKind.Sequential)]
-        public struct SHNotifyWParam
+        public struct SHNotifyStruct
         {
             public IntPtr dwItem1;
             public IntPtr dwItem2;
@@ -50,9 +49,9 @@ namespace DcimIngester
 
 
         [DllImport("shell32.dll")]
-        public static extern int SHGetSpecialFolderLocation(IntPtr hWnd, int csidl, out IntPtr pPidl);
+        public static extern int SHGetKnownFolderIDList([MarshalAs(UnmanagedType.LPStruct)] Guid rFid, uint dwFlags, IntPtr hToken, out IntPtr pPidl);
 
-        public static int CSIDL_DESKTOP = 0x0000;
+        public static Guid FOLDERID_DESKTOP = new("B4BFCC3A-DB2C-424C-B029-7FE99A87C641");
 
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         [return: MarshalAs(UnmanagedType.Bool)]

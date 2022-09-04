@@ -55,11 +55,10 @@ namespace DcimIngester.Windows
                 NativeMethods.SHChangeNotifyEntry entry = new();
                 entry.fRecursive = false;
 
-                // TODO: Need to use SHGetFolderLocation instead, which is also deprecated
-                if (NativeMethods.SHGetSpecialFolderLocation(windowHandle, NativeMethods.CSIDL_DESKTOP, out entry.pIdl) == 0)
+                if (NativeMethods.SHGetKnownFolderIDList(NativeMethods.FOLDERID_DESKTOP, 0, IntPtr.Zero, out entry.pIdl) == 0)
                 {
                     // TODO: Should be SHCNRF according to docs but for some reason none of those values work
-                    // These values are from an example and I have no idea what they do or mean
+                    // These values are from examples and I have no idea what they mean or do in this scenario
                     int sources = NativeMethods.SHCNF_TYPE | NativeMethods.SHCNF_IDLIST;
 
                     int events = NativeMethods.SHCNE_DRIVEADD | NativeMethods.SHCNE_DRIVEREMOVED |
@@ -94,8 +93,8 @@ namespace DcimIngester.Windows
         {
             if (msg == MESSAGE_ID)
             {
-                NativeMethods.SHNotifyWParam notif = (NativeMethods.SHNotifyWParam)
-                    Marshal.PtrToStructure(wParam, typeof(NativeMethods.SHNotifyWParam))!;
+                NativeMethods.SHNotifyStruct notif = (NativeMethods.SHNotifyStruct)
+                    Marshal.PtrToStructure(wParam, typeof(NativeMethods.SHNotifyStruct))!;
 
                 int @event = (int)lParam;
 
