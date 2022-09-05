@@ -9,7 +9,7 @@ block<BlockNode>
   / INDENTATION line:rule { new BlockNode(line) }
 
 rule<RuleNode> 
-  = (c:condition _ '"' p:path '"' EOL r:rule) {new RuleNode(c,p,r,new EmptyNode())}
+  = (c:condition _ '"' p:path '"' EOL INDENTATION r:rule) {new RuleNode(c,p,r,new EmptyNode())}
   / (c:condition _ '"' p:path '"' EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 
   / (c:condition _ '"' p:path '"') {new RuleNode(c,p,new EmptyNode(),new EmptyNode())}
 
@@ -27,7 +27,7 @@ conditionString<StringNode> = s:("" [^\\/:*?"<>|.]+) {new StringNode(s)}
 
 stringInterpolation<SyntaxNode> = "{" c:conditionType "}" {c} 
 
-path<PathNode> 
+path<PathNode>
   = head:pathComponent tail:path {new PathNode(head).Concat(tail)}
   / part:pathComponent {new PathNode(part)}
 

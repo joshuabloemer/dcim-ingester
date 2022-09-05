@@ -27,7 +27,7 @@ namespace DcimIngester.Rules {
 
         public object Evaluate(SyntaxNode node) {
             switch(node) {
-                case ProgramNode p: return program(p);
+                case ProgramNode p: return Evaluate(p.Block);
                 case StringNode n: return n.Value;
                 case BlockNode b: return block(b);
                 case PathNode p: return path(p);
@@ -84,11 +84,6 @@ namespace DcimIngester.Rules {
             return "null";
         }
 
-        private object program(ProgramNode p)
-        {
-            return Evaluate(p.Block);
-        }
-
         private object greaterOrEqual(GreaterOrEqualNode g)
         {
             return (decimal?)Evaluate(g.l) >= (decimal?)Evaluate(g.r);
@@ -128,9 +123,9 @@ namespace DcimIngester.Rules {
                 if (indent is not null){
                     result += Evaluate(indent);
                 }
-                else if (r.Under is not EmptyNode){
-                    result += Evaluate(r.Under);
-                }
+            }
+            else if (r.Under is not EmptyNode){
+                result += Evaluate(r.Under);
             }
             return result;
         }

@@ -1,1 +1,12 @@
-any "{Exif SubIFD;Focal Length}/test/{Exif SubIFD;File Source}/{extension}/{year}"
+extension="MP4" "/Videos/SD Card Dump/{year}/{month}/{day}"
+
+path contains "PANORAMA" "Photos/SD Card Dump/Panorama/{year}/{month}/{day}"
+    extension="html" "html"
+
+    extension="JPG" "test"
+    extension="DNG" "test"
+        any "PANORAMA/{path[-2]}"
+
+extension="DNG" "test"
+extension="JPG" "test"
+    any "Photos/SD Card Dump/RAW/{year}/{month}/{day}"

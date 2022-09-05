@@ -12,8 +12,8 @@ namespace DcimIngester.Rules
             var source = File.ReadAllText("Rules/rules");
             var parser = new Parser();
             var syntax = parser.Parse(source);
-            // var evaluator = new Evaluator("D:/Downloads/Neuer Ordner/Neuer Ordner/DSC_0063.NEF");
-            var evaluator = new Evaluator("D:/Videos/SD Card Dump/2022/08/20/DJI_0123.MP4");
+            var evaluator = new Evaluator("D:/Photos/SD Card Dump/Panorama/2022/08/23/PANORAMA/100_0162/DJI_0001.DNG");
+            // var evaluator = new Evaluator("D:/Videos/SD Card Dump/2022/08/20/DJI_0123.MP4");
             foreach (KeyValuePair<String,Dictionary<String,String>> entry in evaluator.Metadata){
                 foreach(KeyValuePair<string, string> subEntry in entry.Value)
                     {
