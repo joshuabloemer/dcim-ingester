@@ -39,6 +39,7 @@ namespace DcimIngester.Rules {
                 case GreaterThanNode g: return greater(g);
                 case LessOrEqualNode l: return lesseOrEqual(l);
                 case GreaterOrEqualNode g: return greaterOrEqual(g);
+                case ContainsNode c: return containsNode(c);
                 case MetadataNode m: return metadataNode(m);
                 case ExtensionNode: return Path.GetExtension(this.FilePath).Remove(0,1);
                 case YearNode: return this.DateTaken.Year;
@@ -52,6 +53,22 @@ namespace DcimIngester.Rules {
                 case PathNameNode: return this.FilePath;
             }
             throw(new Exception($"Unknown node type {node.GetType()}"));
+        }
+
+        private object containsNode(ContainsNode c)
+        {
+            string lhs = (string)Evaluate(c.l);
+            string rhs = (string)Evaluate(c.r);
+            return lhs.Contains(rhs);
+        }
+
+        private object pathPartNode(PathPartNode p)
+        {
+            string[] pathParts = this.FilePath.Split("/");
+            if (p.Part >= 0)
+                return pathParts[p.Part];
+            else  
+                return pathParts[^Math.Abs(p.Part)];
         }
 
         private object metadataNode(MetadataNode m)
