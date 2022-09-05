@@ -45,6 +45,9 @@ conditionType<SyntaxNode>
     / "hour"  {new HourNode()}
     / "minute"  {new MinuteNode()}
     / "second"  {new SecondNode()}
+    / "file name" {new FileNameNode()}
+    / "path[" p:("" [0-9\-]+) "]" {new PathPartNode(int.Parse(p))}
+    / "path" {new PathNameNode()}
     / d:("" [^;]+) ";" t:("" [^=}]+) {new MetadataNode(d,t)}
 
 _ = [\t ]+

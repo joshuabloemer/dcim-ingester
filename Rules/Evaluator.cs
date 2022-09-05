@@ -47,6 +47,9 @@ namespace DcimIngester.Rules {
                 case HourNode: return this.DateTaken.Hour;
                 case MinuteNode: return this.DateTaken.Minute;
                 case SecondNode: return this.DateTaken.Second;
+                case PathPartNode p: return pathPartNode(p);
+                case FileNameNode: return Path.GetFileName(this.FilePath);
+                case PathNameNode: return this.FilePath;
             }
             throw(new Exception($"Unknown node type {node.GetType()}"));
         }
