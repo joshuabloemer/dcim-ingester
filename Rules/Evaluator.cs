@@ -51,6 +51,7 @@ namespace DcimIngester.Rules {
                 case PathPartNode p: return pathPartNode(p);
                 case FileNameNode: return Path.GetFileName(this.FilePath);
                 case PathNameNode: return this.FilePath;
+                case EmptyNode: return null;
             }
             throw(new Exception($"Unknown node type {node.GetType()}"));
         }
