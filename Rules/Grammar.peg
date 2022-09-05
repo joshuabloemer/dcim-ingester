@@ -39,7 +39,12 @@ pathString<StringNode> = s:("" [^\\:*?"<>|}{]+) {new StringNode(s)}
 
 conditionType<SyntaxNode>
     = "extension" {new ExtensionNode()}
-    / "camera"  {new CameraNode()}
+    / "year"  {new YearNode()}
+    / "month"  {new MonthNode()}
+    / "day"  {new DayNode()}
+    / "hour"  {new HourNode()}
+    / "minute"  {new MinuteNode()}
+    / "second"  {new SecondNode()}
     / d:("" [^;]+) ";" t:("" [^=}]+) {new MetadataNode(d,t)}
 
 _ = [\t ]+

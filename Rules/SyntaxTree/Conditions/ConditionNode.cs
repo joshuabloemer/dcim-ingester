@@ -6,8 +6,4 @@ public abstract class ConditionNode : SyntaxNode{
         this.l = l;
         this.r= r;
     }
-    public override string ToString()
-    {
-        return base.ToString() + " " + this.l.ToString() + this.r.ToString() ;
-    }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MetadataExtractor;
 using System.IO;
+using static DcimIngester.Utilities;
 
 namespace DcimIngester.Rules {
     class Evaluator {
@@ -9,8 +10,12 @@ namespace DcimIngester.Rules {
         
         public Dictionary<String,Dictionary<String,String>> Metadata {get;} = new Dictionary<String,Dictionary<String,String>>();
         
+        public DateTime DateTaken {get;}
+        
         public Evaluator(string filePath){
             this.FilePath = filePath;
+            this.DateTaken = GetDateTaken(filePath);
+
             IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(filePath);
             foreach (var directory in directories){
                 Metadata[directory.Name] = new Dictionary<String, String>();
@@ -35,8 +40,13 @@ namespace DcimIngester.Rules {
                 case LessOrEqualNode l: return lesseOrEqual(l);
                 case GreaterOrEqualNode g: return greaterOrEqual(g);
                 case MetadataNode m: return metadataNode(m);
-                case ExtensionNode : return Path.GetExtension(this.FilePath).Remove(0,1);
-
+                case ExtensionNode: return Path.GetExtension(this.FilePath).Remove(0,1);
+                case YearNode: return this.DateTaken.Year;
+                case MonthNode: return this.DateTaken.Month;
+                case DayNode: return this.DateTaken.Day;
+                case HourNode: return this.DateTaken.Hour;
+                case MinuteNode: return this.DateTaken.Minute;
+                case SecondNode: return this.DateTaken.Second;
             }
             throw(new Exception($"Unknown node type {node.GetType()}"));
         }
@@ -51,7 +61,7 @@ namespace DcimIngester.Rules {
                     return tag;
                 }
             }
-            return null;
+            return "null";
         }
 
         private object program(ProgramNode p)
@@ -61,27 +71,27 @@ namespace DcimIngester.Rules {
 
         private object greaterOrEqual(GreaterOrEqualNode g)
         {
-            return (decimal)Evaluate(g.l) >= (decimal)Evaluate(g.r);
+            return (decimal?)Evaluate(g.l) >= (decimal?)Evaluate(g.r);
         }
 
         private object lesseOrEqual(LessOrEqualNode l)
         {
-            return (decimal)Evaluate(l.l) <= (decimal)Evaluate(l.r);
+            return (decimal?)Evaluate(l.l) <= (decimal?)Evaluate(l.r);
         }
 
         private object greater(GreaterThanNode g)
         {
-            return (decimal)Evaluate(g.l) > (decimal)Evaluate(g.r);
+            return (decimal?)Evaluate(g.l) > (decimal?)Evaluate(g.r);
         }
 
         private object less(LessThanNode l)
         {
-            return (decimal)Evaluate(l.l) < (decimal)Evaluate(l.r);
+            return (decimal?)Evaluate(l.l) < (decimal?)Evaluate(l.r);
         }
 
         private object not(NotNode n)
         {
-            return Evaluate(n.l) != Evaluate(n.r);
+            return (string)Evaluate(n.l) != (string)Evaluate(n.r);
         }
 
         private object equals(EqualsNode e)
