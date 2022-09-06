@@ -31,7 +31,7 @@ namespace DcimIngester.Windows
         private BlockingCollection<(char, bool)> volumeNotifQueue = new();
 
         /// <summary>
-        /// Thread for processing received volume change notifications.
+        /// Thread for handling received volume change notifications.
         /// </summary>
         private Thread? volumeNotifThread = null;
 
@@ -151,7 +151,7 @@ namespace DcimIngester.Windows
         }
 
         /// <summary>
-        /// Processes queued volume addition and removal notifications. Runs in a separate thread.
+        /// Handles queued volume addition and removal notifications. Runs in a separate thread.
         /// </summary>
         private void VolumeNotifThread()
         {
@@ -167,7 +167,7 @@ namespace DcimIngester.Windows
         }
 
         /// <summary>
-        /// Invoked when a volume addition notification is processed.
+        /// Invoked when a volume addition notification is handled.
         /// </summary>
         /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeAdded(char volumeLetter)
@@ -216,7 +216,7 @@ namespace DcimIngester.Windows
         }
 
         /// <summary>
-        /// Invoked when a volume removal notification is processed.
+        /// Invoked when a volume removal notification is handled.
         /// </summary>
         /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeRemoved(char volumeLetter)
@@ -250,8 +250,10 @@ namespace DcimIngester.Windows
 
         private void IngestItem_Dismissed(object? sender, EventArgs e)
         {
-            // Is there a race condition if this happens while remove notification is doing same thing?
-            RemoveItem((IngestItem)sender!);
+            // Need to check because it may be possible for a volume removal notification to remove the
+            // item being dismissed between the dismiss button being clicked and this code executing
+            if (StackPanel1.Children.Contains((IngestItem)sender!))
+                RemoveItem((IngestItem)sender!);
         }
     }
 }
