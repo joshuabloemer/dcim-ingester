@@ -5,7 +5,7 @@ program<ProgramNode>
  = #{ state["Indentation"] = 0; } b:block {new ProgramNode(b)} 
 
 block<BlockNode>
-  = INDENTATION head:rule EOL<2> tail:block { new BlockNode(head).Concat(tail)}
+  = INDENTATION head:rule EOL _? EOL tail:block { new BlockNode(head).Concat(tail)}
   / INDENTATION line:rule { new BlockNode(line) }
 
 rule<RuleNode> 

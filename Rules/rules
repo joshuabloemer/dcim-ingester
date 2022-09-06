@@ -2,11 +2,11 @@ extension="MP4" "/Videos/SD Card Dump/{year}/{month}/{day}"
 
 path contains "PANORAMA" "Photos/SD Card Dump/Panorama/{year}/{month}/{day}"
     extension="html" "html"
-
+ 
     extension="JPG"
     extension="DNG"
         any "PANORAMA/{path[-2]}"
-
+    
 extension="DNG"
 extension="JPG"
     any "Photos/SD Card Dump/RAW/{year}/{month}/{day}"
