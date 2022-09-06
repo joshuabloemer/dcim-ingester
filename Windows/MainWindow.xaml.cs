@@ -1,6 +1,8 @@
 ﻿using DcimIngester.Controls;
 using DcimIngester.Ingesting;
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -23,7 +25,24 @@ namespace DcimIngester.Windows
         private const uint MESSAGE_ID = 0x0401;
 
         /// <summary>
-        /// The number of ingests that are currently being dealt with.
+        /// Stores received volume change notifications. Items contain volume letter and <see langword="true"/> if 
+        /// volume was removed.
+        /// </summary>
+        private BlockingCollection<(char, bool)> volumeNotifQueue = new();
+
+        /// <summary>
+        /// Thread for processing received volume change notifications.
+        /// </summary>
+        private Thread? volumeNotifThread = null;
+
+        /// <summary>
+        /// Used to cancel the blocking TryTake call used to wait for items in <see cref="volumeNotifQueue"/>.
+        /// </summary>
+        private readonly CancellationTokenSource queueTakeCancel = new();
+
+        /// <summary>
+        /// The number of ingests currently being dealt with. This increments when a volume change notification is
+        /// received.
         /// </summary>
         public int IngestsInWork => _IngestsInWork;
 
@@ -71,6 +90,9 @@ namespace DcimIngester.Windows
 
                     if (notifyId > 0)
                     {
+                        volumeNotifThread = new Thread(VolumeNotifThread);
+                        volumeNotifThread.Start();
+
                         HwndSource.FromHwnd(windowHandle).AddHook(WndProc);
                         shutdown = false;
                     }
@@ -86,18 +108,21 @@ namespace DcimIngester.Windows
             if (notifyId > 0)
             {
                 HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).RemoveHook(WndProc);
+                queueTakeCancel.Cancel();
                 NativeMethods.SHChangeNotifyDeregister(notifyId);
             }
         }
 
         /// <summary>
-        /// Invoked when the window receives a message. Reacts to messages that indicate the volumes on the system have
-        /// changed.
+        /// Invoked when the window receives a message. Reacts to messages that indicate that the volumes on the system
+        /// have changed.
         /// </summary>
         private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             if (msg == MESSAGE_ID)
             {
+                Interlocked.Increment(ref _IngestsInWork);
+
                 NativeMethods.SHNotifyStruct notif = (NativeMethods.SHNotifyStruct)
                     Marshal.PtrToStructure(wParam, typeof(NativeMethods.SHNotifyStruct))!;
 
@@ -112,60 +137,93 @@ namespace DcimIngester.Windows
                     if (NativeMethods.SHGetPathFromIDListW(notif.dwItem1, path) && path.Length == 3)
                     {
                         if (@event == NativeMethods.SHCNE_DRIVEADD || @event == NativeMethods.SHCNE_MEDIAINSERTED)
-                        {
-                            // Invoke events in new thread to allow WndProc to return quickly
-                            // TODO: Don't like this, probably a better way. Getting multiple of same volume added
-                            new Thread(() => { OnVolumeAdded(path.ToString()[0]); }).Start();
-                        }
-                        else if (@event == NativeMethods.SHCNE_DRIVEREMOVED ||
-                            @event == NativeMethods.SHCNE_MEDIAREMOVED)
-                        {
-                            // Invoke events in new thread to allow WndProc to return quickly
-                            new Thread(() => { OnVolumeRemoved(path.ToString()[0]); }).Start();
-                        }
+                            volumeNotifQueue.Add((path.ToString()[0], false));
+                        else if (@event == NativeMethods.SHCNE_DRIVEREMOVED || @event == NativeMethods.SHCNE_MEDIAREMOVED)
+                            volumeNotifQueue.Add((path.ToString()[0], true));
                     }
+                    else Interlocked.Decrement(ref _IngestsInWork);
                 }
+                else Interlocked.Decrement(ref _IngestsInWork);
             }
 
             handled = false;
             return IntPtr.Zero;
         }
 
-        private async void OnVolumeAdded(char volumeLetter)
+        /// <summary>
+        /// Processes queued volume addition and removal notifications. Runs in a separate thread.
+        /// </summary>
+        private void VolumeNotifThread()
+        {
+            // char is volume letter, bool is true if volume was removed
+            (char, bool) notification;
+
+            while (volumeNotifQueue.TryTake(out notification, Timeout.Infinite, queueTakeCancel.Token))
+            {
+                if (notification.Item2)
+                    OnVolumeRemoved(notification.Item1);
+                else OnVolumeAdded(notification.Item1);
+            }
+        }
+
+        /// <summary>
+        /// Invoked when a volume addition notification is processed.
+        /// </summary>
+        /// <param name="volumeLetter">The letter of the volume.</param>
+        private void OnVolumeAdded(char volumeLetter)
         {
             // Don't want settings to change in the middle of an ingest
-            if (((App)Application.Current).IsSettingsOpen)
-                return;
-
-            Interlocked.Increment(ref _IngestsInWork);
-
-            await Application.Current.Dispatcher.Invoke(async () =>
+            if (!((App)Application.Current).IsSettingsOpen)
             {
-                IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
-                    .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
+                        .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
 
-                if (item != null)
-                    RemoveItem(item);
+                    // Not cancelling first because it should have failed if in progress
+                    if (item != null)
+                        RemoveItem(item);
+                });
 
                 try
                 {
                     IngestWork work = new(volumeLetter);
 
-                    if (await work.DiscoverFilesAsync())
-                        AddItem(work);
+                    if (work.DiscoverFiles())
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            IngestItem item = new(work);
+                            if (StackPanel1.Children.Count > 0)
+                                item.Margin = new Thickness(0, 20, 0, 0);
+                            item.Dismissed += IngestItem_Dismissed;
+
+                            StackPanel1.Children.Add(item);
+
+                            Left = SystemParameters.WorkArea.Right - Width - 20;
+                            Top = SystemParameters.WorkArea.Bottom - Height - 20;
+                            Show();
+                        });
+                    }
                     else Interlocked.Decrement(ref _IngestsInWork);
                 }
                 catch
                 {
                     Interlocked.Decrement(ref _IngestsInWork);
                 }
-            });
+            }
+            else Interlocked.Decrement(ref _IngestsInWork);
         }
 
+        /// <summary>
+        /// Invoked when a volume removal notification is processed.
+        /// </summary>
+        /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeRemoved(char volumeLetter)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                // Only remove items that have not been started
                 IngestItem? item = StackPanel1.Children.OfType<IngestItem>().SingleOrDefault(
                     i => i.VolumeLetter == volumeLetter && i.Status == IngestTaskStatus.Ready);
 
@@ -175,33 +233,13 @@ namespace DcimIngester.Windows
         }
 
         /// <summary>
-        /// Creates an <see cref="IngestItem"/> from an <see cref="IngestWork"/>, displays it, and shows the window if
-        /// necessary.
-        /// </summary>
-        /// <param name="work">The work to initialise the item with.</param>
-        private void AddItem(IngestWork work)
-        {
-            IngestItem item = new(work);
-            if (StackPanel1.Children.Count > 0)
-                item.Margin = new Thickness(0, 20, 0, 0);
-            item.Dismissed += IngestItem_Dismissed;
-
-            StackPanel1.Children.Add(item);
-
-            Left = SystemParameters.WorkArea.Right - Width - 20;
-            Top = SystemParameters.WorkArea.Bottom - Height - 20;
-            Show();
-        }
-
-        /// <summary>
-        /// Removes an <see cref="IngestItem"/>, hides the window if necessary and decrements
-        /// <see cref="_IngestsInWork"/>.
+        /// Removes an <see cref="IngestItem"/> from the UI and hides the window if no items are left.
         /// </summary>
         /// <param name="item">The item to remove.</param>
         private void RemoveItem(IngestItem item)
         {
-            Interlocked.Decrement(ref _IngestsInWork);
             StackPanel1.Children.Remove(item);
+            Interlocked.Decrement(ref _IngestsInWork);
 
             Left = SystemParameters.WorkArea.Right - Width - 20;
             Top = SystemParameters.WorkArea.Bottom - Height - 20;
@@ -212,7 +250,8 @@ namespace DcimIngester.Windows
 
         private void IngestItem_Dismissed(object? sender, EventArgs e)
         {
-            RemoveItem((sender as IngestItem)!);
+            // Is there a race condition if this happens while remove notification is doing same thing?
+            RemoveItem((IngestItem)sender!);
         }
     }
 }

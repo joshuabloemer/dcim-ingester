@@ -45,6 +45,7 @@ namespace DcimIngester.Ingesting
         /// </summary>
         private bool isDiscovering = false;
 
+
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestWork"/> class.
         /// </summary>
@@ -66,53 +67,49 @@ namespace DcimIngester.Ingesting
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if file discovery is already in progress.</exception>
         /// <returns><see langword="true"/> if any files were found, otherwise <see langword="false"/>.</returns>
-        public Task<bool> DiscoverFilesAsync()
+        public bool DiscoverFiles()
         {
-            return Task.Run(() =>
+            if (isDiscovering)
             {
-                if (isDiscovering)
+                throw new InvalidOperationException(
+                    "Cannot execute file discovery because it is already in progress.");
+            }
+
+            try
+            {
+                isDiscovering = true;
+                filesToIngest.Clear();
+
+                if (!DirectoryExists(Path.Combine(VolumeLetter + ":", "DCIM")))
+                    return false;
+
+                string[] directories = Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"));
+
+                foreach (string directory in directories)
                 {
-                    throw new InvalidOperationException(
-                        "Cannot execute file discovery because it is already in progress.");
-                }
-
-                try
-                {
-                    isDiscovering = true;
-                    filesToIngest.Clear();
-
-                    if (!DirectoryExists(Path.Combine(VolumeLetter + ":", "DCIM")))
-                        return false;
-
-                    string[] directories =
-                        Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"));
-
-                    foreach (string directory in directories)
+                    // Ignore directory names not conforming to DCF spec to avoid non-image directories
+                    if (Regex.IsMatch(Path.GetFileName(directory),
+                        "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9A-Z]{5}$"))
                     {
-                        // Ignore directory names not conforming to DCF spec to avoid non-image directories
-                        if (Regex.IsMatch(Path.GetFileName(directory),
-                            "^([1-8][0-9]{2}|9[0-8][0-9]|99[0-9])[0-9A-Z]{5}$"))
+                        foreach (string file in Directory.GetFiles(directory))
                         {
-                            foreach (string file in Directory.GetFiles(directory))
-                            {
-                                filesToIngest.Add(file);
-                                TotalIngestSize += new FileInfo(file).Length;
-                            }
+                            filesToIngest.Add(file);
+                            TotalIngestSize += new FileInfo(file).Length;
                         }
                     }
-
-                    isDiscovering = false;
-                    return filesToIngest.Count > 0;
                 }
-                catch
-                {
-                    filesToIngest.Clear();
-                    TotalIngestSize = 0;
-                    isDiscovering = false;
 
-                    throw;
-                }
-            });
+                isDiscovering = false;
+                return filesToIngest.Count > 0;
+            }
+            catch
+            {
+                filesToIngest.Clear();
+                TotalIngestSize = 0;
+                isDiscovering = false;
+
+                throw;
+            }
         }
     }
 }

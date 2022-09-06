@@ -43,6 +43,7 @@ namespace DcimIngester.Ingesting
         /// </summary>
         public event EventHandler<PostFileIngestedEventArgs>? PostFileIngested;
 
+
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestTask"/> class.
         /// </summary>
@@ -86,8 +87,7 @@ namespace DcimIngester.Ingesting
 
                         lastIngested++;
 
-                        PostFileIngested?.Invoke(this,
-                            new PostFileIngestedEventArgs(newPath, i, unsorted, renamed));
+                        PostFileIngested?.Invoke(this, new PostFileIngestedEventArgs(newPath, i, unsorted, renamed));
 
                         // Only abort if the file we just ingested was not the final file
                         if (shouldAbort && i < Work.FilesToIngest.Count - 1)
@@ -119,10 +119,7 @@ namespace DcimIngester.Ingesting
         public void AbortIngest()
         {
             if (Status != IngestTaskStatus.Ingesting)
-            {
-                throw new InvalidOperationException(
-                    "Cannot abort an ingest that isn't actively ingesting.");
-            }
+                throw new InvalidOperationException("Cannot abort an ingest that isn't actively ingesting.");
             else shouldAbort = true;
         }
 

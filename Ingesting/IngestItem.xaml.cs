@@ -53,6 +53,7 @@ namespace DcimIngester.Controls
         /// </summary>
         public event EventHandler? Dismissed;
 
+
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestItem"/> class.
         /// </summary>
