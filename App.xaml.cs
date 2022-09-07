@@ -12,6 +12,7 @@ namespace DcimIngester
 {
     public partial class App : Application
     {
+        private TaskbarIcon? taskbarIcon = null;
         private MainWindow? mainWindow = null;
 
         private void Application_Startup(object sender, StartupEventArgs e)
@@ -26,7 +27,7 @@ namespace DcimIngester
 
             if (!shutdown)
             {
-                TaskbarIcon taskbarIcon = new()
+                taskbarIcon = new()
                 {
                     ToolTip = "DCIM Ingester",
                     ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
@@ -69,13 +70,19 @@ namespace DcimIngester
 
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.ActiveIngestCount > 0)
+            if (mainWindow!.ActiveIngestCount == 0)
+            {
+                // Icon stays visible after shutdown (until hovered over) without this
+                taskbarIcon!.Visibility = Visibility.Collapsed;
+
+                Shutdown();
+            }
+            else
             {
                 MessageBox.Show("Wait for ingests to finish before exiting.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
                     MessageBoxOptions.DefaultDesktopOnly);
             }
-            else Shutdown();
         }
     }
 }
