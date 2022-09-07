@@ -13,8 +13,8 @@ namespace DcimIngester.Windows
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            TextBoxDestination.Text = Properties.Settings.Default.Destination;
-            ComboBoxSubfolders.SelectedIndex = Properties.Settings.Default.Subfolders;
+            TextBoxDestination.Text = Properties.Settings.Default.DestDirectory;
+            ComboBoxSubfolders.SelectedIndex = Properties.Settings.Default.DestStructure;
         }
 
         private void TextBoxDestination_TextChanged(object sender, TextChangedEventArgs e)
@@ -38,8 +38,8 @@ namespace DcimIngester.Windows
         private void ValidateFields()
         {
             if ((TextBoxDestination.Text.Length > 0 &&
-                TextBoxDestination.Text != Properties.Settings.Default.Destination) ||
-                ComboBoxSubfolders.SelectedIndex != Properties.Settings.Default.Subfolders)
+                TextBoxDestination.Text != Properties.Settings.Default.DestDirectory) ||
+                ComboBoxSubfolders.SelectedIndex != Properties.Settings.Default.DestStructure)
             {
                 ButtonSave.IsEnabled = true;
             }
@@ -48,8 +48,8 @@ namespace DcimIngester.Windows
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.Destination = TextBoxDestination.Text;
-            Properties.Settings.Default.Subfolders = ComboBoxSubfolders.SelectedIndex;
+            Properties.Settings.Default.DestDirectory = TextBoxDestination.Text;
+            Properties.Settings.Default.DestStructure = ComboBoxSubfolders.SelectedIndex;
             Properties.Settings.Default.Save();
 
             DialogResult = true;

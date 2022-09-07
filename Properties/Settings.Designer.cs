@@ -12,7 +12,7 @@ namespace DcimIngester.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.3.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,36 +26,36 @@ namespace DcimIngester.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Destination {
+        public string DestDirectory {
             get {
-                return ((string)(this["Destination"]));
+                return ((string)(this["DestDirectory"]));
             }
             set {
-                this["Destination"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShouldDeleteAfter {
-            get {
-                return ((bool)(this["ShouldDeleteAfter"]));
-            }
-            set {
-                this["ShouldDeleteAfter"] = value;
+                this["DestDirectory"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int Subfolders {
+        public int DestStructure {
             get {
-                return ((int)(this["Subfolders"]));
+                return ((int)(this["DestStructure"]));
             }
             set {
-                this["Subfolders"] = value;
+                this["DestStructure"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DeleteAfterIngest {
+            get {
+                return ((bool)(this["DeleteAfterIngest"]));
+            }
+            set {
+                this["DeleteAfterIngest"] = value;
             }
         }
     }

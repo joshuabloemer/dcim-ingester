@@ -14,16 +14,11 @@ namespace DcimIngester
     {
         private MainWindow? mainWindow = null;
 
-        /// <summary>
-        /// Indicates whether the Settings window is currently open.
-        /// </summary>
-        public bool IsSettingsOpen { get; private set; } = false;
-
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             bool shutdown = false;
 
-            if (DcimIngester.Properties.Settings.Default.Destination.Length == 0)
+            if (DcimIngester.Properties.Settings.Default.DestDirectory.Length == 0)
             {
                 if (new Settings().ShowDialog() == false)
                     shutdown = true;
@@ -56,19 +51,7 @@ namespace DcimIngester
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.IngestsInWork > 0)
-            {
-                MessageBox.Show("Dismiss all ingests before opening Settings.", "DCIM Ingester",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
-                    MessageBoxOptions.DefaultDesktopOnly);
-            }
-            else
-            {
-                IsSettingsOpen = true;
-                Settings settings = new();
-                settings.Closed += delegate { IsSettingsOpen = false; };
-                settings.ShowDialog();
-            }
+            new Settings().ShowDialog();
         }
 
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
@@ -86,9 +69,9 @@ namespace DcimIngester
 
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.IngestsInWork > 0)
+            if (mainWindow!.ActiveIngestCount > 0)
             {
-                MessageBox.Show("Dismiss all ingests before exiting.", "DCIM Ingester",
+                MessageBox.Show("Wait for ingests to finish before exiting.", "DCIM Ingester",
                     MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
                     MessageBoxOptions.DefaultDesktopOnly);
             }

@@ -35,3 +35,4 @@ A simple system tray application that ingests images from SD cards and sorts the
 - 2.3 (Xxx XX, 2022)
 	- Reimplemented volume detection usin SHChangeNotifyRegister. This fixes an issue where an SD card inserted into a connected card reader would not be detected.
 	- Fixed an issue where cancelling the Settings window without having an ingest destination set (e.g. on first run) would throw an exception.
+	- Ingests can now happen if Settings is open, and Settings can now be opened if an ingest is in progress.

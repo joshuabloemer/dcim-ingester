@@ -14,14 +14,30 @@ namespace DcimIngester.Ingesting
     public class IngestTask
     {
         /// <summary>
-        /// The work to do when the ingest is executed.
+        /// Gets the work to do when the ingest is executed.
         /// </summary>
         public readonly IngestWork Work;
 
         /// <summary>
-        /// The status of the ingest.
+        /// Gets the status of the ingest.
         /// </summary>
         public IngestTaskStatus Status { get; private set; } = IngestTaskStatus.Ready;
+
+        /// <summary>
+        /// Gets or sets the base directory to ingest files into.
+        /// </summary>
+        public string DestinationDirectory { get; set; }
+            = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
+        /// <summary>
+        /// Gets or sets the destination subfolder structure to ingest files into.
+        /// </summary>
+        public DestStructure DestinationStructure { get; set; } = DestStructure.Year_Month_Day;
+
+        /// <summary>
+        /// Gets or sets whether original files should be deleted after they has been successfully ingested.
+        /// </summary>
+        public bool DeleteAfterIngest { get; set; } = false;
 
         /// <summary>
         /// The index of the current or next file to be ingested.
@@ -82,7 +98,7 @@ namespace DcimIngester.Ingesting
 
                         IngestFile(path, out string newPath, out bool unsorted, out bool renamed);
 
-                        if (Properties.Settings.Default.ShouldDeleteAfter)
+                        if (DeleteAfterIngest)
                             File.Delete(path);
 
                         lastIngested++;
@@ -131,29 +147,34 @@ namespace DcimIngester.Ingesting
         /// <param name="newPath">Contains the new path of the ingested file.</param>
         /// <param name="unsorted">Indicates whether the file was ingested into an "unsorted" directory.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid a clash.</param>
-        private static void IngestFile(string path, out string newPath, out bool unsorted, out bool renamed)
+        private void IngestFile(string path, out string newPath, out bool unsorted, out bool renamed)
         {
             DateTime? dateTaken = GetDateTaken(path);
-            string destination;
+            string destination = "";
 
             if (dateTaken != null)
             {
-                switch (Properties.Settings.Default.Subfolders)
+                switch (DestinationStructure)
                 {
-                    default:
-                    case 0: destination = "{0:D4}\\{1:D2}\\{2:D2}"; break;
-                    case 1: destination = "{0:D4}\\{0:D4}-{1:D2}-{2:D2}"; break;
-                    case 2: destination = "{0:D4}-{1:D2}-{2:D2}"; break;
+                    case DestStructure.Year_Month_Day:
+                        destination = "{0:D4}\\{1:D2}\\{2:D2}";
+                        break;
+                    case DestStructure.Year_YearMonthDay:
+                        destination = "{0:D4}\\{0:D4}-{1:D2}-{2:D2}";
+                        break;
+                    case DestStructure.YearMonthDay:
+                        destination = "{0:D4}-{1:D2}-{2:D2}";
+                        break;
                 }
 
-                destination = Path.Combine(Properties.Settings.Default.Destination,
+                destination = Path.Combine(DestinationDirectory,
                     string.Format(destination, dateTaken?.Year, dateTaken?.Month, dateTaken?.Day));
 
                 unsorted = false;
             }
             else
             {
-                destination = Path.Combine(Properties.Settings.Default.Destination, "Unsorted");
+                destination = Path.Combine(DestinationDirectory, "Unsorted");
                 unsorted = true;
             }
 

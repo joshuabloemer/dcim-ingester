@@ -2,7 +2,6 @@
 using DcimIngester.Ingesting;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -28,7 +27,7 @@ namespace DcimIngester.Windows
         /// Stores received volume change notifications. Items contain volume letter and <see langword="true"/> if 
         /// volume was removed.
         /// </summary>
-        private BlockingCollection<(char, bool)> volumeNotifQueue = new();
+        private readonly BlockingCollection<(char, bool)> volumeNotifQueue = new();
 
         /// <summary>
         /// Thread for handling received volume change notifications.
@@ -41,12 +40,9 @@ namespace DcimIngester.Windows
         private readonly CancellationTokenSource queueTakeCancel = new();
 
         /// <summary>
-        /// The number of ingests currently being dealt with. This increments when a volume change notification is
-        /// received.
+        /// Gets the number of <see cref="IngestItem"/>s that are currently actively ingesting.
         /// </summary>
-        public int IngestsInWork => _IngestsInWork;
-
-        private int _IngestsInWork = 0;
+        public int ActiveIngestCount => GetActiveIngestCount();
 
 
         /// <summary>
@@ -121,8 +117,6 @@ namespace DcimIngester.Windows
         {
             if (msg == MESSAGE_ID)
             {
-                Interlocked.Increment(ref _IngestsInWork);
-
                 NativeMethods.SHNotifyStruct notif = (NativeMethods.SHNotifyStruct)
                     Marshal.PtrToStructure(wParam, typeof(NativeMethods.SHNotifyStruct))!;
 
@@ -141,9 +135,7 @@ namespace DcimIngester.Windows
                         else if (@event == NativeMethods.SHCNE_DRIVEREMOVED || @event == NativeMethods.SHCNE_MEDIAREMOVED)
                             volumeNotifQueue.Add((path.ToString()[0], true));
                     }
-                    else Interlocked.Decrement(ref _IngestsInWork);
                 }
-                else Interlocked.Decrement(ref _IngestsInWork);
             }
 
             handled = false;
@@ -155,10 +147,10 @@ namespace DcimIngester.Windows
         /// </summary>
         private void VolumeNotifThread()
         {
-            // char is volume letter, bool is true if volume was removed
-            (char, bool) notification;
+            // In tuple, char is volume letter, bool is true if volume was removed
 
-            while (volumeNotifQueue.TryTake(out notification, Timeout.Infinite, queueTakeCancel.Token))
+            while (volumeNotifQueue.TryTake(
+                out (char, bool) notification, Timeout.Infinite, queueTakeCancel.Token))
             {
                 if (notification.Item2)
                     OnVolumeRemoved(notification.Item1);
@@ -172,47 +164,38 @@ namespace DcimIngester.Windows
         /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeAdded(char volumeLetter)
         {
-            // Don't want settings to change in the middle of an ingest
-            if (!((App)Application.Current).IsSettingsOpen)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
+                    .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
+
+                // Not cancelling first because it should have failed if in progress
+                if (item != null)
+                    RemoveItem(item);
+            });
+
+            try
+            {
+                IngestWork work = new(volumeLetter);
+
+                if (work.DiscoverFiles())
                 {
-                    IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
-                        .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
-
-                    // Not cancelling first because it should have failed if in progress
-                    if (item != null)
-                        RemoveItem(item);
-                });
-
-                try
-                {
-                    IngestWork work = new(volumeLetter);
-
-                    if (work.DiscoverFiles())
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            IngestItem item = new(work);
-                            if (StackPanel1.Children.Count > 0)
-                                item.Margin = new Thickness(0, 20, 0, 0);
-                            item.Dismissed += IngestItem_Dismissed;
+                        IngestItem item = new(work);
+                        if (StackPanel1.Children.Count > 0)
+                            item.Margin = new Thickness(0, 20, 0, 0);
+                        item.Dismissed += IngestItem_Dismissed;
 
-                            StackPanel1.Children.Add(item);
+                        StackPanel1.Children.Add(item);
 
-                            Left = SystemParameters.WorkArea.Right - Width - 20;
-                            Top = SystemParameters.WorkArea.Bottom - Height - 20;
-                            Show();
-                        });
-                    }
-                    else Interlocked.Decrement(ref _IngestsInWork);
-                }
-                catch
-                {
-                    Interlocked.Decrement(ref _IngestsInWork);
+                        Left = SystemParameters.WorkArea.Right - Width - 20;
+                        Top = SystemParameters.WorkArea.Bottom - Height - 20;
+                        Show();
+                    });
                 }
             }
-            else Interlocked.Decrement(ref _IngestsInWork);
+            catch { }
         }
 
         /// <summary>
@@ -239,7 +222,6 @@ namespace DcimIngester.Windows
         private void RemoveItem(IngestItem item)
         {
             StackPanel1.Children.Remove(item);
-            Interlocked.Decrement(ref _IngestsInWork);
 
             Left = SystemParameters.WorkArea.Right - Width - 20;
             Top = SystemParameters.WorkArea.Bottom - Height - 20;
@@ -254,6 +236,15 @@ namespace DcimIngester.Windows
             // item being dismissed between the dismiss button being clicked and this code executing
             if (StackPanel1.Children.Contains((IngestItem)sender!))
                 RemoveItem((IngestItem)sender!);
+        }
+
+        /// <summary>
+        /// Returns the number of <see cref="IngestItem"/>s that are currently actively ingesting.
+        /// </summary>
+        private int GetActiveIngestCount()
+        {
+            return StackPanel1.Children.OfType<IngestItem>().Count(
+                i => i.Status == IngestTaskStatus.Ingesting);
         }
     }
 }

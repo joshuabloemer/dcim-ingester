@@ -19,12 +19,12 @@ namespace DcimIngester.Controls
         private readonly IngestTask task;
 
         /// <summary>
-        /// The letter of the volume to ingest from.
+        /// Gets the letter of the volume to ingest from.
         /// </summary>
         public char VolumeLetter => task.Work.VolumeLetter;
 
         /// <summary>
-        /// The status of the ingest operation.
+        /// Gets the status of the ingest operation.
         /// </summary>
         public IngestTaskStatus Status => task.Status;
 
@@ -76,13 +76,16 @@ namespace DcimIngester.Controls
                 task.Work.VolumeLetter, label, task.Work.FilesToIngest.Count,
                 FormatBytes(task.Work.TotalIngestSize));
 
-            CheckBoxPromptDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
+            CheckBoxPromptDelete.IsChecked = Properties.Settings.Default.DeleteAfterIngest;
         }
 
         private void ButtonPromptYes_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.ShouldDeleteAfter =
-                (bool)CheckBoxPromptDelete.IsChecked!;
+            task.DestinationDirectory = Properties.Settings.Default.DestDirectory;
+            task.DestinationStructure = (DestStructure)Properties.Settings.Default.DestStructure;
+            task.DeleteAfterIngest = (bool)CheckBoxPromptDelete.IsChecked!;
+
+            Properties.Settings.Default.DeleteAfterIngest = task.DeleteAfterIngest;
             Properties.Settings.Default.Save();
 
             GridPrompt.Visibility = Visibility.Collapsed;

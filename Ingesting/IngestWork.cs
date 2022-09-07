@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using static DcimIngester.Utilities;
 
 namespace DcimIngester.Ingesting
@@ -13,12 +12,12 @@ namespace DcimIngester.Ingesting
     public class IngestWork
     {
         /// <summary>
-        /// The letter of the volume to ingest from.
+        /// Gets the letter of the volume to ingest from.
         /// </summary>
         public readonly char VolumeLetter;
 
         /// <summary>
-        /// The label of the volume to ingest from.
+        /// Gets the label of the volume to ingest from.
         /// </summary>
         public readonly string VolumeLabel;
 
@@ -28,7 +27,7 @@ namespace DcimIngester.Ingesting
         private readonly List<string> filesToIngest = new();
 
         /// <summary>
-        /// The paths of the files to ingest from the volume.
+        /// Gets the paths of the files to ingest from the volume.
         /// </summary>
         public IReadOnlyCollection<string> FilesToIngest
         {
@@ -36,7 +35,7 @@ namespace DcimIngester.Ingesting
         }
 
         /// <summary>
-        /// The total size of the files to ingest from the volume.
+        /// Gets or sets the total size of the files to ingest from the volume.
         /// </summary>
         public long TotalIngestSize { get; private set; } = 0;
 
