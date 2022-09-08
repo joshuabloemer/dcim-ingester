@@ -70,11 +70,13 @@ namespace DcimIngester.Controls
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             string label = task.Work.VolumeLabel.Length == 0 ? "unnamed" : task.Work.VolumeLabel;
+            string pluralFiles = task.Work.FilesToIngest.Count > 1 ? "s" : "";
+            string pluralThem = task.Work.FilesToIngest.Count > 1 ? "them" : "it";
 
             LabelPromptCaption.Text = string.Format(
-                "{0}: ({1}) contains {2} files ({3}). Do you want to ingest them?",
-                task.Work.VolumeLetter, label, task.Work.FilesToIngest.Count,
-                FormatBytes(task.Work.TotalIngestSize));
+                "{0}: ({1}) contains {2} file{3} ({4}). Do you want to ingest {5}?",
+                task.Work.VolumeLetter, label, task.Work.FilesToIngest.Count, pluralFiles,
+                FormatBytes(task.Work.TotalIngestSize), pluralThem);
 
             CheckBoxPromptDelete.IsChecked = Properties.Settings.Default.DeleteAfterIngest;
         }
