@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using static DcimIngester.Utilities;
 
@@ -45,11 +46,6 @@ namespace DcimIngester.Ingesting
         private int lastIngested = 0;
 
         /// <summary>
-        /// Indicates whether the ingest should abort.
-        /// </summary>
-        private bool shouldAbort = false;
-
-        /// <summary>
         /// Occurs when the ingest of an individual file begins.
         /// </summary>
         public event EventHandler<PreFileIngestedEventArgs>? PreFileIngested;
@@ -72,11 +68,10 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Executes the ingest. If the ingest fails, this can be called again to attempt to continue.
         /// </summary>
+        /// <param name="cancelToken">A <see cref="CancellationToken"/> that can be used to cancel the ingest.</param>
         /// <exception cref="InvalidOperationException">Thrown if the ingest is completed, aborted or already in
         /// progress.</exception>
-        /// <returns><see langword="true"/> if all files were successfully ingested, or <see langword="false"/> if the
-        /// ingest was aborted.</returns>
-        public Task<bool> IngestAsync()
+        public Task Ingest(CancellationToken cancelToken)
         {
             return Task.Run(() =>
             {
@@ -106,37 +101,21 @@ namespace DcimIngester.Ingesting
                         PostFileIngested?.Invoke(this, new PostFileIngestedEventArgs(newPath, i, unsorted, renamed));
 
                         // Only abort if the file we just ingested was not the final file
-                        if (shouldAbort && i < Work.FilesToIngest.Count - 1)
+                        if (cancelToken.IsCancellationRequested && i < Work.FilesToIngest.Count - 1)
                         {
                             Status = IngestTaskStatus.Aborted;
-                            shouldAbort = false;
-                            return false;
+                            cancelToken.ThrowIfCancellationRequested();
                         }
                     }
 
                     Status = IngestTaskStatus.Completed;
-                    return true;
                 }
                 catch
                 {
                     Status = IngestTaskStatus.Failed;
-                    shouldAbort = false;
-
                     throw;
                 }
             });
-        }
-
-        /// <summary>
-        /// Aborts the ingest. The abort takes effect once the file that is currently being ingested has finished
-        /// ingesting. The ingest can only be aborted when it is actvely ingesting.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if the ingest isn't actively ingesting.</exception>
-        public void AbortIngest()
-        {
-            if (Status != IngestTaskStatus.Ingesting)
-                throw new InvalidOperationException("Cannot abort an ingest that isn't actively ingesting.");
-            else shouldAbort = true;
         }
 
         /// <summary>

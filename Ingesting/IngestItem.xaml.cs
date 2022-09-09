@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using static DcimIngester.Utilities;
@@ -27,6 +28,11 @@ namespace DcimIngester.Controls
         /// Gets the status of the ingest operation.
         /// </summary>
         public IngestTaskStatus Status => task.Status;
+
+        /// <summary>
+        /// Used to cancel the <see cref="System.Threading.Tasks.Task"/> that does the actual ingesting.
+        /// </summary>
+        private CancellationTokenSource cancelSource = new();
 
         /// <summary>
         /// The directory that the first file was ingested to.
@@ -114,18 +120,15 @@ namespace DcimIngester.Controls
 
             try
             {
-                bool result = await task.IngestAsync();
+                await task.Ingest(cancelSource.Token);
 
-                if (result)
-                {
-                    LabelIngestCaption.Text = string.Format(
-                        "Ingest from {0}: ({1}) complete", task.Work.VolumeLetter, label);
-                }
-                else
-                {
-                    LabelIngestCaption.Text = string.Format(
-                        "Ingest from {0}: ({1}) cancelled", task.Work.VolumeLetter, label);
-                }
+                LabelIngestCaption.Text = string.Format(
+                    "Ingest from {0}: ({1}) complete", task.Work.VolumeLetter, label);
+            }
+            catch (OperationCanceledException)
+            {
+                LabelIngestCaption.Text = string.Format(
+                    "Ingest from {0}: ({1}) cancelled", task.Work.VolumeLetter, label);
             }
             catch
             {
@@ -181,8 +184,8 @@ namespace DcimIngester.Controls
             if (task.Status == IngestTaskStatus.Ingesting)
             {
                 ButtonIngestCancel.IsEnabled = false;
-                ButtonIngestCancel.Content = "Cancelling";
-                task.AbortIngest();
+                ButtonIngestCancel.Content = "Cancelling...";
+                cancelSource.Cancel();
             }
             else Dismissed?.Invoke(this, new EventArgs());
         }
