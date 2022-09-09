@@ -179,38 +179,47 @@ namespace DcimIngester.Windows
         /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeAdded(char volumeLetter)
         {
+            bool discover = false;
+
             Application.Current.Dispatcher.Invoke(() =>
             {
                 IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
                     .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
 
-                // Not cancelling first because it should have failed if in progress
-                if (item != null)
+                // Not cancelling first because it should have failed if in progress. But
+                // just in case it hasn't, don't remove
+                if (item != null && item.Status != IngestTaskStatus.Ingesting)
+                {
+                    discover = true;
                     RemoveItem(item);
+                }
             });
 
-            try
+            if (discover)
             {
-                IngestWork work = new(volumeLetter);
-
-                if (work.DiscoverFiles())
+                try
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
+                    IngestWork work = new(volumeLetter);
+
+                    if (work.DiscoverFiles())
                     {
-                        IngestItem item = new(work);
-                        if (StackPanel1.Children.Count > 0)
-                            item.Margin = new Thickness(0, 20, 0, 0);
-                        item.Dismissed += IngestItem_Dismissed;
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            IngestItem item = new(work);
+                            if (StackPanel1.Children.Count > 0)
+                                item.Margin = new Thickness(0, 20, 0, 0);
+                            item.Dismissed += IngestItem_Dismissed;
 
-                        StackPanel1.Children.Add(item);
+                            StackPanel1.Children.Add(item);
 
-                        Left = SystemParameters.WorkArea.Right - Width - 20;
-                        Top = SystemParameters.WorkArea.Bottom - Height - 20;
-                        Show();
-                    });
+                            Left = SystemParameters.WorkArea.Right - Width - 20;
+                            Top = SystemParameters.WorkArea.Bottom - Height - 20;
+                            Show();
+                        });
+                    }
                 }
+                catch { }
             }
-            catch { }
         }
 
         /// <summary>
