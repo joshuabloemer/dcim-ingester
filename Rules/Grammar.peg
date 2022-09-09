@@ -18,16 +18,14 @@ rule<RuleNode>
   / (c:condition) {new RuleNode(c,new EmptyNode(),new EmptyNode(),new EmptyNode())}
 
 condition<SyntaxNode> 
-  = (l:conditionType '=' '"' r:conditionString '"' ) {new EqualsNode(l,r)}
-  / (l:conditionType '!=' '"' r:conditionString '"' ) {new NotNode(l,r)}
-  / (l:conditionType '>' '"' r:conditionString '"' ) {new GreaterThanNode(l,r)}
-  / (l:conditionType '<' '"' r:conditionString '"' ) {new LessThanNode(l,r)}
-  / (l:conditionType '<=' '"' r:conditionString '"' ) {new GreaterOrEqualNode(l,r)}
-  / (l:conditionType '>=' '"' r:conditionString '"' ) {new LessOrEqualNode(l,r)}
+  = (l:conditionType '=' r:conditionType) {new EqualsNode(l,r)}
+  / (l:conditionType '!=' r:conditionType) {new NotNode(l,r)}
+  / (l:conditionType '>' r:conditionType) {new GreaterThanNode(l,r)}
+  / (l:conditionType '<' r:conditionType) {new LessThanNode(l,r)}
+  / (l:conditionType '<=' r:conditionType) {new GreaterOrEqualNode(l,r)}
+  / (l:conditionType '>=' r:conditionType) {new LessOrEqualNode(l,r)}
   / 'any' {new AnyNode()}
-  / (l:conditionType ' contains ' '"' r:conditionString '"') {new ContainsNode(l,r)}
-
-conditionString<StringNode> = s:("" [^\\/:*?"<>|.]+) {new StringNode(s)}
+  / (l:conditionType ' contains ' '"' r:conditionType '"') {new ContainsNode(l,r)}
 
 stringInterpolation<SyntaxNode> = "{" c:conditionType "}" {c} 
 
@@ -53,6 +51,7 @@ conditionType<SyntaxNode>
     / "path[" p:("" [0-9\-]+) "]" {new PathPartNode(int.Parse(p))}
     / "path" {new PathNameNode()}
     / d:("" [^;]+) ";" t:("" [^=}]+) {new MetadataNode(d,t)}
+    / '"' s:("" [^\\/:*?"<>|.]+) '"' {new StringNode(s)} 
 
 _ = [\t ]+
 EOL = '\n' / '\r\n'
