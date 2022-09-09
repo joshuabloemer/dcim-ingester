@@ -55,17 +55,10 @@ namespace DcimIngester.Windows
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            bool shutdown = true;
             IntPtr windowHandle = new WindowInteropHelper(this).Handle;
 
-            bool shutdown = true;
-
-            // TODO: This works, but should be GetWindowLongPtr intead
-            int extendedStyle = NativeMethods.GetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE);
-            extendedStyle |= NativeMethods.WS_EX_TOOLWINDOW;
-
-            // Hide window from Windows task switcher by making it a tool window
-            // TODO: This works, but should be SetWindowLongPtr intead
-            if (NativeMethods.SetWindowLong(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle) != 0)
+            if (HideWindowFromAltTab(windowHandle))
             {
                 NativeMethods.SHChangeNotifyEntry entry = new()
                 {
@@ -74,8 +67,8 @@ namespace DcimIngester.Windows
 
                 if (NativeMethods.SHGetKnownFolderIDList(NativeMethods.FOLDERID_DESKTOP, 0, IntPtr.Zero, out entry.pIdl) == 0)
                 {
-                    // TODO: Should be SHCNRF according to docs but for some reason none of those values work
-                    // These values are from examples and I have no idea what they mean or do in this scenario
+                    // Should be SHCNRF according to docs but for some reason none of those values work
+                    // These values are from examples and I have no idea what they mean or do here
                     int sources = NativeMethods.SHCNF_TYPE | NativeMethods.SHCNF_IDLIST;
 
                     int events = NativeMethods.SHCNE_DRIVEADD | NativeMethods.SHCNE_DRIVEREMOVED |
@@ -97,6 +90,28 @@ namespace DcimIngester.Windows
 
             if (shutdown)
                 ((App)Application.Current).Shutdown();
+        }
+
+        /// <summary>
+        /// Hides the window from the Alt+Tab task switcher.
+        /// </summary>
+        /// <param name="windowHandle">The handle of the window.</param>
+        /// <returns><see langword="true"/> on success, otherwise <see langword="false"/>.</returns>
+        private bool HideWindowFromAltTab(IntPtr windowHandle)
+        {
+            int extendedStyle = NativeMethods.GetWindowLongPtr(windowHandle, NativeMethods.GWL_EXSTYLE);
+
+            if (extendedStyle != 0)
+            {
+                extendedStyle |= NativeMethods.WS_EX_TOOLWINDOW;
+
+                if (NativeMethods.SetWindowLongPtr(windowHandle, NativeMethods.GWL_EXSTYLE, extendedStyle) != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void Window_Closed(object sender, EventArgs e)
