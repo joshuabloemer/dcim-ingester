@@ -87,32 +87,32 @@ namespace DcimIngester.Rules {
 
         private object greaterOrEqual(GreaterOrEqualNode g)
         {
-            return (decimal?)Evaluate(g.l) >= (decimal?)Evaluate(g.r);
+            return Convert.ToDecimal(Evaluate(g.l)) >= Convert.ToDecimal(Evaluate(g.r));
         }
 
         private object lesseOrEqual(LessOrEqualNode l)
         {
-            return (decimal?)Evaluate(l.l) <= (decimal?)Evaluate(l.r);
+            return Convert.ToDecimal(Evaluate(l.l)) <= Convert.ToDecimal(Evaluate(l.r));
         }
 
         private object greater(GreaterThanNode g)
         {
-            return (decimal?)Evaluate(g.l) > (decimal?)Evaluate(g.r);
+            return Convert.ToDecimal(Evaluate(g.l)) > Convert.ToDecimal(Evaluate(g.r));
         }
 
         private object less(LessThanNode l)
         {
-            return (decimal?)Evaluate(l.l) < (decimal?)Evaluate(l.r);
+            return Convert.ToDecimal(Evaluate(l.l)) < Convert.ToDecimal(Evaluate(l.r));
         }
 
         private object not(NotNode n)
         {
-            return (string)Evaluate(n.l) != (string)Evaluate(n.r);
+            return Convert.ToString(Evaluate(n.l)) != Convert.ToString(Evaluate(n.r));
         }
 
         private object equals(EqualsNode e)
         {
-            return (string)Evaluate(e.l) == (string)Evaluate(e.r);
+            return Convert.ToString(Evaluate(e.l)) == Convert.ToString(Evaluate(e.r));
         }
 
         private string rule(RuleNode r)
