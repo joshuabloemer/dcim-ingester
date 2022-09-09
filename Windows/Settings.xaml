@@ -6,11 +6,11 @@
 
     <Grid>
         <Label Content="Ingest Destination" Margin="10,6,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
-        <TextBox x:Name="TextBoxDestination" Style="{DynamicResource TextBoxStyle}" Margin="10,27,41,0" VerticalAlignment="Top" IsReadOnly="True" TextChanged="TextBoxDestination_TextChanged"/>
+        <TextBox x:Name="TextBoxDestDir" Style="{DynamicResource TextBoxStyle}" Margin="10,27,41,0" VerticalAlignment="Top" IsReadOnly="True" TextChanged="TextBoxDestDir_TextChanged"/>
         <Button x:Name="ButtonBrowseDest" Style="{DynamicResource ButtonStyle}" Content="..." HorizontalAlignment="Right" Margin="0,27,10,0" VerticalAlignment="Top" Width="26" Click="ButtonBrowseDest_Click"/>
 
-        <Label Content="Destination Subfolder Structure" Margin="10,63,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
-        <ComboBox x:Name="ComboBoxSubfolders" Margin="10,84,10,0" VerticalAlignment="Top" Style="{DynamicResource ComboBoxStyle}" SelectionChanged="ComboBoxSubfolders_SelectionChanged">
+        <Label Content="File Organisation" Margin="10,63,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
+        <ComboBox x:Name="ComboBoxDestStruc" Margin="10,84,10,0" VerticalAlignment="Top" Style="{DynamicResource ComboBoxStyle}" SelectionChanged="ComboBoxDestStruc_SelectionChanged">
             <ComboBox.Items>
                 <ComboBoxItem Content="Destination\YYYY\MM\DD" Style="{DynamicResource ComboBoxItemStyle}"/>
                 <ComboBoxItem Content="Destination\YYYY\YYYY-MM-DD" Style="{DynamicResource ComboBoxItemStyle}"/>

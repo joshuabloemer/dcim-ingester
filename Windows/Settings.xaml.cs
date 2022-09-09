@@ -13,11 +13,11 @@ namespace DcimIngester.Windows
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            TextBoxDestination.Text = Properties.Settings.Default.DestDirectory;
-            ComboBoxSubfolders.SelectedIndex = Properties.Settings.Default.DestStructure;
+            TextBoxDestDir.Text = Properties.Settings.Default.DestDirectory;
+            ComboBoxDestStruc.SelectedIndex = Properties.Settings.Default.DestStructure;
         }
 
-        private void TextBoxDestination_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxDestDir_TextChanged(object sender, TextChangedEventArgs e)
         {
             ValidateFields();
         }
@@ -27,19 +27,19 @@ namespace DcimIngester.Windows
             FolderBrowserDialog folderDialog = new();
 
             if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                TextBoxDestination.Text = folderDialog.SelectedPath;
+                TextBoxDestDir.Text = folderDialog.SelectedPath;
         }
 
-        private void ComboBoxSubfolders_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBoxDestStruc_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ValidateFields();
         }
 
         private void ValidateFields()
         {
-            if ((TextBoxDestination.Text.Length > 0 &&
-                TextBoxDestination.Text != Properties.Settings.Default.DestDirectory) ||
-                ComboBoxSubfolders.SelectedIndex != Properties.Settings.Default.DestStructure)
+            if ((TextBoxDestDir.Text.Length > 0 &&
+                TextBoxDestDir.Text != Properties.Settings.Default.DestDirectory) ||
+                ComboBoxDestStruc.SelectedIndex != Properties.Settings.Default.DestStructure)
             {
                 ButtonSave.IsEnabled = true;
             }
@@ -48,8 +48,8 @@ namespace DcimIngester.Windows
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.DestDirectory = TextBoxDestination.Text;
-            Properties.Settings.Default.DestStructure = ComboBoxSubfolders.SelectedIndex;
+            Properties.Settings.Default.DestDirectory = TextBoxDestDir.Text;
+            Properties.Settings.Default.DestStructure = ComboBoxDestStruc.SelectedIndex;
             Properties.Settings.Default.Save();
 
             DialogResult = true;
