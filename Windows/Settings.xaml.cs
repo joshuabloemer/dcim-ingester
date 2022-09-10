@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
+using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 using System;
 using System.Linq;
 
@@ -16,10 +17,16 @@ namespace DcimIngester.Windows
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             TextBoxDestination.Text = Properties.Settings.Default.Destination;
-            ComboBoxSubfolders.SelectedIndex = Properties.Settings.Default.Subfolders;
+            TextBoxRules.Text = Properties.Settings.Default.Rules;
+
         }
 
         private void TextBoxDestination_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ValidateFields();
+        }
+
+        private void TextBoxRules_TextChanged(object sender, TextChangedEventArgs e)
         {
             ValidateFields();
         }
@@ -32,16 +39,20 @@ namespace DcimIngester.Windows
                 TextBoxDestination.Text = folderDialog.SelectedPath;
         }
 
-        private void ComboBoxSubfolders_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ButtonBrowseRules_Click(object sender, RoutedEventArgs e)
         {
-            ValidateFields();
+            OpenFileDialog fileDialog = new OpenFileDialog();
+
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                TextBoxRules.Text = fileDialog.FileName;
         }
 
         private void ValidateFields()
         {
             if ((TextBoxDestination.Text.Length > 0 &&
                 TextBoxDestination.Text != Properties.Settings.Default.Destination) ||
-                ComboBoxSubfolders.SelectedIndex != Properties.Settings.Default.Subfolders)
+                TextBoxRules.Text.Length > 0 &&
+                TextBoxRules.Text != Properties.Settings.Default.Rules)
             {
                 ButtonSave.IsEnabled = true;
             }
@@ -51,7 +62,8 @@ namespace DcimIngester.Windows
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
             Properties.Settings.Default.Destination = TextBoxDestination.Text;
-            Properties.Settings.Default.Subfolders = ComboBoxSubfolders.SelectedIndex;
+            Properties.Settings.Default.Rules = TextBoxRules.Text;
+
             Properties.Settings.Default.Save();
 
             DialogResult = true;
