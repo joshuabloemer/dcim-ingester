@@ -179,19 +179,20 @@ namespace DcimIngester.Windows
         /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeAdded(char volumeLetter)
         {
-            bool discover = false;
+            bool discover = true;
 
             Application.Current.Dispatcher.Invoke(() =>
             {
                 IngestItem? item = StackPanel1.Children.OfType<IngestItem>()
                     .SingleOrDefault(i => i.VolumeLetter == volumeLetter);
 
-                // Not cancelling first because it should have failed if in progress. But
-                // just in case it hasn't, don't remove
-                if (item != null && item.Status != IngestTaskStatus.Ingesting)
+                // Not cancelling first because it should have failed if in
+                // progress. But just in case it hasn't, don't continue
+                if (item != null)
                 {
-                    discover = true;
-                    RemoveItem(item);
+                    if (item.Status != IngestTaskStatus.Ingesting)
+                        RemoveItem(item);
+                    else discover = false;
                 }
             });
 
