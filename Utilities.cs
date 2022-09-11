@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace DcimIngester
@@ -36,19 +37,6 @@ namespace DcimIngester
         }
 
         /// <summary>
-        /// Checks if a file exists. Differs from <see cref="File.Exists(string)"/> by throwing an exception if there
-        /// is an error.
-        /// </summary>
-        /// <param name="path">The file to check.</param>
-        /// <returns><see langword="true"/> if the file exists, <see langword="false"/> if it does not exist.</returns>
-        public static bool FileExists(string path)
-        {
-            // GetCreationTime() returns the below time if the file does not exist and throws an
-            // exception if there was an error
-            return File.GetCreationTime(path) != new DateTime(1601, 1, 1, 0, 0, 0);
-        }
-
-        /// <summary>
         /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the
         /// file name.
         /// </summary>
@@ -59,25 +47,41 @@ namespace DcimIngester
         /// destination.</param>
         public static void CopyFile(string sourcePath, string destDirectory, out string newPath, out bool renamed)
         {
-            string fileName = Path.GetFileName(sourcePath);
             int duplicates = 0;
 
-            // Increment a duplicate counter until the file name does not exist
-            while (FileExists(Path.Combine(destDirectory, fileName)))
+            while (true)
             {
-                if (Path.GetFileNameWithoutExtension(sourcePath) != "")
+                try
                 {
-                    fileName = string.Format("{0} ({1}){2}", Path.GetFileNameWithoutExtension(sourcePath),
-                        ++duplicates, Path.GetExtension(sourcePath));
+                    string fileName;
+
+                    if (duplicates == 0)
+                        fileName = Path.GetFileName(sourcePath);
+                    else if (duplicates == 1)
+                    {
+                        fileName = string.Format("{0} - Copy{2}", Path.GetFileNameWithoutExtension(sourcePath),
+                            duplicates, Path.GetExtension(sourcePath));
+                    }
+                    else
+                    {
+                        fileName = string.Format("{0} - Copy ({1}){2}", Path.GetFileNameWithoutExtension(sourcePath),
+                            duplicates, Path.GetExtension(sourcePath));
+                    }
+
+                    string destination = Path.Combine(destDirectory, fileName);
+                    File.Copy(sourcePath, destination);
+
+                    newPath = destination;
+                    renamed = duplicates != 0;
+                    break;
                 }
-                else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
+                catch (IOException ex)
+                when (ex.HResult == unchecked((int)0x80070050) || ex.HResult == unchecked((int)0x80070050))
+                {
+                    // File already exists
+                    duplicates++;
+                }
             }
-
-            string destination = Path.Combine(destDirectory, fileName);
-            File.Copy(sourcePath, destination);
-
-            newPath = destination;
-            renamed = duplicates != 0;
         }
     }
 }

@@ -68,7 +68,7 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Executes the ingest. If the ingest fails, this can be called again to attempt to continue.
         /// </summary>
-        /// <param name="cancelToken">A <see cref="CancellationToken"/> that can be used to cancel the ingest.</param>
+        /// <param name="cancelToken">A cancellation token that can be used to cancel the ingest.</param>
         /// <exception cref="InvalidOperationException">Thrown if the ingest is completed, aborted or already in
         /// progress.</exception>
         public Task Ingest(CancellationToken cancelToken)
@@ -115,7 +115,7 @@ namespace DcimIngester.Ingesting
                     Status = IngestTaskStatus.Failed;
                     throw;
                 }
-            });
+            }, cancelToken);
         }
 
         /// <summary>
