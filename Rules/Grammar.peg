@@ -25,7 +25,7 @@ condition<SyntaxNode>
   / (l:conditionType '<=' r:conditionType) {new GreaterOrEqualNode(l,r)}
   / (l:conditionType '>=' r:conditionType) {new LessOrEqualNode(l,r)}
   / 'any' {new AnyNode()}
-  / (l:conditionType ' contains ' '"' r:conditionType '"') {new ContainsNode(l,r)}
+  / (l:conditionType ' contains ' r:conditionType) {new ContainsNode(l,r)}
 
 stringInterpolation<SyntaxNode> = "{" c:conditionType "}" {c} 
 
