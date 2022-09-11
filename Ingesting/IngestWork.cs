@@ -79,7 +79,7 @@ namespace DcimIngester.Ingesting
                 isDiscovering = true;
                 filesToIngest.Clear();
 
-                if (!DirectoryExists(Path.Combine(VolumeLetter + ":", "DCIM")))
+                if (!Directory.Exists(Path.Combine(VolumeLetter + ":", "DCIM")))
                     return false;
 
                 string[] directories = Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"));

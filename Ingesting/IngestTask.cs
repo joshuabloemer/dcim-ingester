@@ -190,8 +190,8 @@ namespace DcimIngester.Ingesting
         }
 
         /// <summary>
-        /// Creates a directory if it does not exist. If the directory exists but has additional text appended to the
-        /// final directory in the path, it is not created. If the directory path has no parent then it is not ceated.
+        /// Creates a directory if it does not exist. If the directory exists but has additional text (following a
+        /// space), appended to the final directory in the path, it is not created.
         /// </summary>
         /// <param name="path">The directory to create.</param>
         /// <returns>The created or already existing directory.</returns>
@@ -203,13 +203,14 @@ namespace DcimIngester.Ingesting
             if (dirInfo.Parent == null)
                 return path;
 
-            if (DirectoryExists(dirInfo.Parent.FullName))
+            try
             {
-                string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + "*");
+                string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + " *");
 
                 if (directories.Length > 0)
                     return Path.Combine(dirInfo.Parent.FullName, new DirectoryInfo(directories[0]).Name);
             }
+            catch (DirectoryNotFoundException) { }
 
             return Directory.CreateDirectory(path).FullName;
         }

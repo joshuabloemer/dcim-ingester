@@ -24,19 +24,6 @@ namespace DcimIngester
         }
 
         /// <summary>
-        /// Checks if a directory exists. Differs from <see cref="Directory.Exists(string)"/> by throwing an exception
-        /// if there is an error.
-        /// </summary>
-        /// <param name="path">The directory to check.</param>
-        /// <returns><see langword="true"/> if the directory exists, <see langword="false"/> if it does not exist.</returns>
-        public static bool DirectoryExists(string path)
-        {
-            // GetCreationTime() returns the below time if the directory does not exist and throws
-            // an exception if there was an error
-            return Directory.GetCreationTime(path) != new DateTime(1601, 1, 1, 0, 0, 0);
-        }
-
-        /// <summary>
         /// Copies a file to a directory. If the file already exists in the directory then a counter is added to the
         /// file name.
         /// </summary>
