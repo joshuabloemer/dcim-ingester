@@ -32,7 +32,7 @@ A simple system tray application that ingests images from SD cards and sorts the
 	- Added some more code documentation
 - 2.2 (Dec 25, 2021)
 	- Fixed an issue where the "Open Folder" button opens the source folder instead of the destination folder
-- 2.3 (Xxx XX, 2022)
+- 2.3 (Sep 11, 2022)
 	- Reimplemented volume detection using SHChangeNotifyRegister. This fixes an issue where an SD card inserted into a connected card reader would not prompt
 	- Fixed an issue where cancelling the Settings window without having an ingest destination set (e.g. on first run) would throw an exception
 	- Ingests can now happen if Settings is open, and Settings can now be opened if an ingest is in progress

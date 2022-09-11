@@ -9,10 +9,10 @@
     <Company>Henry Hunt</Company>
     <Product>DCIM Ingester</Product>
     <Description>A simple system tray application that ingests images from SD cards and sorts them into folders by date taken.</Description>
-    <Copyright>Copyright © Henry Hunt 2021</Copyright>
+    <Copyright>Copyright © Henry Hunt 2022</Copyright>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
-    <Version>2.2.0</Version>
+    <Version>2.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
-    <PackageReference Include="MetadataExtractor" Version="2.4.3" />
+    <PackageReference Include="MetadataExtractor" Version="2.7.2" />
   </ItemGroup>
 
   <ItemGroup>
