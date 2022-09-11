@@ -1,11 +1,13 @@
 ﻿using DcimIngester.Controls;
 using DcimIngester.Ingesting;
+using Microsoft.Win32;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 
@@ -83,6 +85,7 @@ namespace DcimIngester.Windows
                         volumeNotifThread.Start();
 
                         HwndSource.FromHwnd(windowHandle).AddHook(WndProc);
+                        SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
                         shutdown = false;
                     }
                 }
@@ -90,6 +93,17 @@ namespace DcimIngester.Windows
 
             if (shutdown)
                 ((App)Application.Current).Shutdown();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            if (notifyId > 0)
+            {
+                HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).RemoveHook(WndProc);
+                queueTakeCancel.Cancel();
+                NativeMethods.SHChangeNotifyDeregister(notifyId);
+                SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
+            }
         }
 
         /// <summary>
@@ -112,16 +126,6 @@ namespace DcimIngester.Windows
             }
 
             return false;
-        }
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            if (notifyId > 0)
-            {
-                HwndSource.FromHwnd(new WindowInteropHelper(this).Handle).RemoveHook(WndProc);
-                queueTakeCancel.Cancel();
-                NativeMethods.SHChangeNotifyDeregister(notifyId);
-            }
         }
 
         /// <summary>
@@ -155,6 +159,24 @@ namespace DcimIngester.Windows
 
             handled = false;
             return IntPtr.Zero;
+        }
+
+        private void SystemEvents_DisplaySettingsChanged(object? sender, EventArgs e)
+        {
+            if (Visibility == Visibility.Visible)
+            {
+                Left = SystemParameters.WorkArea.Right - Width - 20;
+                Top = SystemParameters.WorkArea.Bottom - Height - 20;
+
+                // WorkArea does not properly account for the taskbar at the time this event is
+                // fired, so need to reposition again after a short wait. Also, don't await because
+                // this method should return quickly.
+                Task.Delay(500).ContinueWith(t =>
+                {
+                    Left = SystemParameters.WorkArea.Right - Width - 20;
+                    Top = SystemParameters.WorkArea.Bottom - Height - 20;
+                });
+            }
         }
 
         /// <summary>
