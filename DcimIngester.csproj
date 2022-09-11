@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>True</UseWPF>
+    <UseWindowsForms>False</UseWindowsForms>
     <Authors>Henry Hunt</Authors>
     <Company>Henry Hunt</Company>
     <Product>DCIM Ingester</Product>
