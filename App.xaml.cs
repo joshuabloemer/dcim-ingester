@@ -22,7 +22,7 @@ namespace DcimIngester
         {
             taskbarIcon = new()
             {
-                ToolTip = "DCIM Ingester",
+                ToolTipText = "DCIM Ingester",
                 ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
             };
 
