@@ -16,13 +16,16 @@ namespace DcimIngester.Rules {
             this.FilePath = filePath;
             this.DateTaken = GetDateTaken(filePath);
 
-            IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(filePath);
-            foreach (var directory in directories){
-                Metadata[directory.Name] = new Dictionary<String, String>();
-                foreach (var tag in directory.Tags){
-                    Metadata[directory.Name][tag.Name] = tag.Description;
+            try {
+                IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(filePath);
+                foreach (var directory in directories){
+                    Metadata[directory.Name] = new Dictionary<String, String>();
+                    foreach (var tag in directory.Tags){
+                        Metadata[directory.Name][tag.Name] = tag.Description;
+                    }
                 }
             }
+            catch (ImageProcessingException) {}
         }
 
         public object Evaluate(SyntaxNode node) {
@@ -65,7 +68,7 @@ namespace DcimIngester.Rules {
 
         private object pathPartNode(PathPartNode p)
         {
-            string[] pathParts = this.FilePath.Split("/");
+            string[] pathParts = this.FilePath.Split("\\");
             if (p.Part >= 0)
                 return pathParts[p.Part];
             else  
@@ -133,7 +136,7 @@ namespace DcimIngester.Rules {
 
         private string path(PathNode p)
         {
-            string result = "/";
+            string result = "";
             foreach(SyntaxNode part in p.Parts){
                 result += Evaluate(part);
             }
