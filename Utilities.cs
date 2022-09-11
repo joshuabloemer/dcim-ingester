@@ -3,6 +3,7 @@ using System.IO;
 using MetadataExtractor.Formats.Exif;
 using System.Collections.Generic;
 using System.Linq;
+using FastHashes;
 
 namespace DcimIngester
 {
@@ -59,19 +60,27 @@ namespace DcimIngester
         /// <returns><see langword="true"/> if the files are identical, <see langword="false"/> if the are not.</returns>
         public static bool isSameFile(string path1, string path2)
         {
-            IEnumerable<MetadataExtractor.Directory> metadata1 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path1);
-            IEnumerable<MetadataExtractor.Directory> metadata2 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path2);
-            foreach (var directories in metadata1.Zip(metadata2, Tuple.Create))
-            {
-                foreach(var tags in directories.Item1.Tags.Zip(directories.Item2.Tags, Tuple.Create))
+            try{ 
+                IEnumerable<MetadataExtractor.Directory> metadata1 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path1);
+                IEnumerable<MetadataExtractor.Directory> metadata2 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path2);
+                foreach (var directories in metadata1.Zip(metadata2, Tuple.Create))
                 {
-                    if(tags.Item1.Description != tags.Item2.Description && tags.Item1.Name != "File Name" && tags.Item1.Name != "File Modified Date")
+                    foreach(var tags in directories.Item1.Tags.Zip(directories.Item2.Tags, Tuple.Create))
                     {
-                        return false;
+                        if(tags.Item1.Description != tags.Item2.Description && tags.Item1.Name != "File Name" && tags.Item1.Name != "File Modified Date")
+                        {
+                            return false;
+                        }
                     }
-                }
-            } 
-            return true;
+                } 
+                return true;
+            }
+            catch (MetadataExtractor.ImageProcessingException) {
+                FarmHash64 hashing = new FarmHash64();
+                var hash1 = hashing.ComputeHash(File.ReadAllBytes(path1));
+                var hash2 = hashing.ComputeHash(File.ReadAllBytes(path2));
+                return hash1.SequenceEqual(hash2); 
+            }
         }
 
         /// <summary>
