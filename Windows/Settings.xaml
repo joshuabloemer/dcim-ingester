@@ -19,6 +19,6 @@
         </ComboBox>
 
         <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,125,95,10" VerticalAlignment="Top" Width="100" Click="ButtonSave_Click"/>
-        <Button x:Name="ButtonClose" Style="{DynamicResource ButtonStyle}" Content="Close" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonClose_Click" IsCancel="True"/>
+        <Button x:Name="ButtonCancel" Style="{DynamicResource ButtonStyle}" Content="Cancel" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonCancel_Click" IsCancel="True"/>
     </Grid>
 </Window>

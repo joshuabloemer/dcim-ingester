@@ -52,11 +52,10 @@ namespace DcimIngester.Windows
             Properties.Settings.Default.DestStructure = ComboBoxDestStruc.SelectedIndex;
             Properties.Settings.Default.Save();
 
-            DialogResult = true;
             Close();
         }
 
-        private void ButtonClose_Click(object sender, RoutedEventArgs e)
+        private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
