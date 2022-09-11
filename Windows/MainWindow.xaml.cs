@@ -95,7 +95,7 @@ namespace DcimIngester.Windows
                 ((App)Application.Current).Shutdown();
         }
 
-        private void Window_Closed(object sender, EventArgs e)
+        private void Window_Closing(object sender, EventArgs e)
         {
             if (notifyId > 0)
             {
@@ -184,15 +184,19 @@ namespace DcimIngester.Windows
         /// </summary>
         private void VolumeNotifThread()
         {
-            // In tuple, char is volume letter, bool is true if volume was removed
-
-            while (volumeNotifQueue.TryTake(
-                out (char, bool) notification, Timeout.Infinite, queueTakeCancel.Token))
+            try
             {
-                if (notification.Item2)
-                    OnVolumeRemoved(notification.Item1);
-                else OnVolumeAdded(notification.Item1);
+                // In tuple, char is volume letter, bool is true if volume was removed
+
+                while (volumeNotifQueue.TryTake(
+                    out (char, bool) notification, Timeout.Infinite, queueTakeCancel.Token))
+                {
+                    if (notification.Item2)
+                        OnVolumeRemoved(notification.Item1);
+                    else OnVolumeAdded(notification.Item1);
+                }
             }
+            catch (OperationCanceledException) { }
         }
 
         /// <summary>
