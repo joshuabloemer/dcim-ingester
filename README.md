@@ -3,13 +3,13 @@ A simple system tray application that ingests images from SD cards and sorts the
 
 - The user is only prompted if the volume contains a DCIM folder and contains at least one ingestable file.
 - Within DCIM, only folders that conform to the DCF specification are ingested from, which means non-image directories that cameras often create are ignored.
-- Only files with a date taken EXIF attribute are sorted into folders by date taken. All other files are ingested into an "unsorted" folder.
+- Only files with a date taken EXIF attribute are sorted into folders by date taken. All other files are ingested into an "Unsorted" folder.
 
 # Usage
 - Open the project in Visual Studio, restore the NuGet packages and run the project.
-- Right click on the SD card icon in the system tray and open the settings.
-	- Select the base destination directory, where all ingested files will go. Subfolders will be created as needed.
-	- Select the subfolder structure, which determines how ingested files are organised by their date taken. Note that extra text can be added to the end of the name of the final folder in the structure and that folder will still be used by any subsequent ingests if needed.
+- The Settings window will automatically open if the destination directory is not set. Otherwise, Settings can be accessed via the system tray icon's right-click menu (the icon is an SD card).
+	- Set the destination directory to save all ingested files to. Subfolders will be created as necessary.
+	- Select how ingested files should be organised into folders by their date taken. Note that extra text can be added (following a space) to the end of the name of the final folder in the path and that folder will still be used by any subsequent ingests if it is needed.
 - Connect an SD card and respond to the prompt.
 
 # Version History
@@ -33,8 +33,9 @@ A simple system tray application that ingests images from SD cards and sorts the
 - 2.2 (Dec 25, 2021)
 	- Fixed an issue where the "Open Folder" button opens the source folder instead of the destination folder
 - 2.3 (Xxx XX, 2022)
-	- Reimplemented volume detection usin SHChangeNotifyRegister. This fixes an issue where an SD card inserted into a connected card reader would not be detected
+	- Reimplemented volume detection using SHChangeNotifyRegister. This fixes an issue where an SD card inserted into a connected card reader would not prompt
 	- Fixed an issue where cancelling the Settings window without having an ingest destination set (e.g. on first run) would throw an exception
 	- Ingests can now happen if Settings is open, and Settings can now be opened if an ingest is in progress
-	- Window now automatically repositions if display settings change (resolution, display removal, etc.)
+	- The window now automatically repositions if display settings are changed (resolution, display removal, etc.)
+	- Restricted Settings from being able to be opened multiple times simultaneously
 	- Various other small improvements
