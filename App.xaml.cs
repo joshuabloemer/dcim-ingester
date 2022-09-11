@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -52,7 +53,7 @@ namespace DcimIngester
                 // Disable Settings item in context menu
                 ((MenuItem)taskbarIcon!.ContextMenu.Items[0]).IsEnabled = false;
 
-                new Settings().ShowDialog();
+                new Settings().Show();
                 ((MenuItem)taskbarIcon!.ContextMenu.Items[0]).IsEnabled = true;
                 isSettingsOpen = false;
             }
@@ -60,15 +61,16 @@ namespace DcimIngester
 
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
         {
-            FileVersionInfo versionInfo =
-                FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location);
+            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location);
 
             string versionString = string.Format("{0} V{1}. Created by {2}.",
                 versionInfo.ProductName, versionInfo.FileVersion, versionInfo.CompanyName);
 
-            MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK,
-                MessageBoxImage.Information, MessageBoxResult.OK,
-                MessageBoxOptions.DefaultDesktopOnly);
+            Task.Run(() =>
+            {
+                MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.Information,
+                    MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+            });
         }
 
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
@@ -82,9 +84,12 @@ namespace DcimIngester
             }
             else
             {
-                MessageBox.Show("Wait for ingests to finish before exiting.", "DCIM Ingester",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
-                    MessageBoxOptions.DefaultDesktopOnly);
+                Task.Run(() =>
+                {
+                    MessageBox.Show("Wait for ingests to finish before exiting.", "DCIM Ingester",
+                        MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+                        MessageBoxOptions.DefaultDesktopOnly);
+                });
             }
         }
     }
