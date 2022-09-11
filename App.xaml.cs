@@ -15,44 +15,47 @@ namespace DcimIngester
         private TaskbarIcon? taskbarIcon = null;
         private MainWindow? mainWindow = null;
 
+        private bool isSettingsOpen = false;
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            bool shutdown = false;
+            taskbarIcon = new()
+            {
+                ToolTip = "DCIM Ingester",
+                ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
+            };
+
+            using (Stream stream = GetResourceStream(new Uri(
+                "pack://application:,,,/DcimIngester;component/Icon.ico")).Stream)
+            {
+                taskbarIcon.Icon = new Icon(stream);
+            }
+
+            taskbarIcon.Visibility = Visibility.Visible;
 
             if (DcimIngester.Properties.Settings.Default.DestDirectory.Length == 0)
-            {
-                if (new Settings().ShowDialog() == false)
-                    shutdown = true;
-            }
+                MenuItemSettings_Click(this, new RoutedEventArgs());
 
-            if (!shutdown)
-            {
-                taskbarIcon = new()
-                {
-                    ToolTip = "DCIM Ingester",
-                    ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
-                };
+            mainWindow = new MainWindow();
 
-                using (Stream stream = GetResourceStream(new Uri(
-                    "pack://application:,,,/DcimIngester;component/Icon.ico")).Stream)
-                {
-                    taskbarIcon.Icon = new Icon(stream);
-                }
-
-                taskbarIcon.Visibility = Visibility.Visible;
-
-                mainWindow = new MainWindow();
-
-                // Need to show the window to get the Loaded event to trigger
-                mainWindow.Show();
-                mainWindow.Hide();
-            }
-            else Shutdown();
+            // Need to show the window to get the Loaded event to trigger
+            mainWindow.Show();
+            mainWindow.Hide();
         }
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
-            new Settings().ShowDialog();
+            if (!isSettingsOpen)
+            {
+                isSettingsOpen = true;
+
+                // Disable Settings item in context menu
+                ((MenuItem)taskbarIcon!.ContextMenu.Items[0]).IsEnabled = false;
+
+                new Settings().ShowDialog();
+                ((MenuItem)taskbarIcon!.ContextMenu.Items[0]).IsEnabled = true;
+                isSettingsOpen = false;
+            }
         }
 
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)

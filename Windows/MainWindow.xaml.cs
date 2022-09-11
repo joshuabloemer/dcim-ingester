@@ -201,6 +201,9 @@ namespace DcimIngester.Windows
         /// <param name="volumeLetter">The letter of the volume.</param>
         private void OnVolumeAdded(char volumeLetter)
         {
+            if (Properties.Settings.Default.DestDirectory.Length == 0)
+                return;
+
             bool discover = true;
 
             Application.Current.Dispatcher.Invoke(() =>
