@@ -142,42 +142,16 @@ namespace DcimIngester.Ingesting
         {
             var evaluator = new Evaluator(path);
             string destination = (string)evaluator.Evaluate(rules);
-            destination = Path.Join(Properties.Settings.Default.Destination,destination);
-            unsorted = false;
-
+            
+            if (evaluator.RuleMatched){
+                destination = Path.Join(Properties.Settings.Default.Destination,destination);
+                unsorted = false;
+            } else {
+                destination = Path.Join(Properties.Settings.Default.Destination,"Unsorted");
+                unsorted = true;
+            }
             destination = CreateDestination(destination);
             CopyFile(path, destination, out newPath, out renamed, out skipped);
-        }
-
-        /// <summary>
-        /// Gets the date and time an image file was taken.
-        /// </summary>
-        /// <param name="path">The file to read.</param>
-        /// <returns>The date and time the image was taken, or <see langword="null"/> if the file does not contain that
-        /// information.</returns>
-        private static DateTime? GetDateTaken(string path)
-        {
-            IEnumerable<MetadataExtractor.Directory> metadata;
-            try
-            {
-                metadata = MetadataExtractor.ImageMetadataReader.ReadMetadata(path);
-            }
-            catch (MetadataExtractor.ImageProcessingException) { return null; }
-                                  
-            // Search all exif subdirs for date taken
-            foreach (ExifSubIfdDirectory exif in metadata.OfType<ExifSubIfdDirectory>()) 
-            {
-                string? dto = exif?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
-                if (dto != null) 
-                {
-                    try 
-                    {
-                        return DateTime.ParseExact(dto, "yyyy:MM:dd HH:mm:ss", null);
-                    }
-                    catch (FormatException) { return null; }
-                }
-            };
-            return null;
         }
 
         /// <summary>

@@ -11,6 +11,8 @@ namespace DcimIngester.Rules {
         public Dictionary<String,Dictionary<String,String>> Metadata {get;} = new Dictionary<String,Dictionary<String,String>>();
         
         public DateTime DateTaken {get;}
+
+        public Boolean RuleMatched {get;private set;} = false;
         
         public Evaluator(string filePath){
             this.FilePath = filePath;
@@ -123,6 +125,7 @@ namespace DcimIngester.Rules {
             string result = null;
             if ((bool)Evaluate(r.Condition)){
                 result = (string)Evaluate(r.Path);
+                this.RuleMatched = true;
                 SyntaxNode indent = r.GetIndent();
                 if (indent is not null){
                     result += Evaluate(indent);
