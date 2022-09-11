@@ -68,7 +68,7 @@ namespace DcimIngester
 
             Task.Run(() =>
             {
-                MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.Information,
+                MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.None,
                     MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
