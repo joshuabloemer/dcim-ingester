@@ -1,10 +1,9 @@
-﻿using MetadataExtractor.Formats.Exif;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static DcimIngester.Utilities;
+using DcimIngester.Rules;
 
 namespace DcimIngester.Ingesting
 {
@@ -73,13 +72,16 @@ namespace DcimIngester.Ingesting
                 try
                 {
                     Status = IngestTaskStatus.Ingesting;
+                    // Parse rules here to avoid parsing again for each file to ingest
+                    var parser = new Parser();
+                    var rules = parser.Parse(File.ReadAllText(Properties.Settings.Default.Rules));
 
                     for (int i = lastIngested; i < Work.FilesToIngest.Count; i++)
                     {
                         string path = Work.FilesToIngest.ElementAt(i);
                         PreFileIngested?.Invoke(this, new PreFileIngestedEventArgs(i));
 
-                        IngestFile(path, out string newPath, out bool unsorted, out bool renamed, out bool skipped);
+                        IngestFile(path, rules, out string newPath, out bool unsorted, out bool renamed, out bool skipped);
 
                         if (Properties.Settings.Default.ShouldDeleteAfter)
                             File.Delete(path);
@@ -134,65 +136,20 @@ namespace DcimIngester.Ingesting
         /// <param name="newPath">Contains the new path of the ingested file.</param>
         /// <param name="unsorted">Indicates whether the file was ingested into an "unsorted" directory.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid a clash.</param>
-        private static void IngestFile(string path, out string newPath, out bool unsorted, out bool renamed, out bool skipped)
+        private static void IngestFile(string path, SyntaxNode rules, out string newPath, out bool unsorted, out bool renamed, out bool skipped)
         {
-            DateTime? dateTaken = GetDateTaken(path);
-            string destination;
-
-            if (dateTaken != null)
-            {
-                switch (Properties.Settings.Default.Subfolders)
-                {
-                    default:
-                    case 0: destination = "{0:D4}\\{1:D2}\\{2:D2}"; break;
-                    case 1: destination = "{0:D4}\\{0:D4}-{1:D2}-{2:D2}"; break;
-                    case 2: destination = "{0:D4}-{1:D2}-{2:D2}"; break;
-                }
-
-                destination = Path.Combine(Properties.Settings.Default.Destination,
-                    string.Format(destination, dateTaken?.Year, dateTaken?.Month, dateTaken?.Day));
-
+            var evaluator = new Evaluator(path);
+            string destination = (string)evaluator.Evaluate(rules);
+            
+            if (evaluator.RuleMatched){
+                destination = Path.Join(Properties.Settings.Default.Destination,destination);
                 unsorted = false;
-            }
-            else
-            {
-                destination = Path.Combine(Properties.Settings.Default.Destination, "Unsorted");
+            } else {
+                destination = Path.Join(Properties.Settings.Default.Destination,"Unsorted");
                 unsorted = true;
             }
-
             destination = CreateDestination(destination);
             CopyFile(path, destination, out newPath, out renamed, out skipped);
-        }
-
-        /// <summary>
-        /// Gets the date and time an image file was taken.
-        /// </summary>
-        /// <param name="path">The file to read.</param>
-        /// <returns>The date and time the image was taken, or <see langword="null"/> if the file does not contain that
-        /// information.</returns>
-        private static DateTime? GetDateTaken(string path)
-        {
-            IEnumerable<MetadataExtractor.Directory> metadata;
-            try
-            {
-                metadata = MetadataExtractor.ImageMetadataReader.ReadMetadata(path);
-            }
-            catch (MetadataExtractor.ImageProcessingException) { return null; }
-                                  
-            // Search all exif subdirs for date taken
-            foreach (ExifSubIfdDirectory exif in metadata.OfType<ExifSubIfdDirectory>()) 
-            {
-                string? dto = exif?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
-                if (dto != null) 
-                {
-                    try 
-                    {
-                        return DateTime.ParseExact(dto, "yyyy:MM:dd HH:mm:ss", null);
-                    }
-                    catch (FormatException) { return null; }
-                }
-            };
-            return null;
         }
 
         /// <summary>
