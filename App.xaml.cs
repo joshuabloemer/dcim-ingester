@@ -45,7 +45,6 @@ namespace DcimIngester
             // Need to show the window to get the Loaded event to trigger
             mainWindow.Show();
             mainWindow.Hide();
-            Rules.ParserTest.TestParser();
         }
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)

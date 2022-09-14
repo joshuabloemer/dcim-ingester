@@ -89,8 +89,6 @@ namespace DcimIngester.Ingesting
 
                     foreach (string directory in directories)
                     {
-                        Console.WriteLine(directory);
-
                         foreach (string file in Directory.GetFiles(directory))
                         {
                             filesToIngest.Add(file);
