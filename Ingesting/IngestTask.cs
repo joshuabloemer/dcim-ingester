@@ -1,6 +1,9 @@
-﻿using System;
+﻿using MetadataExtractor.Formats.Exif;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using static DcimIngester.Utilities;
 using DcimIngester.Rules;
@@ -13,24 +16,30 @@ namespace DcimIngester.Ingesting
     public class IngestTask
     {
         /// <summary>
-        /// The work to do when the ingest is executed.
+        /// Gets the work to do when the ingest is executed.
         /// </summary>
         public readonly IngestWork Work;
 
         /// <summary>
-        /// The status of the ingest.
+        /// Gets the status of the ingest.
         /// </summary>
         public IngestTaskStatus Status { get; private set; } = IngestTaskStatus.Ready;
+
+        /// <summary>
+        /// Gets or sets the base directory to ingest files into.
+        /// </summary>
+        public string DestinationDirectory { get; set; }
+            = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
+        /// <summary>
+        /// Gets or sets whether original files should be deleted after they has been successfully ingested.
+        /// </summary>
+        public bool DeleteAfterIngest { get; set; } = false;
 
         /// <summary>
         /// The index of the current or next file to be ingested.
         /// </summary>
         private int lastIngested = 0;
-
-        /// <summary>
-        /// Indicates whether the ingest should abort.
-        /// </summary>
-        private bool abort = false;
 
         /// <summary>
         /// Occurs when the ingest of an individual file begins.
@@ -41,6 +50,7 @@ namespace DcimIngester.Ingesting
         /// Occurs when the ingest of an individual file successfully completes.
         /// </summary>
         public event EventHandler<PostFileIngestedEventArgs>? PostFileIngested;
+
 
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestTask"/> class.
@@ -54,11 +64,10 @@ namespace DcimIngester.Ingesting
         /// <summary>
         /// Executes the ingest. If the ingest fails, this can be called again to attempt to continue.
         /// </summary>
+        /// <param name="cancelToken">A cancellation token that can be used to cancel the ingest.</param>
         /// <exception cref="InvalidOperationException">Thrown if the ingest is completed, aborted or already in
         /// progress.</exception>
-        /// <returns><see langword="true"/> if all files were successfully ingested, or <see langword="false"/> if the
-        /// ingest was aborted.</returns>
-        public Task<bool> IngestAsync()
+        public Task Ingest(CancellationToken cancelToken)
         {
             return Task.Run(() =>
             {
@@ -83,7 +92,7 @@ namespace DcimIngester.Ingesting
 
                         IngestFile(path, rules, out string newPath, out bool unsorted, out bool renamed, out bool skipped);
 
-                        if (Properties.Settings.Default.ShouldDeleteAfter)
+                        if (DeleteAfterIngest)
                             File.Delete(path);
 
                         lastIngested++;
@@ -92,40 +101,21 @@ namespace DcimIngester.Ingesting
                             new PostFileIngestedEventArgs(newPath, i, unsorted, renamed, skipped));
 
                         // Only abort if the file we just ingested was not the final file
-                        if (abort && i < Work.FilesToIngest.Count - 1)
+                        if (cancelToken.IsCancellationRequested && i < Work.FilesToIngest.Count - 1)
                         {
                             Status = IngestTaskStatus.Aborted;
-                            abort = false;
-                            return false;
+                            cancelToken.ThrowIfCancellationRequested();
                         }
                     }
 
                     Status = IngestTaskStatus.Completed;
-                    return true;
                 }
                 catch
                 {
                     Status = IngestTaskStatus.Failed;
-                    abort = false;
-
                     throw;
                 }
-            });
-        }
-
-        /// <summary>
-        /// Aborts the ingest. The abort takes effect once the file that is currently being ingested has finished
-        /// ingesting. The ingest can only be aborted when it is actvely ingesting.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if the ingest isn't actively ingesting.</exception>
-        public void AbortIngest()
-        {
-            if (Status != IngestTaskStatus.Ingesting)
-            {
-                throw new InvalidOperationException(
-                    "Cannot abort an ingest that isn't actively ingesting.");
-            }
-            else abort = true;
+            }, cancelToken);
         }
 
         /// <summary>
@@ -136,16 +126,16 @@ namespace DcimIngester.Ingesting
         /// <param name="newPath">Contains the new path of the ingested file.</param>
         /// <param name="unsorted">Indicates whether the file was ingested into an "unsorted" directory.</param>
         /// <param name="renamed">Indicates whether the file name was changed to avoid a clash.</param>
-        private static void IngestFile(string path, SyntaxNode rules, out string newPath, out bool unsorted, out bool renamed, out bool skipped)
+        private void IngestFile(string path, SyntaxNode rules, out string newPath, out bool unsorted, out bool renamed, out bool skipped)
         {
             var evaluator = new Evaluator(path);
             string destination = (string)evaluator.Evaluate(rules);
             
             if (evaluator.RuleMatched){
-                destination = Path.Join(Properties.Settings.Default.Destination,destination);
+                destination = Path.Join(DestinationDirectory,destination);
                 unsorted = false;
             } else {
-                destination = Path.Join(Properties.Settings.Default.Destination,"Unsorted");
+                destination = Path.Join(DestinationDirectory,"Unsorted");
                 unsorted = true;
             }
             destination = CreateDestination(destination);
@@ -153,26 +143,27 @@ namespace DcimIngester.Ingesting
         }
 
         /// <summary>
-        /// Creates a directory if it does not exist. If the directory exists but has additional text appended to the
-        /// final directory in the path, it is not created. If the directory path has no parent then it is not ceated.
+        /// Creates a directory if it does not exist. If the directory exists but has additional text (following a
+        /// space), appended to the final directory in the path, it is not created.
         /// </summary>
         /// <param name="path">The directory to create.</param>
         /// <returns>The created or already existing directory.</returns>
         private static string CreateDestination(string path)
         {
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
+            DirectoryInfo dirInfo = new(path);
 
             // No parent means we're at a root, which isn't something that can be created
             if (dirInfo.Parent == null)
                 return path;
 
-            if (DirectoryExists(dirInfo.Parent.FullName))
+            try
             {
-                string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + "*");
+                string[] directories = Directory.GetDirectories(dirInfo.Parent.FullName, dirInfo.Name + " *");
 
                 if (directories.Length > 0)
                     return Path.Combine(dirInfo.Parent.FullName, new DirectoryInfo(directories[0]).Name);
             }
+            catch (DirectoryNotFoundException) { }
 
             return Directory.CreateDirectory(path).FullName;
         }

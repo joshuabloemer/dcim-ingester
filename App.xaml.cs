@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -12,24 +13,16 @@ namespace DcimIngester
 {
     public partial class App : Application
     {
+        private TaskbarIcon? taskbarIcon = null;
         private MainWindow? mainWindow = null;
 
-        /// <summary>
-        /// Indicates whether the settings window is currently open.
-        /// </summary>
-        public bool IsSettingsOpen { get; private set; } = false;
+        private bool isSettingsOpen = false;
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            if (DcimIngester.Properties.Settings.Default.Destination.Length == 0)
+            taskbarIcon = new()
             {
-                if (new Settings().ShowDialog() == false)
-                    Shutdown();
-            }
-
-            TaskbarIcon taskbarIcon = new TaskbarIcon
-            {
-                ToolTip = "DCIM Ingester",
+                ToolTipText = "DCIM Ingester",
                 ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
             };
 
@@ -40,6 +33,10 @@ namespace DcimIngester
             }
 
             taskbarIcon.Visibility = Visibility.Visible;
+
+            if (DcimIngester.Properties.Settings.Default.Destination.Length == 0)
+                MenuItemSettings_Click(this, new RoutedEventArgs());
+
             mainWindow = new MainWindow();
 
             // Need to show the window to get the Loaded event to trigger
@@ -49,43 +46,51 @@ namespace DcimIngester
 
         private void MenuItemSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.IngestsInWork > 0)
+            if (!isSettingsOpen)
             {
-                MessageBox.Show("Dismiss all ingests before opening Settings.", "DCIM Ingester",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
-                    MessageBoxOptions.DefaultDesktopOnly);
-            }
-            else
-            {
-                IsSettingsOpen = true;
-                Settings settings = new Settings();
-                settings.Closed += delegate { IsSettingsOpen = false; };
-                settings.ShowDialog();
+                isSettingsOpen = true;
+
+                // Disable Settings item in context menu
+                ((MenuItem)taskbarIcon!.ContextMenu.Items[0]).IsEnabled = false;
+
+                new Settings().Show();
+                ((MenuItem)taskbarIcon!.ContextMenu.Items[0]).IsEnabled = true;
+                isSettingsOpen = false;
             }
         }
 
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
         {
-            FileVersionInfo versionInfo =
-                FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location);
+            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location);
 
             string versionString = string.Format("{0} V{1}. Created by {2}.",
                 versionInfo.ProductName, versionInfo.FileVersion, versionInfo.CompanyName);
 
-            MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK,
-                MessageBoxImage.Information, MessageBoxResult.OK,
-                MessageBoxOptions.DefaultDesktopOnly);
+            Task.Run(() =>
+            {
+                MessageBox.Show(versionString, "DCIM Ingester", MessageBoxButton.OK, MessageBoxImage.None,
+                    MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+            });
         }
 
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
-            if (mainWindow!.IngestsInWork > 0)
+            if (mainWindow!.ActiveIngestCount == 0)
             {
-                MessageBox.Show("Dismiss all ingests before exiting.", "DCIM Ingester",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
-                    MessageBoxOptions.DefaultDesktopOnly);
+                // Icon stays visible after shutdown (until hovered over) without this
+                taskbarIcon!.Visibility = Visibility.Collapsed;
+
+                Shutdown();
             }
-            else Shutdown();
+            else
+            {
+                Task.Run(() =>
+                {
+                    MessageBox.Show("Wait for ingests to finish before exiting.", "DCIM Ingester",
+                        MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK,
+                        MessageBoxOptions.DefaultDesktopOnly);
+                });
+            }
         }
     }
 }

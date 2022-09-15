@@ -1,54 +1,80 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace DcimIngester
 {
     internal static class NativeMethods
     {
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
-        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
-        public static int GWL_EXSTYLE = -20;
-        public static int WS_EX_TOOLWINDOW = 0x00000080;
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+        private static extern IntPtr _GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct DEV_BROADCAST_DEVICEINTERFACE
+        public static int GetWindowLongPtr(IntPtr hWnd, int nIndex)
         {
-            public int dbcc_size;
-            public int dbcc_devicetype;
-            public int dbcc_reserved;
-            public Guid dbcc_classguid;
+            if (IntPtr.Size == 8)
+                return _GetWindowLongPtr(hWnd, nIndex).ToInt32();
+            else return GetWindowLong(hWnd, nIndex);
+        }
 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
-            public string dbcc_name;
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        private static extern IntPtr _SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        public static int SetWindowLongPtr(IntPtr hWnd, int nIndex, int dwNewLong)
+        {
+            if (IntPtr.Size == 8)
+                return _SetWindowLongPtr(hWnd, nIndex, new IntPtr(dwNewLong)).ToInt32();
+            else return SetWindowLong(hWnd, nIndex, dwNewLong);
+        }
+
+        public const int GWL_EXSTYLE = -20;
+        public const int WS_EX_TOOLWINDOW = 0x00000080;
+
+
+        [DllImport("shell32.dll")]
+        public static extern uint SHChangeNotifyRegister(IntPtr hWnd, int fSources, int fEvents, uint wMsg, int cEntries, ref SHChangeNotifyEntry pShcne);
+
+        [DllImport("shell32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SHChangeNotifyDeregister(uint ulId);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SHChangeNotifyEntry
+        {
+            public IntPtr pIdl;
+
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool fRecursive;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct DEV_BROADCAST_HDR
+        public struct SHNotifyStruct
         {
-            public int dbch_size;
-            public int dbch_devicetype;
-            public int dbch_reserved;
+            public IntPtr dwItem1;
+            public IntPtr dwItem2;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct DEV_BROADCAST_VOLUME
-        {
-            public int dbcv_size;
-            public int dbcv_devicetype;
-            public int dbcv_reserved;
-            public int dbcv_unitmask;
-            public ushort dbcv_flags;
-        }
+        public const int SHCNF_IDLIST = 0x0000;
+        public const int SHCNF_TYPE = 0x00FF;
 
-        public static Guid GUID_DEVINTERFACE_VOLUME = new Guid("53F5630D-B6BF-11D0-94F2-00A0C91EFB8B");
-        public static int DBT_DEVTYP_DEVICEINTERFACE = 5;
-        public static int DBT_DEVTYP_VOLUME = 2;
+        public const int SHCNE_DRIVEADD = 0x00000100;
+        public const int SHCNE_DRIVEREMOVED = 0x00000080;
+        public const int SHCNE_MEDIAINSERTED = 0x00000020;
+        public const int SHCNE_MEDIAREMOVED = 0x00000040;
 
-        public static int WM_DEVICECHANGE = 0x0219;
-        public static int DBT_DEVICEARRIVAL = 0x8000;
-        public static int DBT_DEVICEREMOVECOMPLETE = 0x8004;
+
+        [DllImport("shell32.dll")]
+        public static extern int SHGetKnownFolderIDList([MarshalAs(UnmanagedType.LPStruct)] Guid rFid, uint dwFlags, IntPtr hToken, out IntPtr pPidl);
+
+        public static readonly Guid FOLDERID_DESKTOP = new("B4BFCC3A-DB2C-424C-B029-7FE99A87C641");
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SHGetPathFromIDListW(IntPtr pidl, [MarshalAs(UnmanagedType.LPTStr)] StringBuilder pszPath);
     }
 }

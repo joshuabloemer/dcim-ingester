@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using static DcimIngester.Utilities;
@@ -19,14 +20,19 @@ namespace DcimIngester.Controls
         private readonly IngestTask task;
 
         /// <summary>
-        /// The letter of the volume to ingest from.
+        /// Gets the letter of the volume to ingest from.
         /// </summary>
         public char VolumeLetter => task.Work.VolumeLetter;
 
         /// <summary>
-        /// The status of the ingest operation.
+        /// Gets the status of the ingest operation.
         /// </summary>
         public IngestTaskStatus Status => task.Status;
+
+        /// <summary>
+        /// Used to cancel the <see cref="System.Threading.Tasks.Task"/> that does the actual ingesting.
+        /// </summary>
+        private CancellationTokenSource cancelSource = new();
 
         /// <summary>
         /// The directory that the first file was ingested to.
@@ -58,6 +64,7 @@ namespace DcimIngester.Controls
         /// </summary>
         public event EventHandler? Dismissed;
 
+
         /// <summary>
         /// Initialises a new instance of the <see cref="IngestItem"/> class.
         /// </summary>
@@ -74,19 +81,23 @@ namespace DcimIngester.Controls
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             string label = task.Work.VolumeLabel.Length == 0 ? "unnamed" : task.Work.VolumeLabel;
+            string pluralFiles = task.Work.FilesToIngest.Count > 1 ? "s" : "";
+            string pluralThem = task.Work.FilesToIngest.Count > 1 ? "them" : "it";
 
             LabelPromptCaption.Text = string.Format(
-                "{0}: ({1}) contains {2} files ({3}). Do you want to ingest them?",
-                task.Work.VolumeLetter, label, task.Work.FilesToIngest.Count,
-                FormatBytes(task.Work.TotalIngestSize));
+                "{0}: ({1}) contains {2} file{3} ({4}). Do you want to ingest {5}?",
+                task.Work.VolumeLetter, label, task.Work.FilesToIngest.Count, pluralFiles,
+                FormatBytes(task.Work.TotalIngestSize), pluralThem);
 
             CheckBoxPromptDelete.IsChecked = Properties.Settings.Default.ShouldDeleteAfter;
         }
 
         private void ButtonPromptYes_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.ShouldDeleteAfter =
-                (bool)CheckBoxPromptDelete.IsChecked!;
+            task.DestinationDirectory = Properties.Settings.Default.Destination;
+            task.DeleteAfterIngest = (bool)CheckBoxPromptDelete.IsChecked!;
+
+            Properties.Settings.Default.ShouldDeleteAfter = task.DeleteAfterIngest;
             Properties.Settings.Default.Save();
 
             GridPrompt.Visibility = Visibility.Collapsed;
@@ -113,18 +124,15 @@ namespace DcimIngester.Controls
 
             try
             {
-                bool result = await task.IngestAsync();
+                await task.Ingest(cancelSource.Token);
 
-                if (result)
-                {
-                    LabelIngestCaption.Text = string.Format(
-                        "Ingest from {0}: ({1}) complete", task.Work.VolumeLetter, label);
-                }
-                else
-                {
-                    LabelIngestCaption.Text = string.Format(
-                        "Ingest from {0}: ({1}) cancelled", task.Work.VolumeLetter, label);
-                }
+                LabelIngestCaption.Text = string.Format(
+                    "Ingest from {0}: ({1}) complete", task.Work.VolumeLetter, label);
+            }
+            catch (OperationCanceledException)
+            {
+                LabelIngestCaption.Text = string.Format(
+                    "Ingest from {0}: ({1}) cancelled", task.Work.VolumeLetter, label);
             }
             catch
             {
@@ -182,8 +190,8 @@ namespace DcimIngester.Controls
             if (task.Status == IngestTaskStatus.Ingesting)
             {
                 ButtonIngestCancel.IsEnabled = false;
-                ButtonIngestCancel.Content = "Cancelling";
-                task.AbortIngest();
+                ButtonIngestCancel.Content = "Cancelling...";
+                cancelSource.Cancel();
             }
             else Dismissed?.Invoke(this, new EventArgs());
         }

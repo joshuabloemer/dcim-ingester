@@ -15,8 +15,7 @@
             <TextBox x:Name="TextBoxRules" Style="{DynamicResource TextBoxStyle}" Margin="10,84,41,0" VerticalAlignment="Top" IsReadOnly="True" TextChanged="TextBoxRules_TextChanged"/>
             <Button x:Name="ButtonBrowseRules" Style="{DynamicResource ButtonStyle}" Content="..." HorizontalAlignment="Right" Margin="0,84,10,0" VerticalAlignment="Top" Width="26" Click="ButtonBrowseRules_Click"/>
 
-            <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,125,95,10" VerticalAlignment="Top" Width="100" Click="ButtonSave_Click"/>
-            <Button x:Name="ButtonClose" Style="{DynamicResource ButtonStyle}" Content="Close" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonClose_Click" IsCancel="True"/>
-        </Grid>
-
+        <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,125,95,10" VerticalAlignment="Top" Width="100" Click="ButtonSave_Click"/>
+        <Button x:Name="ButtonCancel" Style="{DynamicResource ButtonStyle}" Content="Cancel" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonCancel_Click" IsCancel="True"/>
+    </Grid>
 </Window>
