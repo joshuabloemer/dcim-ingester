@@ -23,7 +23,7 @@ namespace DcimIngester.Rules {
                 foreach (var directory in directories){
                     Metadata[directory.Name] = new Dictionary<String, String>();
                     foreach (var tag in directory.Tags){
-                        Metadata[directory.Name][tag.Name] = tag.Description;
+                        Metadata[directory.Name][tag.Name] = tag.Description!;
                     }
                 }
             }
@@ -47,12 +47,12 @@ namespace DcimIngester.Rules {
                 case ContainsNode c: return containsNode(c);
                 case MetadataNode m: return metadataNode(m);
                 case ExtensionNode: return Path.GetExtension(this.FilePath).Remove(0,1);
-                case YearNode: return this.DateTaken.Year;
-                case MonthNode: return this.DateTaken.Month;
-                case DayNode: return this.DateTaken.Day;
-                case HourNode: return this.DateTaken.Hour;
-                case MinuteNode: return this.DateTaken.Minute;
-                case SecondNode: return this.DateTaken.Second;
+                case YearNode: return this.DateTaken.Year.ToString();
+                case MonthNode: return this.DateTaken.Month.ToString("d2");
+                case DayNode: return this.DateTaken.Day.ToString("d2");
+                case HourNode: return this.DateTaken.Hour.ToString("d2");
+                case MinuteNode: return this.DateTaken.Minute.ToString("d2");
+                case SecondNode: return this.DateTaken.Second.ToString("d2");
                 case PathPartNode p: return pathPartNode(p);
                 case FileNameNode: return Path.GetFileName(this.FilePath);
                 case PathNameNode: return this.FilePath;
@@ -122,17 +122,17 @@ namespace DcimIngester.Rules {
 
         private string rule(RuleNode r)
         {
-            string result = null;
+            string? result = null;
             if ((bool)Evaluate(r.Condition)){
                 result = (string)Evaluate(r.Path);
                 this.RuleMatched = true;
                 SyntaxNode indent = r.GetIndent();
                 if (indent is not null){
-                    result += Evaluate(indent);
+                    result = Path.Join(result,Convert.ToString(Evaluate(indent)));
                 }
             }
             else if (r.Under is not EmptyNode){
-                result += Evaluate(r.Under);
+                result = Path.Join(result,Convert.ToString(Evaluate(r.Under)));
             }
             return result;
         }
@@ -141,7 +141,7 @@ namespace DcimIngester.Rules {
         {
             string result = "";
             foreach(SyntaxNode part in p.Parts){
-                result += Evaluate(part);
+                result = Path.Join(result,Convert.ToString(Evaluate(part)));
             }
             return result;
         }
@@ -149,7 +149,7 @@ namespace DcimIngester.Rules {
         private string? block(BlockNode b) {
             string? result = null;
             foreach(var statement in b.Statements) {
-                result = (string)Evaluate(statement);
+                result = (string)Evaluate(statement);   // use cast instead of Convert.ToString to allow for null return
                 if (result is not null) return result;
             }
             return null;
