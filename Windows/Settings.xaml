@@ -16,12 +16,13 @@
             <Button x:Name="ButtonBrowseRules" Style="{DynamicResource ButtonStyle}" Content="..." HorizontalAlignment="Right" Margin="0,84,10,0" VerticalAlignment="Top" Width="26" Click="ButtonBrowseRules_Click"/>
 
             <Label Content="Preview of Generated Folder Tree" Margin="10,140,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
-            <TreeView x:Name="FileTreeView" xmlns:local="clr-namespace:DcimIngester.Windows" Margin="10,162,10,50" Background="#FF1E1E1E">
+            <TreeView x:Name="FileTreeView" xmlns:local="clr-namespace:DcimIngester.Windows" Margin="10,162,10,50" Style="{DynamicResource TreeViewStyle}">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:MyTreeViewItem}" ItemsSource="{Binding SubItems}">
-                        <TextBlock Text="{Binding Name}"/>
+                        <TextBlock Text="{Binding Name}" Foreground="#FFFFFFFF"/>
                     </HierarchicalDataTemplate>
                 </TreeView.Resources>
+                
             </TreeView>
             <Button x:Name="ButtonReloadFileTree" Style="{DynamicResource ButtonStyle}" Content="&#8635;" HorizontalAlignment="Right" Margin="0,130,10,10" VerticalAlignment="Top" Width="26" Height="26"  Click="ButtonReloadFileTree_Click"/>
             
