@@ -21,6 +21,7 @@ namespace DcimIngester.Windows
         {
             TextBoxDestination.Text = Properties.Settings.Default.Destination;
             TextBoxRules.Text = Properties.Settings.Default.Rules;
+            ReloadFileTree();
 
         }
 
@@ -48,6 +49,7 @@ namespace DcimIngester.Windows
 
             if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 TextBoxRules.Text = fileDialog.FileName;
+                ReloadFileTree();
         }
 
         private void ValidateFields()
@@ -65,20 +67,26 @@ namespace DcimIngester.Windows
 
         private void ButtonReloadFileTree_Click(object sender, RoutedEventArgs e)
         {
-            if (Properties.Settings.Default.Rules != ""){
+            ReloadFileTree();
+        }
+
+        private void ReloadFileTree()
+        {
+            if (Properties.Settings.Default.Rules != "")
+            {
                 var parser = new Parser();
                 var tree = parser.Parse(File.ReadAllText(Properties.Settings.Default.Rules));
                 var evaluator = new FileTreeEvaluator();
                 List<String> paths = (List<String>)evaluator.Evaluate(tree.Block);
 
-                PopulateTreeView(FileTreeView, paths, '/');
+                PopulateTreeView(FileTreeView, paths, new char[] { '/', '\\' });
             }
         }
 
-        private void PopulateTreeView(TreeView treeView, IEnumerable<string> paths, char pathSeparator) {
+        private void PopulateTreeView(TreeView treeView, IEnumerable<string> paths, char[] pathSeparators) {
             List<MyTreeViewItem> sourceCollection = new List<MyTreeViewItem>();
             foreach (string path in paths) {
-                string[] fileItems = path.Split(pathSeparator, StringSplitOptions.RemoveEmptyEntries);
+                string[] fileItems = path.Split(pathSeparators, StringSplitOptions.RemoveEmptyEntries);
                 if (fileItems.Any()) {
 
                 MyTreeViewItem root = sourceCollection.FirstOrDefault(x=>x.Name.Equals(fileItems[0]) && x.Level.Equals(1));
