@@ -1,3 +1,4 @@
+//GNU GENERAL PUBLIC LICENSE Version 3
 using System;
 using System.Collections.Generic;
 using MetadataExtractor;
