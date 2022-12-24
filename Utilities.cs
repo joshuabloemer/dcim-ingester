@@ -4,6 +4,7 @@ using MetadataExtractor.Formats.Exif;
 using System.Collections.Generic;
 using System.Linq;
 using FastHashes;
+using System.Reflection;
 
 namespace DcimIngester
 {
@@ -60,26 +61,28 @@ namespace DcimIngester
         /// <returns><see langword="true"/> if the files are identical, <see langword="false"/> if the are not.</returns>
         public static bool isSameFile(string path1, string path2)
         {
-            try{ 
+            try
+            {
                 IEnumerable<MetadataExtractor.Directory> metadata1 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path1);
                 IEnumerable<MetadataExtractor.Directory> metadata2 = MetadataExtractor.ImageMetadataReader.ReadMetadata(path2);
                 foreach (var directories in metadata1.Zip(metadata2, Tuple.Create))
                 {
-                    foreach(var tags in directories.Item1.Tags.Zip(directories.Item2.Tags, Tuple.Create))
+                    foreach (var tags in directories.Item1.Tags.Zip(directories.Item2.Tags, Tuple.Create))
                     {
-                        if(tags.Item1.Description != tags.Item2.Description && tags.Item1.Name != "File Name" && tags.Item1.Name != "File Modified Date")
+                        if (tags.Item1.Description != tags.Item2.Description && tags.Item1.Name != "File Name" && tags.Item1.Name != "File Modified Date")
                         {
                             return false;
                         }
                     }
-                } 
+                }
                 return true;
             }
-            catch (MetadataExtractor.ImageProcessingException) {
+            catch (MetadataExtractor.ImageProcessingException)
+            {
                 FarmHash64 hashing = new FarmHash64();
                 var hash1 = hashing.ComputeHash(File.ReadAllBytes(path1));
                 var hash2 = hashing.ComputeHash(File.ReadAllBytes(path2));
-                return hash1.SequenceEqual(hash2); 
+                return hash1.SequenceEqual(hash2);
             }
         }
 
@@ -101,8 +104,8 @@ namespace DcimIngester
             String path = Path.Combine(destDirectory, fileName);
 
             if (FileExists(path))
-            {   
-                if (!isSameFile(sourcePath,path))
+            {
+                if (!isSameFile(sourcePath, path))
                 {
                     // Increment a duplicate counter until the file name does not exist
                     while (FileExists(Path.Combine(destDirectory, fileName)))
@@ -115,10 +118,10 @@ namespace DcimIngester
                         else fileName = string.Format("({0}){1}", ++duplicates, Path.GetExtension(sourcePath));
                     }
                 }
-                else 
+                else
                 {
                     copy = false;
-                    skipped = true;              
+                    skipped = true;
                 }
             }
             string destination = Path.Combine(destDirectory, fileName);
@@ -138,22 +141,35 @@ namespace DcimIngester
         public static DateTime GetDateTaken(string path)
         {
             // Try to read Creation Time from metadata (only works for supported image formats)
-            try{
+            try
+            {
                 IEnumerable<MetadataExtractor.Directory> metadata = MetadataExtractor.ImageMetadataReader.ReadMetadata(path);
                 // Search all exif subdirs for TagDateTimeOriginal 
-                foreach (ExifSubIfdDirectory exif in metadata.OfType<ExifSubIfdDirectory>()) 
+                foreach (ExifSubIfdDirectory exif in metadata.OfType<ExifSubIfdDirectory>())
                 {
                     string? dto = exif?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
-                    if (dto != null) 
+                    if (dto != null)
                         return DateTime.ParseExact(dto, "yyyy:MM:dd HH:mm:ss", null);
                 }
             }
-            catch (Exception ex) when (ex is MetadataExtractor.ImageProcessingException || ex is FormatException){}                            
-            
+            catch (Exception ex) when (ex is MetadataExtractor.ImageProcessingException || ex is FormatException) { }
+
             // Fallback to Creation Time and Modification Time for all other file types
             DateTime modifiedTime = File.GetLastWriteTime(path);
             DateTime creationTime = File.GetCreationTime(path);
-            return creationTime <= modifiedTime ? creationTime:modifiedTime;
+            return creationTime <= modifiedTime ? creationTime : modifiedTime;
+        }
+        static public string AssemblyGuid
+        {
+            get
+            {
+                object[] attributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(System.Runtime.InteropServices.GuidAttribute), false);
+                if (attributes.Length == 0)
+                {
+                    return String.Empty;
+                }
+                return ((System.Runtime.InteropServices.GuidAttribute)attributes[0]).Value;
+            }
         }
     }
 }
