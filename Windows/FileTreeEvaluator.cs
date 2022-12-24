@@ -5,13 +5,17 @@ using MetadataExtractor;
 using System.IO;
 using static DcimIngester.Utilities;
 
-namespace DcimIngester.Windows {
-    class FileTreeEvaluator {
-        
-        public FileTreeEvaluator(){}
+namespace DcimIngester.Windows
+{
+    class FileTreeEvaluator
+    {
 
-        public object Evaluate(SyntaxNode node) {
-            switch(node) {
+        public FileTreeEvaluator() { }
+
+        public object Evaluate(SyntaxNode node)
+        {
+            switch (node)
+            {
                 case BlockNode b: return blockNode(b);
                 case RuleNode r: return ruleNode(r);
                 case PathNode p: return PathToString(p);
@@ -28,13 +32,15 @@ namespace DcimIngester.Windows {
                 case PathNameNode: return "path";
                 case MetadataNode m: return $"{m.Directory};{m.Tag}";
             }
-            throw(new Exception($"Unknown node type {node.GetType()}"));
+            throw (new Exception($"Unknown node type {node.GetType()}"));
         }
 
-        private string PathToString(PathNode path){
+        private string PathToString(PathNode path)
+        {
             string result = "";
-            foreach (SyntaxNode part in path.Parts){
-                result = Path.Join(result,Convert.ToString(Evaluate(part)));
+            foreach (SyntaxNode part in path.Parts)
+            {
+                result = Path.Join(result, Convert.ToString(Evaluate(part)));
             }
             return result;
         }
@@ -43,18 +49,22 @@ namespace DcimIngester.Windows {
         {
             List<String> result = new List<string>();
 
-            if (r.GetIndent() is not null){
-                foreach(string path in (List<String>)Evaluate(r.GetIndent())){
+            if (r.GetIndent() is not null)
+            {
+                foreach (string path in (List<String>)Evaluate(r.GetIndent()))
+                {
                     if (r.Path is not EmptyNode)
-                        result.Add(Path.Join((string)Evaluate((PathNode)r.Path),path));
+                        result.Add(Path.Join((string)Evaluate((PathNode)r.Path), path));
                     else
                         result.Add(path);
                 }
             }
-            else{
+            else
+            {
                 result.Add((string)Evaluate((PathNode)r.Path));
             }
-            if (r.Under is not EmptyNode){
+            if (r.Under is not EmptyNode)
+            {
                 result.AddRange((List<String>)Evaluate(r.Under));
             }
 
@@ -64,7 +74,8 @@ namespace DcimIngester.Windows {
         private List<String> blockNode(BlockNode b)
         {
             List<String> result = new List<string>();
-            foreach (RuleNode rule in b.Statements){
+            foreach (RuleNode rule in b.Statements)
+            {
                 result.AddRange((List<String>)Evaluate(rule));
             }
             return result;

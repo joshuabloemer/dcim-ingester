@@ -1,4 +1,4 @@
-using DcimIngester.Windows;
+﻿using DcimIngester.Windows;
 using Hardcodet.Wpf.TaskbarNotification;
 using System;
 using System.Diagnostics;
