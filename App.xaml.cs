@@ -40,7 +40,8 @@ namespace DcimIngester
 
             taskbarIcon.Visibility = Visibility.Visible;
 
-            if (DcimIngester.Properties.Settings.Default.Destination.Length == 0)
+            if (DcimIngester.Properties.Settings.Default.Destination.Length == 0
+                || DcimIngester.Properties.Settings.Default.Rules.Length == 0)
                 MenuItemSettings_Click(this, new RoutedEventArgs());
 
             mainWindow = new MainWindow();
