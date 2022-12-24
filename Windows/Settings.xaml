@@ -4,7 +4,7 @@
         
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="DcimIngester.Windows.Settings"
         
-        Title="DCIM Ingester Settings" Width="480" Height="500" WindowStartupLocation="CenterScreen" ResizeMode="CanResize" Background="#FF1E1E1E" Loaded="Window_Loaded" SizeToContent="Height" Icon="../Icon.ico">
+        Title="DCIM Ingester Settings" Width="480" Height="500" WindowStartupLocation="CenterScreen" ResizeMode="CanResize" Background="#FF1E1E1E" Loaded="Window_Loaded" Icon="../Icon.ico">
 
         <Grid Background="#FF1E1E1E">
             <Label Content="Ingest Destination" Margin="10,6,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
@@ -15,7 +15,20 @@
             <TextBox x:Name="TextBoxRules" Style="{DynamicResource TextBoxStyle}" Margin="10,84,41,0" VerticalAlignment="Top" IsReadOnly="True" TextChanged="TextBoxRules_TextChanged"/>
             <Button x:Name="ButtonBrowseRules" Style="{DynamicResource ButtonStyle}" Content="..." HorizontalAlignment="Right" Margin="0,84,10,0" VerticalAlignment="Top" Width="26" Click="ButtonBrowseRules_Click"/>
 
-        <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,125,95,10" VerticalAlignment="Top" Width="100" Click="ButtonSave_Click"/>
-        <Button x:Name="ButtonCancel" Style="{DynamicResource ButtonStyle}" Content="Cancel" HorizontalAlignment="Right" Margin="0,125,10,10" VerticalAlignment="Top" Width="80" Click="ButtonCancel_Click" IsCancel="True"/>
+            <Label Content="Preview of Generated Folder Tree" Margin="10,140,0,0" VerticalAlignment="Top" Foreground="#FFEBEBEB" Padding="10,0,0,0" HorizontalAlignment="Left"/>
+            <TreeView x:Name="FileTreeView" xmlns:local="clr-namespace:DcimIngester.Windows" Margin="10,162,10,50" Style="{DynamicResource TreeViewStyle}">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type local:MyTreeViewItem}" ItemsSource="{Binding SubItems}">
+                        <TextBlock Text="{Binding Name}" Foreground="#FFFFFFFF"/>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+                
+            </TreeView>
+            <Button x:Name="ButtonReloadFileTree" Style="{DynamicResource ButtonStyle}" Content="&#8635;" HorizontalAlignment="Right" Margin="0,130,10,10" VerticalAlignment="Top" Width="26" Height="26"  Click="ButtonReloadFileTree_Click"/>
+            
+            <Button x:Name="ButtonSave" Style="{DynamicResource ButtonStyle}" Content="Save" HorizontalAlignment="Right" Margin="0,0,95,10" VerticalAlignment="Bottom" Width="100" Click="ButtonSave_Click"/>
+            <Button x:Name="ButtonCancel" Style="{DynamicResource ButtonStyle}" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="80" Click="ButtonCancel_Click" IsCancel="True"/>
+            
+    
     </Grid>
 </Window>

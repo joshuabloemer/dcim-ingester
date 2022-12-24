@@ -1,37 +1,46 @@
+//GNU GENERAL PUBLIC LICENSE Version 3
 using System;
 using System.Collections.Generic;
 using MetadataExtractor;
 using System.IO;
 using static DcimIngester.Utilities;
 
-namespace DcimIngester.Rules {
-    class Evaluator {
-        public string FilePath {get;}
-        
-        public Dictionary<String,Dictionary<String,String>> Metadata {get;} = new Dictionary<String,Dictionary<String,String>>();
-        
-        public DateTime DateTaken {get;}
+namespace DcimIngester.Rules
+{
+    class Evaluator
+    {
+        public string FilePath { get; }
 
-        public Boolean RuleMatched {get;private set;} = false;
-        
-        public Evaluator(string filePath){
+        public Dictionary<String, Dictionary<String, String>> Metadata { get; } = new Dictionary<String, Dictionary<String, String>>();
+
+        public DateTime DateTaken { get; }
+
+        public Boolean RuleMatched { get; private set; } = false;
+
+        public Evaluator(string filePath)
+        {
             this.FilePath = filePath;
             this.DateTaken = GetDateTaken(filePath);
 
-            try {
+            try
+            {
                 IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(filePath);
-                foreach (var directory in directories){
+                foreach (var directory in directories)
+                {
                     Metadata[directory.Name] = new Dictionary<String, String>();
-                    foreach (var tag in directory.Tags){
+                    foreach (var tag in directory.Tags)
+                    {
                         Metadata[directory.Name][tag.Name] = tag.Description!;
                     }
                 }
             }
-            catch (ImageProcessingException) {}
+            catch (ImageProcessingException) { }
         }
 
-        public object Evaluate(SyntaxNode node) {
-            switch(node) {
+        public object Evaluate(SyntaxNode node)
+        {
+            switch (node)
+            {
                 case ProgramNode p: return Evaluate(p.Block);
                 case StringNode n: return n.Value;
                 case BlockNode b: return block(b);
@@ -46,7 +55,7 @@ namespace DcimIngester.Rules {
                 case GreaterOrEqualNode g: return greaterOrEqual(g);
                 case ContainsNode c: return containsNode(c);
                 case MetadataNode m: return metadataNode(m);
-                case ExtensionNode: return Path.GetExtension(this.FilePath).Remove(0,1);
+                case ExtensionNode: return Path.GetExtension(this.FilePath).Remove(0, 1);
                 case YearNode: return this.DateTaken.Year.ToString();
                 case MonthNode: return this.DateTaken.Month.ToString("d2");
                 case DayNode: return this.DateTaken.Day.ToString("d2");
@@ -58,7 +67,7 @@ namespace DcimIngester.Rules {
                 case PathNameNode: return this.FilePath;
                 case EmptyNode: return null;
             }
-            throw(new Exception($"Unknown node type {node.GetType()}"));
+            throw (new Exception($"Unknown node type {node.GetType()}"));
         }
 
         private object containsNode(ContainsNode c)
@@ -73,17 +82,19 @@ namespace DcimIngester.Rules {
             string[] pathParts = this.FilePath.Split("\\");
             if (p.Part >= 0)
                 return pathParts[p.Part];
-            else  
+            else
                 return pathParts[^Math.Abs(p.Part)];
         }
 
         private object metadataNode(MetadataNode m)
         {
-            
-            Dictionary<String,String> directory;
+
+            Dictionary<String, String> directory;
             String tag;
-            if (this.Metadata.TryGetValue(m.Directory, out directory)){
-                if (directory.TryGetValue(m.Tag, out tag)){
+            if (this.Metadata.TryGetValue(m.Directory, out directory))
+            {
+                if (directory.TryGetValue(m.Tag, out tag))
+                {
                     return tag;
                 }
             }
@@ -120,19 +131,22 @@ namespace DcimIngester.Rules {
             return Convert.ToString(Evaluate(e.l)) == Convert.ToString(Evaluate(e.r));
         }
 
-        private string rule(RuleNode r)
+        private string? rule(RuleNode r)
         {
             string? result = null;
-            if ((bool)Evaluate(r.Condition)){
+            if ((bool)Evaluate(r.Condition))
+            {
                 result = (string)Evaluate(r.Path);
                 this.RuleMatched = true;
                 SyntaxNode indent = r.GetIndent();
-                if (indent is not null){
-                    result = Path.Join(result,Convert.ToString(Evaluate(indent)));
+                if (indent is not null)
+                {
+                    result = Path.Join(result, Convert.ToString(Evaluate(indent)));
                 }
             }
-            else if (r.Under is not EmptyNode){
-                result = Path.Join(result,Convert.ToString(Evaluate(r.Under)));
+            else if (r.Under is not EmptyNode)
+            {
+                result = Path.Join(result, Convert.ToString(Evaluate(r.Under)));
             }
             return result;
         }
@@ -140,15 +154,18 @@ namespace DcimIngester.Rules {
         private string path(PathNode p)
         {
             string result = "";
-            foreach(SyntaxNode part in p.Parts){
-                result = Path.Join(result,Convert.ToString(Evaluate(part)));
+            foreach (SyntaxNode part in p.Parts)
+            {
+                result = Path.Join(result, Convert.ToString(Evaluate(part)));
             }
             return result;
         }
 
-        private string? block(BlockNode b) {
+        private string? block(BlockNode b)
+        {
             string? result = null;
-            foreach(var statement in b.Statements) {
+            foreach (var statement in b.Statements)
+            {
                 result = (string)Evaluate(statement);   // use cast instead of Convert.ToString to allow for null return
                 if (result is not null) return result;
             }

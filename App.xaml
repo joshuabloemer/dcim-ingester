@@ -73,6 +73,11 @@
             </Setter>
         </Style>
 
+        <Style x:Key="TreeViewStyle" TargetType="{x:Type TreeView}">
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+        </Style>
+        
+
         <Style x:Key="CheckBoxStyle" TargetType="{x:Type CheckBox}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>

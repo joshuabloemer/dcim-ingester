@@ -85,14 +85,14 @@ namespace DcimIngester.Ingesting
 
                 string[] directories = Directory.GetDirectories(Path.Combine(VolumeLetter + ":", "DCIM"), "*.*", SearchOption.AllDirectories);
 
-                    foreach (string directory in directories)
+                foreach (string directory in directories)
+                {
+                    foreach (string file in Directory.GetFiles(directory))
                     {
-                        foreach (string file in Directory.GetFiles(directory))
-                        {
-                            filesToIngest.Add(file);
-                            TotalIngestSize += new FileInfo(file).Length;
-                        }
+                        filesToIngest.Add(file);
+                        TotalIngestSize += new FileInfo(file).Length;
                     }
+                }
 
                 isDiscovering = false;
                 return filesToIngest.Count > 0;

@@ -130,12 +130,15 @@ namespace DcimIngester.Ingesting
         {
             var evaluator = new Evaluator(path);
             string destination = (string)evaluator.Evaluate(rules);
-            
-            if (evaluator.RuleMatched){
-                destination = Path.Join(DestinationDirectory,destination);
+
+            if (evaluator.RuleMatched)
+            {
+                destination = Path.Join(DestinationDirectory, destination);
                 unsorted = false;
-            } else {
-                destination = Path.Join(DestinationDirectory,"Unsorted");
+            }
+            else
+            {
+                destination = Path.Join(DestinationDirectory, "Unsorted");
                 unsorted = true;
             }
             destination = CreateDestination(destination);

@@ -4,6 +4,9 @@ using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 using System;
 using System.Linq;
+using DcimIngester.Rules;
+using System.IO;
+using System.Collections.Generic;
 
 namespace DcimIngester.Windows
 {
@@ -18,6 +21,7 @@ namespace DcimIngester.Windows
         {
             TextBoxDestination.Text = Properties.Settings.Default.Destination;
             TextBoxRules.Text = Properties.Settings.Default.Rules;
+            ReloadFileTree();
 
         }
 
@@ -45,6 +49,7 @@ namespace DcimIngester.Windows
 
             if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 TextBoxRules.Text = fileDialog.FileName;
+            ReloadFileTree();
         }
 
         private void ValidateFields()
@@ -59,19 +64,109 @@ namespace DcimIngester.Windows
             else ButtonSave.IsEnabled = false;
         }
 
+
+        private void ButtonReloadFileTree_Click(object sender, RoutedEventArgs e)
+        {
+            ReloadFileTree();
+        }
+
+        private void ReloadFileTree()
+        {
+            if (Properties.Settings.Default.Rules != "")
+            {
+                var parser = new Parser();
+                var tree = parser.Parse(File.ReadAllText(Properties.Settings.Default.Rules));
+                var evaluator = new FileTreeEvaluator();
+                List<String> paths = (List<String>)evaluator.Evaluate(tree.Block);
+
+                PopulateTreeView(FileTreeView, paths, new char[] { '/', '\\' });
+            }
+        }
+
+        private void PopulateTreeView(System.Windows.Controls.TreeView treeView, IEnumerable<string> paths, char[] pathSeparators)
+        {
+            List<MyTreeViewItem> sourceCollection = new List<MyTreeViewItem>();
+            foreach (string path in paths)
+            {
+                string[] fileItems = path.Split(pathSeparators, StringSplitOptions.RemoveEmptyEntries);
+                if (fileItems.Any())
+                {
+
+                    MyTreeViewItem root = sourceCollection.FirstOrDefault(x => x.Name.Equals(fileItems[0]) && x.Level.Equals(1));
+                    if (root == null)
+                    {
+                        root = new MyTreeViewItem()
+                        {
+                            Level = 1,
+                            Name = fileItems[0],
+                            SubItems = new List<MyTreeViewItem>()
+                        };
+                        sourceCollection.Add(root);
+                    }
+
+                    if (fileItems.Length > 1)
+                    {
+
+                        MyTreeViewItem parentItem = root;
+                        int level = 2;
+                        for (int i = 1; i < fileItems.Length; ++i)
+                        {
+
+                            MyTreeViewItem subItem = parentItem.SubItems.FirstOrDefault(x => x.Name.Equals(fileItems[i]) && x.Level.Equals(level));
+                            if (subItem == null)
+                            {
+                                subItem = new MyTreeViewItem()
+                                {
+                                    Name = fileItems[i],
+                                    Level = level,
+                                    SubItems = new List<MyTreeViewItem>()
+                                };
+                                parentItem.SubItems.Add(subItem);
+                            }
+
+                            parentItem = subItem;
+                            level++;
+                        }
+                    }
+                }
+            }
+
+            treeView.ItemsSource = sourceCollection;
+        }
+
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
             Properties.Settings.Default.Destination = TextBoxDestination.Text;
             Properties.Settings.Default.Rules = TextBoxRules.Text;
 
             Properties.Settings.Default.Save();
-
             Close();
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+    }
+
+    public class MyTreeViewItem
+    {
+        public int Level
+        {
+            get;
+            set;
+        }
+
+        public string Name
+        {
+            get;
+            set;
+        }
+
+        public List<MyTreeViewItem> SubItems
+        {
+            get;
+            set;
         }
     }
 }

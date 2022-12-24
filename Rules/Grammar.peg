@@ -1,3 +1,5 @@
+//GNU GENERAL PUBLIC LICENSE Version 3
+
 @namespace DcimIngester.Rules
 @classname Parser
 
