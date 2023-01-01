@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DcimIngester", "DcimIngester.csproj", "{AF3553F5-DEC0-4B55-ABAD-174DCE352B24}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "DcimIngesterSetup", "..\DcimIngesterSetup\DcimIngesterSetup.vdproj", "{117F61C3-919A-4691-911C-E132E0B98E74}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "DcimIngesterSetup", "Setup\DcimIngesterSetup.vdproj", "{117F61C3-919A-4691-911C-E132E0B98E74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
