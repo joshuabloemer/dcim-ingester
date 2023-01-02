@@ -1,11 +1,9 @@
 //GNU GENERAL PUBLIC LICENSE Version 3
 using System;
 using System.Collections.Generic;
-using MetadataExtractor;
 using System.IO;
-using static DcimIngester.Utilities;
 
-namespace DcimIngester.Windows
+namespace DcimIngester.Rules
 {
     class FileTreeEvaluator
     {
