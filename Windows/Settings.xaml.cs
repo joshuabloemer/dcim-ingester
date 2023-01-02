@@ -59,9 +59,23 @@ namespace DcimIngester.Windows
                 TextBoxRules.Text.Length > 0 &&
                 TextBoxRules.Text != Properties.Settings.Default.Rules)
             {
-                ButtonSave.IsEnabled = true;
+                try
+                {
+                    var parser = new Parser();
+                    var tree = parser.Parse(File.ReadAllText(TextBoxRules.Text));
+                    ButtonSave.IsEnabled = true;
+                }
+                catch (System.FormatException)
+                {
+                    ButtonSave.IsEnabled = false;
+                    LabelSaveError.Content = "";
+                }
             }
-            else ButtonSave.IsEnabled = false;
+            else
+            {
+                LabelSaveError.Content = "Can't parse rules: Syntax Error";
+                ButtonSave.IsEnabled = false;
+            }
         }
 
 
@@ -74,12 +88,21 @@ namespace DcimIngester.Windows
         {
             if (Properties.Settings.Default.Rules != "")
             {
-                var parser = new Parser();
-                var tree = parser.Parse(File.ReadAllText(Properties.Settings.Default.Rules));
-                var evaluator = new FileTreeEvaluator();
-                List<String> paths = (List<String>)evaluator.Evaluate(tree.Block);
+                try
+                {
+                    var parser = new Parser();
+                    var tree = parser.Parse(File.ReadAllText(TextBoxRules.Text));
+                    var evaluator = new FileTreeEvaluator();
+                    List<String> paths = (List<String>)evaluator.Evaluate(tree.Block);
 
-                PopulateTreeView(FileTreeView, paths, new char[] { '/', '\\' });
+                    LabelSaveError.Content = "";
+                    PopulateTreeView(FileTreeView, paths, new char[] { '/', '\\' });
+                }
+                catch (System.FormatException)
+                {
+                    LabelSaveError.Content = "Can't parse rules: Syntax Error";
+                    PopulateTreeView(FileTreeView, new List<String>(), new char[] { '/', '\\' });
+                }
             }
         }
 
