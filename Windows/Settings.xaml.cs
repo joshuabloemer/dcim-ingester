@@ -140,7 +140,6 @@ namespace DcimIngester.Windows
             Properties.Settings.Default.Rules = TextBoxRules.Text;
 
             Properties.Settings.Default.Save();
-            Close();
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
