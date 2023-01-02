@@ -1,0 +1,2 @@
+Cscript WiRunSQL.vbs Debug/DcimIngesterSetup.msi "UPDATE `Shortcut` SET `Shortcut`.`Icon_`='DcimIngester' WHERE `Shortcut`.`Directory_`='StartupFolder'"
+@REM Cscript WiRunSQL.vbs Debug/DcimIngesterSetup.msi "UPDATE `Icon` SET `Icon`.`Name`='DcimIngester' WHERE `Icon`.`Name`='_4392225AE01E32F572CEB7.exe'"

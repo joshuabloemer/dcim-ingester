@@ -210,7 +210,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DcimIngester"
         "ProductCode" = "8:{11317A28-3D1B-4750-95BC-392C660BD4D2}"
-        "PackageCode" = "8:{75BACADB-322B-4F18-80B1-5429B1CC45A0}"
+        "PackageCode" = "8:{2AFEFEA8-8C59-41EF-9F0A-6E59BE71390F}"
         "UpgradeCode" = "8:{7DA82223-CBCB-4E87-976B-57F3B0444CAC}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -348,7 +348,7 @@
             {
             "Name" = "8:DcimIngester"
             "Arguments" = "8:"
-            "Description" = "8:"
+            "Description" = "8:DcimIngester"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
@@ -759,7 +759,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_1E5668E457D74D93BFCD5061608E5F14"
             {
-            "SourcePath" = "8:..\\dcim-ingester\\obj\\Debug\\net6.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\obj\\Debug\\net6.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_0C46A19EB93F49BA8915880058126E9E"
