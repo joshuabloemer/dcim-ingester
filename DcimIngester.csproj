@@ -6,13 +6,13 @@
     <UseWPF>True</UseWPF>
     <UseWindowsForms>False</UseWindowsForms>
     <Authors>Henry Hunt, Joshua Blömer</Authors>
-    <Company>Henry Hunt</Company>
+    <Company>Henry Hunt, Joshua Blömer</Company>
     <Product>DCIM Ingester</Product>
     <Description>A simple system tray application that ingests images from SD cards and sorts them into folders by date taken.</Description>
-    <Copyright>Copyright © Henry Hunt 2022, Joshua Blömer 2022</Copyright>
+    <Copyright>Copyright © Henry Hunt 2022, Joshua Blömer 2023</Copyright>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
-    <Version>2.4.0</Version>
+    <Version>3.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
