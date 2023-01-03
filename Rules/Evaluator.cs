@@ -63,7 +63,7 @@ namespace DcimIngester.Rules
                 case MinuteNode: return this.DateTaken.Minute.ToString("d2");
                 case SecondNode: return this.DateTaken.Second.ToString("d2");
                 case PathPartNode p: return pathPartNode(p);
-                case FileNameNode: return Path.GetFileName(this.FilePath);
+                case FileNameNode: return Path.GetFileNameWithoutExtension(this.FilePath);
                 case PathNameNode: return this.FilePath;
                 case EmptyNode: return null;
             }
