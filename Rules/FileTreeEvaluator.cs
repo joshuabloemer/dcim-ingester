@@ -28,7 +28,7 @@ namespace DcimIngester.Rules
                 case FileNameNode: return "file name";
                 case PathPartNode p: return $"path[{p.Part}]";
                 case PathNameNode: return "path";
-                case MetadataNode m: return $"{m.Directory};{m.Tag}";
+                case MetadataNode m: return $"{m.Directory} - {m.Tag}";
             }
             throw (new Exception($"Unknown node type {node.GetType()}"));
         }
