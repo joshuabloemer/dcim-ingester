@@ -15,9 +15,9 @@ rule<RuleNode>
   / (c:condition _ '"' p:path '"' EOL INDENT b:block UNDENT) {new RuleNode(c,p,new EmptyNode(),b)} 
   / (c:condition _ '"' p:path '"') {new RuleNode(c,p,new EmptyNode(),new EmptyNode())}
 
-  / (c:condition EOL INDENTATION r:rule) {new RuleNode(c,new EmptyNode(),r,new EmptyNode())}
-  / (c:condition EOL INDENT b:block UNDENT) {new RuleNode(c,new EmptyNode(),new EmptyNode(),b)}
-  / (c:condition) {new RuleNode(c,new EmptyNode(),new EmptyNode(),new EmptyNode())}
+  / (c:condition EOL INDENTATION r:rule) {new RuleNode(c,new PathNode(new StringNode("")),r,new EmptyNode())}
+  / (c:condition EOL INDENT b:block UNDENT) {new RuleNode(c,new PathNode(new StringNode("")),new EmptyNode(),b)}
+  / (c:condition) {new RuleNode(c,new PathNode(new StringNode("")),new EmptyNode(),new EmptyNode())}
 
 condition<SyntaxNode> 
   = (l:conditionType '=' r:conditionType) {new EqualsNode(l,r)}
@@ -52,7 +52,7 @@ conditionType<SyntaxNode>
     / "file name" {new FileNameNode()}
     / "path[" p:("" [0-9\-]+) "]" {new PathPartNode(int.Parse(p))}
     / "path" {new PathNameNode()}
-    / d:("" [^;]+) ";" t:("" [^=}]+) {new MetadataNode(d,t)}
+    / d:("" [^";]+) ";" t:("" [^="}]+) {new MetadataNode(d,t)}
     / '"' s:("" [^\\/:*?"<>|.]+) '"' {new StringNode(s)} 
 
 _ = [\t ]+
