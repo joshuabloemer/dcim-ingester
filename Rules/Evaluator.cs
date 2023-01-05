@@ -146,7 +146,7 @@ namespace DcimIngester.Rules
             }
             else if (r.Under is not EmptyNode)
             {
-                result = Path.Join(result, Convert.ToString(Evaluate(r.Under)));
+                result = (string)(Evaluate(r.Under));
             }
             return result;
         }
