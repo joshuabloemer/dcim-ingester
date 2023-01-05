@@ -20,14 +20,14 @@ rule<RuleNode>
   / (c:condition) {new RuleNode(c,new PathNode(new StringNode("")),new EmptyNode(),new EmptyNode())}
 
 condition<SyntaxNode> 
-  = (l:conditionType '=' r:conditionType) {new EqualsNode(l,r)}
-  / (l:conditionType '!=' r:conditionType) {new NotNode(l,r)}
-  / (l:conditionType '>' r:conditionType) {new GreaterThanNode(l,r)}
-  / (l:conditionType '<' r:conditionType) {new LessThanNode(l,r)}
-  / (l:conditionType '<=' r:conditionType) {new GreaterOrEqualNode(l,r)}
-  / (l:conditionType '>=' r:conditionType) {new LessOrEqualNode(l,r)}
+  = (l:conditionType _? '=' _? r:conditionType) {new EqualsNode(l,r)}
+  / (l:conditionType _? '!='_? r:conditionType) {new NotNode(l,r)}
+  / (l:conditionType _? '>' _? r:conditionType) {new GreaterThanNode(l,r)}
+  / (l:conditionType _? '<' _? r:conditionType) {new LessThanNode(l,r)}
+  / (l:conditionType _? '<='_? r:conditionType) {new GreaterOrEqualNode(l,r)}
+  / (l:conditionType _? '>='_? r:conditionType) {new LessOrEqualNode(l,r)}
   / 'any' {new AnyNode()}
-  / (l:conditionType ' contains ' r:conditionType) {new ContainsNode(l,r)}
+  / (l:conditionType _ 'contains' _ r:conditionType) {new ContainsNode(l,r)}
 
 stringInterpolation<SyntaxNode> = "{" c:conditionType "}" {c} 
 
