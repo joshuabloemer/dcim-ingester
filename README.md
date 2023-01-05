@@ -104,7 +104,7 @@ extension = "jpg" "/jpeg"
 Will place all files with .DNG extension in the folder raw and all files with the .jpg extension in the folder jpeg. If no top level rule matches the file will be placed into /Unsorted (having `any "/custom unsorted directory"` as the last rule effectively overwrites this with a custom directory)
 
 ### Indentation
-If a rules matches all rules that are by one level more (4 spaces) than the matching rule will also attempt to match as described in [Sequences](#sequences). There is no limit to the number of indents.
+If a rules matches all rules that are indented by one level more (4 spaces) than the matching rule will also attempt to match as described in [Sequences](#sequences). There is no limit to the number of indents.
 
 ```python
 extension = "jpg" "/jpg"
