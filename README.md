@@ -1,9 +1,6 @@
 # DCIM Ingester
 A system tray application that ingests images from SD cards and other storage media and sorts them into folders based on customizable rules with support for exif metadata. The user is automatically prompted to start an ingest whenever an applicable volume is mounted to the system.
 
-- The user is only prompted if the volume contains a DCIM folder and contains at least one ingestable file.
-- Within DCIM, only folders that conform to the DCF specification are ingested from, which means non-image directories that cameras often create are ignored.
-- Only files with a date taken EXIF attribute are sorted into folders by date taken. All other files are ingested into an "Unsorted" folder.
 
 # Usage
 - Install the program with the provided MSI installer
@@ -12,7 +9,6 @@ A system tray application that ingests images from SD cards and other storage me
 	- Select your config file containing the rules. (For a detailed explanation see [Rules](#rules))
 	- Check the folder tree preview
 - Connect an SD card and respond to the prompt.
-
 
 
 # Rules
@@ -72,7 +68,7 @@ Will evaluate to the original path of the file currently being ingested.
 ### `path[i]`/`path[-i]`
 Will evaluate to the ith directory of the original path (zero indexed). -1 is the first directory from the end, -2 the second, etc.
 
-### `metaDataDirectory;metaDataTag`
+### `metaDataDirectory;metaDataTag;`
 This argument allows full access to a files (exif) metadata. `metaDataDirectory` is the directory the tag is in and `metaDataTag` is the tag to get. A tool to list metadata directories and tags of a file is available [here](https://github.com/joshuabloemer/metadata-viewer/releases). This argument will evaluate to `null` if the file has no metadata, the directory doesn't exist or the tag doesn't exist.
 
 ## Path
@@ -89,6 +85,8 @@ For example: `any "{year}/{month}/{day}"`
 
 will sort all files into folders by date taken.
 
+The path can also be conpletely left out. If a rule without a path is matched it will advance to the next indentation level.
+
 ## Chaining rules together
 Rules can be chained together to allow for more complex sorting.
 
@@ -97,9 +95,9 @@ Rules can be chained together to allow for more complex sorting.
 
 If two or more rules are placed below each other with the same indentaion level the first one that matches will be executed. All other rules will be ignored
 ```python
-extension="DNG" "/raw"
+extension = "DNG" "/raw"
 
-extension="jpg" "/jpeg"
+extension = "jpg" "/jpeg"
 
 ...
 ```
@@ -109,11 +107,11 @@ Will place all files with .DNG extension in the folder raw and all files with th
 If a rules matches all rules that are by one level more (4 spaces) than the matching rule will also attempt to match as described in [Sequences](#sequences). There is no limit to the number of indents.
 
 ```python
-extension="jpg" "/jpg"
+extension = "jpg" "/jpg"
     path contains "Panorama" "/panorama"
 		...
 
-	year="2022" "/last year"
+	year = "2022" "/last year"
 		...
 ```
 
@@ -124,8 +122,8 @@ Will place all files with the .jpg extension in the folder `jpg/panorama` if the
 If two or more rules are placed directly below each other any rule that matches will then try to match the next indented rule.
 
 ```python
-extension="DNG" "/raw"
-extension="jpg" "/jpeg"
+extension = "DNG" "/raw"
+extension = "jpg" "/jpeg"
 	any "/{year}/{month}/{day}"
 ```
 Will place all files with the .DNG extension in `/raw/year/month/day` and all files with the .jpg extension in `/jpeg/year/month/day` where year, month and day are the year, month and date the file was created. 
@@ -143,12 +141,12 @@ any "/{year}/{month}/{day}"
 ```
 Will place all files into directories based on the file creation time
 ```python
-extension="MP4" "/videos"
-extension="DNG" "/photos/raw"
-extension="JPG" "/photos/jpeg"
+extension = "MP4" "/videos"
+extension = "DNG" "/photos/raw"
+extension = "JPG" "/photos/jpeg"
 	any "/{year}/{month}/{day}"
-		Exif IFD0;Model="null" "/{year}/{month}/{day}" 
-		any "/{Exif IFD0;Model}"
+		Exif IFD0;Model; = "null" 
+		any "/{Exif IFD0;Model;}"
 
 any "/other files"
 ```
