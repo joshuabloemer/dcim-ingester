@@ -29,7 +29,8 @@ namespace DcimIngester
             taskbarIcon = new()
             {
                 ToolTipText = "DCIM Ingester",
-                ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu")
+                ContextMenu = (ContextMenu)FindResource("TaskbarIconContextMenu"),
+                MenuActivation = PopupActivationMode.All
             };
 
             using (Stream stream = GetResourceStream(new Uri(
