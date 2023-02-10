@@ -171,7 +171,15 @@ namespace DcimIngester.Windows
         {
             Close();
         }
+
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (this.WindowState == WindowState.Minimized)
+                Close();
+        }
     }
+
+
 
     public class MyTreeViewItem
     {
